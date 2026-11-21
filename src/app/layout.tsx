@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-type="software" data-radius="soft" data-ground="sand" data-buttons="solid" data-motion>
+    <html lang="en" data-type="software" data-radius="soft" data-ground="sand" data-buttons="solid" data-motion suppressHydrationWarning>
       <head>
         <meta name="page-type" content="software" />
         <meta name="site-kind" content="software" />
@@ -37,13 +37,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="modulepreload" href="/assets/moments/line-carries-colour/moment.js" />
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('m-enter', 'mo-js'); setTimeout(() => document.documentElement.classList.add('m-enter-done', 'mo-safe'), 2500);" }} />
         <link rel="stylesheet" href="/assets/system.css" />
-        <link rel="stylesheet" href="/assets/ui/base.css" />
         <link rel="stylesheet" href="/assets/ui/cards.css" />
-        <link rel="stylesheet" href="/assets/ui/window/fragment.css" />
         <link rel="stylesheet" href="/assets/motion/motion.css" />
         <link rel="stylesheet" href="/assets/backgrounds/backgrounds.css" />
         <link rel="stylesheet" href="/assets/layout/layout.css" />
         <link rel="stylesheet" href="/assets/icons/icon.css" />
+        <link rel="stylesheet" href="/assets/ui/base.css" />
+        <link rel="stylesheet" href="/assets/ui/window/fragment.css" />
         <link rel="stylesheet" href="/assets/moments/line-carries-colour/moment.css" />
         <link rel="stylesheet" href="/css/site.css" />
       </head>
