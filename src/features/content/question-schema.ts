@@ -39,8 +39,7 @@ const answerOptionSchema = z.object({
   content: z.array(questionContentBlockSchema).min(1),
 });
 
-export const questionRevisionSchema = z
-  .object({
+const questionRevisionFields = z.object({
     schemaVersion: z.literal(1),
     contentKey: z.string().uuid(),
     revision: z.number().int().positive(),
@@ -63,8 +62,9 @@ export const questionRevisionSchema = z
     reviewedBy: z.string().uuid().optional(),
     reviewedAt: z.string().datetime().optional(),
     assetIds: z.array(z.string().uuid()),
-  })
-  .superRefine((question, ctx) => {
+  });
+
+export const questionRevisionSchema = questionRevisionFields.superRefine((question, ctx) => {
     const optionIds = question.options.map((option) => option.id);
     if (new Set(optionIds).size !== optionIds.length) {
       ctx.addIssue({ code: "custom", path: ["options"], message: "Option ids must be unique." });
@@ -79,7 +79,7 @@ export const questionRevisionSchema = z
     }
   });
 
-export const examSafeQuestionSchema = questionRevisionSchema.omit({
+export const examSafeQuestionSchema = questionRevisionFields.omit({
   correctOptionId: true,
   explanation: true,
   authoredBy: true,
