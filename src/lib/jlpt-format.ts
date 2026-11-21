@@ -59,7 +59,7 @@ export const jlptFormats: Record<JlptLevel, JlptLevelFormat> = {
     sections: [
       {
         code: "vocabulary",
-        label: "Language Knowledge (Vocabulary)",
+        label: "Vocabulary",
         minutes: 30,
         scoreCategories: ["language-knowledge"],
       },
@@ -82,7 +82,7 @@ export const jlptFormats: Record<JlptLevel, JlptLevelFormat> = {
     sections: [
       {
         code: "vocabulary",
-        label: "Language Knowledge (Vocabulary)",
+        label: "Vocabulary",
         minutes: 25,
         scoreCategories: ["language-knowledge-reading"],
       },
