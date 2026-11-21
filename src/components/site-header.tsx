@@ -2,6 +2,7 @@ export function SiteHeader() {
   return (
     <header className="nav nav--split">
       <div className="wrap nav__bar">
+        <a className="skip-link" href="#top">Skip to content</a>
         <a className="nav__logo" href="#top" aria-label="JLPT practice home">
           <span className="mark" data-mark="arc" aria-hidden="true" />
           JLPT practice
