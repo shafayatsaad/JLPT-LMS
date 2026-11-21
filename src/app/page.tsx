@@ -24,7 +24,7 @@ export default function HomePage() {
               <div className="hero__media span-6 start-7" aria-label="Origami Sakura tree hero image">
                 {/* User-provided still. Replace this image element with the approved loop when the hero video is supplied. */}
                 <Image
-                  src="/hero/origami-sakura-tree.png"
+                  src="/hero/origami-sakura-tree.webp"
                   alt="A cherry blossom tree made from folded pink and ivory paper, with origami cranes and petals."
                   width={1536}
                   height={1024}
@@ -44,7 +44,7 @@ export default function HomePage() {
               <h2 id="practice-h">See the answer and its reasoning</h2>
               <p>After submission, the review pairs a selected answer with the correct choice and a written explanation.</p>
             </div>
-            <div className="ui app app-frame" role="group" aria-label="JLPT question and answer review interface preview">
+            <div className="ui app app-frame" role="img" aria-label="JLPT N5 review screen: a vocabulary question, four answer choices, the correct answer, and its explanation." data-ui-pause-host>
               <div className="app__pane app__pane--list">
                 <div className="ui ui-panel ui-win">
                   <div className="ui-win__bar">
