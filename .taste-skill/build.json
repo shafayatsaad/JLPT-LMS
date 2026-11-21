@@ -3,5 +3,8 @@
  "dir": "D:\\JLPT LMS",
  "kind": "software",
  "start": "2026-11-21T21:28:40.583Z",
- "by": "start.mjs"
+ "by": "start.mjs",
+ "url": "http://127.0.0.1:3000/",
+ "category": "JLPT mock exams",
+ "primary": "Choose a JLPT level"
 }
