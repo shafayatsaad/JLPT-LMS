@@ -41,8 +41,8 @@ export default function HomePage() {
         <section className="section ground-surface" id="practice" aria-labelledby="practice-h">
           <div className="wrap">
             <div className="section-head practice-head">
-              <h2 id="practice-h">See the answer and its reasoning</h2>
-              <p>After submission, the review pairs a selected answer with the correct choice and a written explanation.</p>
+              <h2 id="practice-h">The JLPT question review screen</h2>
+              <p>Compare your answer with the key, then read why the other choices do not fit.</p>
             </div>
             <div className="ui app app-frame" role="img" aria-label="JLPT N5 review screen: a vocabulary question, four answer choices, the correct answer, and its explanation." data-ui-pause-host>
               <div className="app__pane app__pane--list">
@@ -112,15 +112,15 @@ export default function HomePage() {
             <div className="review-steps">
               <article className="review-step">
                 <div className="review-step__visual"><Clock3 size={24} aria-hidden="true" /><span>Section timer</span><span className="review-step__line" /></div>
-                <div className="review-step__copy"><span className="step-num">01</span><h3>Take a timed paper</h3><p>Work through the level’s timed sections with saved answers and clear section transitions.</p></div>
+                <div className="review-step__copy"><span className="step-num">01</span><h3>Timed paper</h3><p>Work through timed sections with saved answers and clear transitions.</p></div>
               </article>
               <article className="review-step">
                 <div className="review-step__visual"><BookOpen size={24} aria-hidden="true" /><span>Answer explanation</span><span className="review-step__line" /></div>
-                <div className="review-step__copy"><span className="step-num">02</span><h3>Read each explanation</h3><p>Compare your answer with the key, then review why the distractors do not fit.</p></div>
+                <div className="review-step__copy"><span className="step-num">02</span><h3>Answer review</h3><p>Compare your answer with the key and the written rationale.</p></div>
               </article>
               <article className="review-step">
                 <div className="review-step__visual"><RotateCcw size={24} aria-hidden="true" /><span>Targeted practice</span><span className="review-step__line" /></div>
-                <div className="review-step__copy"><span className="step-num">03</span><h3>Return to missed skills</h3><p>Use question tags to build a focused set from reviewed content.</p></div>
+                <div className="review-step__copy"><span className="step-num">03</span><h3>Targeted practice</h3><p>Use question tags to revisit the skills behind missed answers.</p></div>
               </article>
             </div>
           </div>
@@ -129,8 +129,8 @@ export default function HomePage() {
         <section className="section levels-section" id="levels" aria-labelledby="levels-h">
           <div className="wrap">
             <div className="section-head levels-head">
-              <h2 id="levels-h">Choose your JLPT level</h2>
-              <p>Check the official timed sections and how each level reports score categories.</p>
+              <h2 id="levels-h">JLPT section timings by level</h2>
+              <p>See the timed test sections and the score categories for each level.</p>
             </div>
             <LevelFormatSelector />
           </div>
@@ -139,26 +139,39 @@ export default function HomePage() {
         <section className="section ground-surface faq-section" id="questions" aria-labelledby="questions-h">
           <div className="wrap">
             <div className="section-head faq-head">
-              <h2 id="questions-h">Questions about JLPT practice</h2>
-              <p>How the platform handles content, levels, and results.</p>
+              <h2 id="questions-h">Question quality and mock results</h2>
+              <p>Original content is checked before a question enters a paper.</p>
             </div>
-            <div className="faq-list">
+            <div className="question-layout">
+              <div className="faq-list">
               <article className="faq-item">
-                <h3>Is this an official JLPT platform?</h3>
-                <p>No. This is an independent learning platform; the JLPT organizers do not operate or endorse it.</p>
+                <h3>Independent platform</h3>
+                <p>JLPT organizers do not operate or endorse this platform.</p>
               </article>
               <article className="faq-item">
-                <h3>Are practice results official scores?</h3>
-                <p>No. Results show raw performance on a mock paper. They do not reproduce the JLPT’s scaled score or predict a pass.</p>
+                <h3>Mock score reporting</h3>
+                <p>Results show raw performance, not an official scaled score.</p>
               </article>
               <article className="faq-item">
-                <h3>How are questions and explanations prepared?</h3>
-                <p>Content is written in advance, checked for Japanese accuracy and level fit, and reviewed before it enters a published paper.</p>
+                <h3>Five JLPT levels</h3>
+                <p>The planned question bank covers N1 through N5.</p>
               </article>
-              <article className="faq-item">
-                <h3>Which levels will the platform cover?</h3>
-                <p>The launch scope is N1, N2, N3, N4, and N5. The selector above shows each level’s current JLPT section timings.</p>
-              </article>
+              </div>
+              <div className="ui ui-panel content-review-preview" role="img" aria-label="Content review preview with checks for Japanese accuracy, JLPT level fit, and answer rationale.">
+                <div className="content-review-preview__bar">
+                  <span className="ui-dots" aria-hidden="true"><i /><i /><i /></span>
+                  <span>Question checks <i>/</i> N5</span>
+                  <span className="content-review-preview__tag">Review flow</span>
+                </div>
+                <div className="content-review-preview__body">
+                  <p className="t-label">Before publication</p>
+                  <ul className="content-review-preview__rows">
+                    <li><span>Japanese accuracy</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
+                    <li><span>Level and item type</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
+                    <li><span>Answer rationale</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </section>
