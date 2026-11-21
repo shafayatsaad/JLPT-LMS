@@ -5,7 +5,7 @@
 - Product kind: software. Product: an independent JLPT preparation and mock-exam platform.
 - Audience: learners preparing for JLPT N1–N5.
 - Main action: **Choose a JLPT level**. The level selector shows the official test-section timing and scoring-category mapping.
-- Hero: use the supplied origami Sakura PNG as the real still image now. Keep the image slot replaceable by a muted, looped video when the video asset arrives.
+- Hero: use the supplied origami Sakura artwork as the still image now (optimized WebP derived from the supplied PNG). Keep the image slot replaceable by a muted, looped video when the video asset arrives.
 - Copy and content: manually authored questions and explanations, with review before publication. No runtime AI or AI-generated study plans.
 - Exam integrity: server-owned timers, deadlines, answer writes, grading, and answer-key release. Approved question revisions and published exam forms are frozen.
 - Site system: Next.js App Router, TypeScript, Supabase PostgreSQL/Auth, accessible paper surfaces, and minimal exam screens.
