@@ -1,7 +1,7 @@
 export function SiteFooter() {
   return (
     <>
-      <footer className="footer closing footer--dark ground-inverse" id="closing" aria-labelledby="close-h">
+      <footer className="footer closing footer--dark ground-inverse origami-theme" id="closing" aria-labelledby="close-h">
         <div className="wrap">
           <div className="closing__cta close--type">
             <div className="section-head">
@@ -42,7 +42,7 @@ export function SiteFooter() {
           </div>
         </div>
       </footer>
-      <nav className="actionbar" aria-label="Quick action">
+      <nav className="actionbar origami-theme" aria-label="Quick action">
         <a className="btn btn--primary" href="#levels">Choose a JLPT level</a>
       </nav>
     </>

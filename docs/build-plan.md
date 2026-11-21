@@ -5,7 +5,7 @@
 - Product kind: software. Product: an independent JLPT preparation and mock-exam platform.
 - Audience: learners preparing for JLPT N1–N5.
 - Main action: **Choose a JLPT level**. The level selector shows the official test-section timing and scoring-category mapping.
-- Hero: use the supplied origami Sakura artwork as the still image and poster (optimized WebP derived from the supplied PNG), with the supplied muted, looped 1280×720 video layered over it. The image remains visible when video playback is unavailable or reduced motion is requested.
+- Hero: use the supplied origami Sakura artwork as the still image and poster (optimized WebP derived from the supplied PNG), with the supplied muted 1280×720 video layered over it. The clip plays forward and back for a continuous loop with matching endpoints and no restart cut. The image remains visible when video playback is unavailable or reduced motion is requested; the video blends directly into the page with no separate frame.
 - Copy and content: manually authored questions and explanations, with review before publication. No runtime AI or AI-generated study plans.
 - Exam integrity: server-owned timers, deadlines, answer writes, grading, and answer-key release. Approved question revisions and published exam forms are frozen.
 - Site system: Next.js App Router, TypeScript, Supabase PostgreSQL/Auth, accessible paper surfaces, and minimal exam screens.
@@ -14,9 +14,9 @@
 
 Kind: software (`data-type="software"`, `site-kind="software"`).
 
-Palette: use the supplied product palette rather than the skill's generic SaaS deal. Paper `#FBFAF7`, secondary paper `#F5F1E9`, ink `#20232B`, and indigo action `#454B78`. Sakura pink stays mainly in the supplied art. Outfit is the dealt display and text face; DM Mono is reserved for timing metadata.
+Palette: follow the user's Origami and Sakura direction throughout the public site: warm paper, blossom pink, and deep cherry ink. Use Shippori Mincho for display headings and Outfit for interface text; reserve DM Mono for timing metadata. Controls and feature surfaces use folded-corner cues and angular paper planes. Keep the exam screen focused on readable test-taking rather than decorative theme details.
 
-Hero composition: split, copy on the left and tree image on the right. The skill dealer returned `product`, `photo`, `film`, and `centred` on successive material-aware deals. Their recipes respectively require a product object, full-bleed photo, an actual video, or centered copy. None fits the brief: the tree is the supplied brand visual, the video is not ready, and the V6 build spec requires a right-side tree with left-side copy. Use the brief's split composition and record this override.
+Hero composition: split, copy on the left and the supplied tree visual on the right. The skill dealer returned `product`, `photo`, `film`, and `centred` on successive material-aware deals. Their recipes respectively require a product object, full-bleed photo, a video, or centered copy. The brief requires the right-side tree with left-side copy, so use the supplied video and original still in that composition.
 
 The first nav deal was `nav-cards`, which requires several different product photographs. Only one brand image is supplied, so re-deal to `nav-split` with no image panel. The random selection gave `footer-dark`, `close-type`, `surface-pairs`, `pill`, and `arc`. Keep the paper palette, `footer-dark`, `close-type`, `surface-pairs`, and `arc`; use the crisp solid button treatment required by the product spec instead of the pill button.
 

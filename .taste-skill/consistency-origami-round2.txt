@@ -1,0 +1,120 @@
+consistency  http://127.0.0.1:3000/
+--quick: not checked: scroll-linked (stepping), scroll-reveal (the reveal walk; IntersectionObserver reveals are read), hover-spill, hidden-visual, loop-pause, forms, reduced-motion, the dead-IntersectionObserver walk (hidden content is read with scripts off and under reduced motion), hover-move. Still told: IntersectionObserver reveals (scroll-reveal), held sections (pinned) and CSS scroll timelines (scroll-linked); faults inside held or [data-big-scene] sections are WARNs
+
+1440x900  7 screens  4 FAIL  9 WARN
+  FAIL hero-fill       section#practice  "The JLPT question review screen"
+       the next section shows on the first screen: it starts at 891px on a 900px screen (the hero ends at 900px)  [1440-01-hero-fill.jpg]
+       fix: let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load
+  FAIL flush           h2#practice-h  "The JLPT question review screen"
+       its first line sits -9px under the top edge of section#practice, where the ground changes  [1440-03-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL no-visual       section#levels  "JLPT section timings by level"
+       no picture, effect or mock in this section; a feature section needs a visual  [1440-10-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL ui-centre       div.wrap > div.ui.app > div.app__pane.app__pane--list > div.ui.ui-panel  "Practice / N5 Find a question Paper Revi"
+       a fragment meant for the middle sits off the middle of its panel: 1px of ground at the left, 747px at the right  [1440-04-ui-centre.jpg]
+       fix: centre the fragment (equal side gaps), or anchor it at a corner and cut it by the panel's edge
+  WARN cut-text        div.ui-win__main > ul.ui-win__rows > li.ui-win__row:nth-of-type(6) > span.ui-win__sub  "Sentence composition"
+       shortened with an ellipsis  [1440-05-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  WARN dark-ground     section#practice > div.wrap > div.ui.app
+       the ground behind the UI is nearly as light as the UI on it (white on near-white)  [1440-06-dark-ground.jpg]
+       fix: light the ground behind the UI (a daylight data-fx-palette): at least 3:1 against the card
+  WARN text-contrast   div.ui-win__main > ul.ui-win__rows > li.ui-win__row:nth-of-type(1) > span.ui-win__st  "Reviewed"
+       2 lines of text in drawn mocks read under 4.5:1 (1 colour pair), the worst "Reviewed" in #837177 on #fff0f1 at 4.13:1  [1440-07-text-contrast.jpg]
+       fix: lift the mocks' muted text (labels, meta, initials) to 4.5:1 on their own panel, or set it larger
+  WARN section-gaps    section#practice / section#review
+       260px between these sections, -43% against the median 457px of gaps at a change of ground  [1440-08-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#practice / section#review
+       uneven space at the edge of a band: 242px outside its edge, 17px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1440-09-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#questions / footer#closing
+       uneven space at the edge of a band: 346px outside its edge, 111px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1440-11-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN empty-area      main#top > section.hero.hero--split  "JLPT mock exams for N1–N5"
+       42% of the section is empty: 272px under its last (a.btn.btn--primary), 5% beside content that covers under half the container, in its 728px of rows (WARN over 35%, FAIL over 50%)  [1440-02-empty-area.jpg]
+       fix: fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)
+  WARN section-air     section#questions  "Question checks and score reportingOrigi"
+       the content fills 49.1% of the section's height (443 of 900px): 55% or more (40% WARN) (SR-3)  [1440-rhythm-01-section-air.jpg]
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+  WARN one-section     section#practice  "The JLPT question review screenCompare y"
+       the screen at scroll 0px (stride 0) shows 9px of section 2 beside section 1: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)  [1440-rhythm-02-one-section.jpg]
+       fix: make each section exactly one screen or two, so a screen shows one section and no neighbour peeks
+
+390x844  8 screens  4 FAIL  2 WARN
+  FAIL hero-fill       section#practice  "The JLPT question review screen"
+       the next section shows on the first screen: it starts at 838px on a 844px screen (the hero ends at 844px)  [390-01-hero-fill.jpg]
+       fix: let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load
+  FAIL flush           h2#practice-h  "The JLPT question review screen"
+       its first line sits -6px under the top edge of section#practice, where the ground changes  [390-02-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL scroll-reveal   section#levels  "JLPT section timings by level See the ti"
+       starts "color" (0.1 s) the moment it is scrolled into view (an IntersectionObserver) on a.link  [390-04-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  FAIL no-visual       section#levels  "JLPT section timings by level"
+       no picture, effect or mock in this section; a feature section needs a visual  [390-05-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  WARN cut-text        h2#review-h  "Mock exam review steps"
+       cut 6px at the top by the overflow of section#review (inside a held section or scroll scene, whose motion --quick does not check)  [390-03-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  WARN section-gaps    section#practice / section#review
+       292px between these sections, +25% against the median 233px  [390-06-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+
+first screen at 1280, 1152, 1024, 896, 768  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+
+checks
+  PASS assets                 PASS shader-lint            PASS gl-fallback            
+  PASS empty-visual           FAIL hero-fill              FAIL flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            PASS nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  SKIP hover-spill            PASS overlap-text           PASS collide                
+  PASS tap-size               PASS row-gap                WARN cut-text               
+  PASS fold-cut               PASS marquee                SKIP scroll-linked          
+  FAIL scroll-reveal          PASS pinned                 SKIP loop-pause             
+  SKIP reduced-motion         PASS hidden-content         PASS webgl                  
+  FAIL no-visual              PASS text-only              PASS card-visual            
+  SKIP hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  FAIL ui-centre              WARN dark-ground            PASS button-styles          
+  PASS button-shape           PASS same-action            PASS button-picture         
+  PASS cta                    PASS pricing-tiers          PASS copy-headline          
+  PASS copy-fact              PASS copy-headings          PASS copy-buttons           
+  PASS copy-actions           PASS heading-scale          PASS stagger                
+  PASS top-stagger            PASS off-grid               PASS col-edge               
+  PASS right-edge             PASS centre-axis            PASS tilt                   
+  PASS contrast               WARN text-contrast          PASS body-size              
+  PASS busy-ground            WARN section-gaps           PASS proximity              
+  PASS hole                   PASS links                  SKIP forms                  
+  PASS photo-upscale          PASS photo-set              PASS photo-credit           
+  PASS nav-family             PASS nav-labels             PASS link-styles            
+  PASS heading-align          PASS label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            PASS fade-cut               
+  PASS photo-weight           PASS copy-length            PASS nav-current            
+  PASS progress-bar           PASS photo-repeat           PASS button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             PASS fold-action            PASS action-count           
+  PASS one-screen             SKIP hover                  SKIP hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             PASS moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           PASS hero-screen            PASS section-height         
+  WARN section-air            WARN one-section            PASS one-heading            
+  PASS container-edges        PASS row-lines              PASS split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           WARN empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               PASS focus-ring             PASS focus-visible          
+  PASS focus-hidden           PASS skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              PASS share-meta             
+  PASS action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  8 FAIL  11 WARN  (crops and report.json in C:\Users\shafa\AppData\Local\Temp\taste-skill-consistency\127.0.0.1-3000)

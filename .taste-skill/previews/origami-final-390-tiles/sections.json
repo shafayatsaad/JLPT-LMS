@@ -1,0 +1,120 @@
+{
+ "url": "http://127.0.0.1:3000/",
+ "views": {
+  "mobile": {
+   "width": 390,
+   "height": 844,
+   "navH": 56,
+   "scrollHeight": 5294,
+   "screens": 6.27,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "section",
+     "id": "",
+     "cls": "hero hero--split is-still is-entered",
+     "top": 0,
+     "h": 844,
+     "hScreens": 1,
+     "offGrid": 0,
+     "tiles": [
+      {
+       "file": "mobile-sec-01-a.jpg",
+       "scrollY": 0
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "section",
+     "id": "practice",
+     "cls": "section ground-surface",
+     "top": 844,
+     "h": 844,
+     "hScreens": 1,
+     "offGrid": 0,
+     "tiles": [
+      {
+       "file": "mobile-sec-02-a.jpg",
+       "scrollY": 844
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "tag": "section",
+     "id": "review",
+     "cls": "section ground-inverse review-section mo-lc is-done",
+     "top": 1688,
+     "h": 974,
+     "hScreens": 1.15,
+     "offGrid": 130,
+     "tiles": [
+      {
+       "file": "mobile-sec-03-a.jpg",
+       "scrollY": 1688
+      },
+      {
+       "file": "mobile-sec-03-b.jpg",
+       "scrollY": 1818
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "tag": "section",
+     "id": "levels",
+     "cls": "section levels-section",
+     "top": 2662,
+     "h": 844,
+     "hScreens": 1,
+     "offGrid": 0,
+     "tiles": [
+      {
+       "file": "mobile-sec-04-a.jpg",
+       "scrollY": 2662
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "tag": "section",
+     "id": "questions",
+     "cls": "section ground-surface faq-section",
+     "top": 3506,
+     "h": 945,
+     "hScreens": 1.12,
+     "offGrid": 101,
+     "tiles": [
+      {
+       "file": "mobile-sec-05-a.jpg",
+       "scrollY": 3506
+      },
+      {
+       "file": "mobile-sec-05-b.jpg",
+       "scrollY": 3607
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "tag": "footer",
+     "id": "closing",
+     "cls": "footer closing footer--dark ground-inverse origami-theme",
+     "top": 4450,
+     "h": 844,
+     "hScreens": 1,
+     "offGrid": 0,
+     "tiles": [
+      {
+       "file": "mobile-sec-06-a.jpg",
+       "scrollY": 4450
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  }
+ },
+ "at": "2026-11-21T22:44:22.984Z"
+}

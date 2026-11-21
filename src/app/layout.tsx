@@ -30,12 +30,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="site-kind" content="software" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=Shippori+Mincho:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <link rel="preload" as="image" href="/hero/origami-sakura-tree.webp" type="image/webp" />
-        <link rel="modulepreload" href="/assets/moments/moments.js" />
-        <link rel="modulepreload" href="/assets/moments/lib.js" />
-        <link rel="modulepreload" href="/assets/moments/line-carries-colour/moment.js" />
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('m-enter', 'mo-js'); setTimeout(() => document.documentElement.classList.add('m-enter-done', 'mo-safe'), 2500);" }} />
         <link rel="stylesheet" href="/assets/system.css" />
         <link rel="stylesheet" href="/assets/ui/cards.css" />
         <link rel="stylesheet" href="/assets/motion/motion.css" />
@@ -44,7 +40,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="stylesheet" href="/assets/icons/icon.css" />
         <link rel="stylesheet" href="/assets/ui/base.css" />
         <link rel="stylesheet" href="/assets/ui/window/fragment.css" />
-        <link rel="stylesheet" href="/assets/moments/line-carries-colour/moment.css" />
         <link rel="stylesheet" href="/css/site.css" />
       </head>
       <body>

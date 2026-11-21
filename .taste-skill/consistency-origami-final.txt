@@ -1,0 +1,174 @@
+consistency  http://127.0.0.1:3000/
+--quick: not checked: scroll-linked (stepping), scroll-reveal (the reveal walk; IntersectionObserver reveals are read), hover-spill, hidden-visual, loop-pause, forms, reduced-motion, the dead-IntersectionObserver walk (hidden content is read with scripts off and under reduced motion), hover-move. Still told: IntersectionObserver reveals (scroll-reveal), held sections (pinned) and CSS scroll timelines (scroll-linked); faults inside held or [data-big-scene] sections are WARNs
+
+1440x900  7 screens  17 FAIL  7 WARN
+  FAIL scroll-reveal   section#levels  "JLPT section timings by level See the ti"
+       starts "color" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on button#format-tab-n1  [1440-16-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  FAIL no-visual       section#levels  "JLPT section timings by level"
+       no picture, effect or mock in this section; a feature section needs a visual  [1440-13-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL button-styles   (the page)
+       3 button styles on the page: slanted (cut by clip-path), fill #9d3f59, outline #873348 x1 ("Choose a JLPT level"); slanted (cut by clip-path), fill #fff8f4, outline #c47788 x1 ("See a question review"); slanted (cut by clip-path), fill #fff5f0, outline #f0c0ca x1 ("Choose a JLPT level")  [1440-01-button-styles.jpg]
+       fix: one primary and one secondary button: one shape, one height per size, one label size
+  FAIL button-shape    div.hero-text.grid > div.hero__text.span-5 > div.btn-row > a.btn.btn--primary  "Choose a JLPT level"
+       cut by clip-path button  [1440-02-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL button-shape    div.hero-text.grid > div.hero__text.span-5 > div.btn-row > a.btn.btn--secondary  "See a question review"
+       cut by clip-path button  [1440-03-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL button-shape    footer#closing > div.wrap > div.closing__cta.close--type > a.btn.btn--primary  "Choose a JLPT level"
+       cut by clip-path button  [1440-18-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL copy-headings   div.review-steps > article.review-step:nth-of-type(3) > div.review-step__copy > h3  "Targeted practice"
+       "Targeted practice" names no product, part, place or section (2 headings like it; at most one brand line per page) (and 1 more like it: "Independent platform")  [1440-08-copy-headings.jpg]
+       fix: name the thing in every heading: the product, a part, the place or a section noun
+  FAIL text-contrast   section#practice > div.wrap > div.section-head.practice-head > p  "Compare your answer with the key, then r"
+       body text in #66545b on #fff4f1 reads 6.52:1 (needs 7:1)  [1440-04-text-contrast.jpg]
+       fix: body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels
+  FAIL text-contrast   section#review > div.wrap > div.section-head > p  "Each completed paper leads to a review t"
+       body text in #9d828b on #482b37 reads 3.58:1 (needs 7:1)  [1440-09-text-contrast.jpg]
+       fix: body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels
+  FAIL text-contrast   section#levels > div.wrap > div.section-head.levels-head > p  "See the timed test sections and the scor"
+       body text in #66545b on #fffaf7 reads 6.79:1 (needs 7:1)  [1440-14-text-contrast.jpg]
+       fix: body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels
+  FAIL section-gaps    section#practice / section#review
+       140px between these sections, -65% against the median 405px of gaps at a change of ground  [1440-10-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN flush           section#review > div.mo-lc__stage > div.mo-lc__cover
+       its first line sits 17px under the top edge of section#review, where the ground changes  [1440-11-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  WARN cut-text        div.ui-win__main > ul.ui-win__rows > li.ui-win__row:nth-of-type(6) > span.ui-win__sub  "Sentence composition"
+       shortened with an ellipsis  [1440-05-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  WARN col-edge        section#practice > div.wrap > div.ui.app > div.app__pane.app__pane--open  "Answer review / N5 vocabulary Reviewed Q"
+       the second column starts at 3 places: 614px (section#practice), 732px (section.hero.hero--split), 771px (section#questions)  [1440-06-col-edge.jpg]
+       fix: start the second column of every split on the same one or two grid columns
+  WARN text-contrast   div.ui-win__main > ul.ui-win__rows > li.ui-win__row:nth-of-type(1) > span.ui-win__st  "Reviewed"
+       2 lines of text in drawn mocks read under 4.5:1 (1 colour pair), the worst "Reviewed" in #837177 on #fff0f1 at 4.13:1  [1440-07-text-contrast.jpg]
+       fix: lift the mocks' muted text (labels, meta, initials) to 4.5:1 on their own panel, or set it larger
+  WARN section-gaps    section#practice / section#review
+       uneven space at the edge of a band: 122px outside its edge, 17px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1440-12-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#review / section#levels
+       uneven space at the edge of a band: 111px outside its edge, 340px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1440-15-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#questions / footer#closing
+       uneven space at the edge of a band: 294px outside its edge, 111px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1440-17-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  FAIL split-pair      main#top > section.hero.hero--split > div.wrap > div.hero-text.grid  "Independent JLPT practiceJLPT mock exams"
+       the two columns of the split start 181px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)  [1440-rhythm-01-split-pair.jpg]
+       fix: top-align both columns of the split (align-items: start)
+  FAIL split-pair      section#questions > div.wrap > div.section-head.faq-head  "Question checks and score reportingOrigi"
+       the two columns of the split start 95px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)
+       fix: top-align both columns of the split (align-items: start)
+  FAIL split-pair      section#questions > div.wrap > div.question-layout  "Independent platformJLPT organizers do n"
+       the two columns of the split start 14px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)
+       fix: top-align both columns of the split (align-items: start)
+  FAIL split-pair      section#questions > div.wrap > div.section-head.faq-head  "Question checks and score reportingOrigi"
+       the split's columns are off the page's one pair of lines: its right column starts at x 470, the first split's at 732; its right column starts at x 470, on none of the split lines 623 (k=5), 732 (k=6), 841 (k=7) (SR-8)
+       fix: start every split's right column on one shared line (wrap.left + k x (width + 24) / 12, k 5, 6 or 7; 6 on a place page) and end the left one 24px before it
+  FAIL split-pair      section#questions > div.wrap > div.question-layout  "Independent platformJLPT organizers do n"
+       the split's columns are off the page's one pair of lines: its right column starts at x 771, the first split's at 732; its right column starts at x 771, on none of the split lines 623 (k=5), 732 (k=6), 841 (k=7) (SR-8)
+       fix: start every split's right column on one shared line (wrap.left + k x (width + 24) / 12, k 5, 6 or 7; 6 on a place page) and end the left one 24px before it
+  FAIL split-pair      section#questions > div.wrap > div.section-head.faq-head  "Question checks and score reportingOrigi"
+       the split does not run edge to edge on the container: its right column ends at 880px, the container's right at 1360px (SR-8)
+       fix: run the split from the container's left line to its right line
+
+390x844  8 screens  11 FAIL  2 WARN
+  FAIL scroll-reveal   section#levels  "JLPT section timings by level See the ti"
+       starts "color" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on button#format-tab-n1  [390-09-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  FAIL scroll-reveal   footer#closing > div.wrap > div.closing__cta.close--type > a.btn.btn--primary  "Choose a JLPT level"
+       starts "color" (0.1 s) the moment it is scrolled into view (an IntersectionObserver)  [390-11-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  FAIL scroll-reveal   div.span-3.start-7 > ul > li:nth-of-type(3) > a  "Level formats"
+       starts "color" (0.1 s) the moment it is scrolled into view (an IntersectionObserver)  [390-12-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  FAIL no-visual       section#levels  "JLPT section timings by level"
+       no picture, effect or mock in this section; a feature section needs a visual  [390-10-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL button-styles   (the page)
+       4 button styles on the page: slanted (cut by clip-path), fill #9d3f59, outline #873348 x1 ("Choose a JLPT level"); slanted (cut by clip-path), fill #fff8f4, outline #c47788 x1 ("See a question review"); soft, fill #9d3f59 x1 ("Choose a JLPT level"); slanted (cut by clip-path), fill #fff5f0, outline #f0c0ca x1 ("Choose a JLPT level")  [390-01-button-styles.jpg]
+       fix: one primary and one secondary button: one shape, one height per size, one label size
+  FAIL button-shape    div.hero-text.grid > div.hero__text.span-5 > div.btn-row > a.btn.btn--primary  "Choose a JLPT level"
+       cut by clip-path button  [390-02-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL button-shape    div.hero-text.grid > div.hero__text.span-5 > div.btn-row > a.btn.btn--secondary  "See a question review"
+       cut by clip-path button  [390-03-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL button-shape    footer#closing > div.wrap > div.closing__cta.close--type > a.btn.btn--primary  "Choose a JLPT level"
+       cut by clip-path button  [390-13-button-shape.jpg]
+       fix: square the button up: no skew, rotation or clip-path
+  FAIL same-action     div.hero-text.grid > div.hero__text.span-5 > div.btn-row > a.btn.btn--primary  "Choose a JLPT level"
+       "Choose a JLPT level" appears 3 times in different looks: slanted (cut by clip-path), fill #9d3f59, outline #873348 and soft, fill #9d3f59  [390-04-same-action.jpg]
+       fix: draw one action the same way everywhere (only the nav copy may be one size smaller)
+  FAIL text-contrast   section#practice > div.wrap > div.section-head.practice-head > p  "Compare your answer with the key, then r"
+       body text in #66545b on #fff4f1 reads 6.52:1 (needs 7:1)  [390-05-text-contrast.jpg]
+       fix: body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels
+  FAIL text-contrast   section#levels > div.wrap > div.section-head.levels-head > p  "See the timed test sections and the scor"
+       body text in #66545b on #fffaf7 reads 6.79:1 (needs 7:1)  [390-08-text-contrast.jpg]
+       fix: body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels
+  WARN section-gaps    section#practice / section#review
+       267px between these sections, +30% against the median 205px of gaps at a change of ground  [390-06-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#practice / section#review
+       uneven space at the edge of a band: 177px outside its edge, 90px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [390-07-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+
+first screen at 1280, 1152, 1024, 896, 768  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+
+checks
+  PASS assets                 PASS shader-lint            PASS gl-fallback            
+  PASS empty-visual           PASS hero-fill              WARN flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            PASS nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  SKIP hover-spill            PASS overlap-text           PASS collide                
+  PASS tap-size               PASS row-gap                WARN cut-text               
+  PASS fold-cut               PASS marquee                SKIP scroll-linked          
+  FAIL scroll-reveal          PASS pinned                 SKIP loop-pause             
+  SKIP reduced-motion         PASS hidden-content         PASS webgl                  
+  FAIL no-visual              PASS text-only              PASS card-visual            
+  SKIP hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  PASS ui-centre              PASS dark-ground            FAIL button-styles          
+  FAIL button-shape           FAIL same-action            PASS button-picture         
+  PASS cta                    PASS pricing-tiers          PASS copy-headline          
+  PASS copy-fact              FAIL copy-headings          PASS copy-buttons           
+  PASS copy-actions           PASS heading-scale          PASS stagger                
+  PASS top-stagger            PASS off-grid               WARN col-edge               
+  PASS right-edge             PASS centre-axis            PASS tilt                   
+  PASS contrast               FAIL text-contrast          PASS body-size              
+  PASS busy-ground            FAIL section-gaps           PASS proximity              
+  PASS hole                   PASS links                  SKIP forms                  
+  PASS photo-upscale          PASS photo-set              PASS photo-credit           
+  PASS nav-family             PASS nav-labels             PASS link-styles            
+  PASS heading-align          PASS label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            PASS fade-cut               
+  PASS photo-weight           PASS copy-length            PASS nav-current            
+  PASS progress-bar           PASS photo-repeat           PASS button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             PASS fold-action            PASS action-count           
+  PASS one-screen             SKIP hover                  SKIP hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             PASS moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           PASS hero-screen            PASS section-height         
+  PASS section-air            PASS one-section            PASS one-heading            
+  PASS container-edges        PASS row-lines              FAIL split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           PASS empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               PASS focus-ring             PASS focus-visible          
+  PASS focus-hidden           PASS skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              PASS share-meta             
+  PASS action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  28 FAIL  9 WARN  (crops and report.json in C:\Users\shafa\AppData\Local\Temp\taste-skill-consistency\127.0.0.1-3000)
