@@ -8,5 +8,4 @@ Keep these out of code and public copy until approved:
 - Whether OTP applies at every login or only under defined conditions.
 - Product name, domain, and final brand mark.
 - English-only or English/Bangla explanations.
-- Final hero-video file, duration, desktop/mobile aspect ratios, size budget, and crop.
 - Privacy, terms, refund, and cancellation policy text.
