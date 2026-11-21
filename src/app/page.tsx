@@ -144,18 +144,18 @@ export default function HomePage() {
             </div>
             <div className="question-layout">
               <div className="faq-list">
-              <article className="faq-item">
-                <h3>Independent platform</h3>
-                <p>JLPT organizers do not operate or endorse this platform.</p>
-              </article>
-              <article className="faq-item">
-                <h3>Mock score reporting</h3>
-                <p>Results show raw performance, not an official scaled score.</p>
-              </article>
-              <article className="faq-item">
-                <h3>Five JLPT levels</h3>
-                <p>The planned question bank covers N1 through N5.</p>
-              </article>
+                <article className="faq-item">
+                  <h3>Independent platform</h3>
+                  <p>JLPT organizers do not operate or endorse this platform.</p>
+                </article>
+                <article className="faq-item">
+                  <h3>Mock score reporting</h3>
+                  <p>Results show raw performance, not an official scaled score.</p>
+                </article>
+                <article className="faq-item">
+                  <h3>Five JLPT levels</h3>
+                  <p>The planned question bank covers N1 through N5.</p>
+                </article>
               </div>
               <div className="ui ui-panel content-review-preview" role="img" aria-label="Content review preview with checks for Japanese accuracy, JLPT level fit, and answer rationale.">
                 <div className="content-review-preview__bar">
