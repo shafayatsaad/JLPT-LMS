@@ -1,0 +1,29 @@
+{
+  "name": "jlpt-practice-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "check:copy": "node scripts/copy-lint.mjs http://127.0.0.1:3000/ --kind software",
+    "check:design": "node scripts/consistency.mjs http://127.0.0.1:3000/ --widths 1440,1024,820,768,390 --rhythm-widths 1440,820,768,390 --page software --category \"JLPT mock exams\" --primary \"Choose a JLPT level\""
+  },
+  "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "typescript": "latest"
+  }
+}
