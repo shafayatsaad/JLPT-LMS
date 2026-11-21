@@ -2,7 +2,7 @@
   --p-bg: #fbfaf7;
   --p-surface: #f5f1e9;
   --p-ink: #20232b;
-  --p-muted: #666a78;
+  --p-muted: #4a4d5a;
   --p-accent: #454b78;
   --p-accent-ink: #fbfaf7;
   --p-action: #454b78;
@@ -10,7 +10,7 @@
   --p-inv-bg: #20232b;
   --p-inv-surface: #2d3037;
   --p-inv-ink: #fbfaf7;
-  --p-inv-muted: #a0a1a3;
+  --p-inv-muted: #c4c6ce;
   --p-inv-accent: #fbfaf7;
   --p-inv-accent-ink: #20232b;
   --p-inv-action: #fbfaf7;
@@ -55,7 +55,7 @@ main { overflow: clip; }
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   height: clamp(420px, 56vh, 540px);
-  margin-top: var(--s-7);
+  margin-top: 0;
   overflow: hidden;
   background: var(--u-bg);
   border: 1px solid var(--u-border);
@@ -74,7 +74,7 @@ main { overflow: clip; }
 .app-frame .ui-win__nav svg { flex: 0 0 auto; }
 .app-frame .ui-win__main { min-width: 0; }
 .app-frame .ui-win__cols { grid-template-columns: 1.1fr 1.45fr .75fr; gap: 10px; }
-.app-frame .ui-win__row { display: grid; grid-template-columns: 22px 1.1fr 1.45fr .75fr; gap: 8px; min-height: 44px; padding: 8px 10px; }
+.app-frame .ui-win__row { display: grid; grid-template-columns: 22px 1.1fr 1.45fr .75fr; gap: 8px; min-height: 40px; padding: 6px 10px; }
 .app-frame .ui-win__who, .app-frame .ui-win__sub { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .app-frame .ui-win__who { font-size: 13px; }
 .app-frame .ui-win__sub { font-size: 13px; }
@@ -85,13 +85,13 @@ main { overflow: clip; }
 .review-window { height: 100%; overflow: hidden; background: var(--u-bg); color: var(--p-ink); }
 .review-window__bar { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 20px; border-bottom: 1px solid var(--u-line); color: var(--p-muted); font-size: 13px; }
 .review-window__bar > span:nth-child(2) { display: flex; gap: 8px; align-items: center; }
-.review-window__bar i { color: #9698a0; font-style: normal; }
+.review-window__bar i { color: var(--p-muted); font-style: normal; }
 .review-window__state { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: #2f7658; }
-.review-window__body { padding: 22px 28px 28px; }
+.review-window__body { padding: 18px 24px 18px; }
 .review-window__body .t-label { margin: 0 0 12px; color: var(--p-muted); }
-.review-window__prompt { margin: 0 0 18px; font-size: clamp(22px, 2.1vw, 30px); line-height: 1.5; letter-spacing: .02em; color: var(--p-ink); }
-.review-options { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.review-options li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 18px; align-items: center; gap: 10px; min-height: 42px; padding: 6px 12px; border: 1px solid color-mix(in oklab, var(--p-ink) 12%, transparent); border-radius: var(--r-sm); font-size: 15px; }
+.review-window__prompt { margin: 0 0 14px; font-size: clamp(22px, 2.1vw, 30px); line-height: 1.5; letter-spacing: .02em; color: var(--p-ink); }
+.review-options { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.review-options li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 18px; align-items: center; gap: 10px; min-height: 40px; padding: 5px 12px; border: 1px solid color-mix(in oklab, var(--p-ink) 12%, transparent); border-radius: var(--r-sm); font-size: 15px; }
 .review-options li:first-child { background: #eef3ec; border-color: #9db59c; }
 .review-options__letter { color: var(--p-muted); font-family: var(--font-mono); font-size: 12px; }
 .review-options__mark { display: inline-flex; color: #2f7658; }
@@ -103,7 +103,7 @@ main { overflow: clip; }
 .review-section { --hm: 2; }
 .review-section .section-head { max-width: 780px; }
 .review-section .section-head > p { color: var(--p-inv-muted); }
-.review-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: var(--s-7); }
+.review-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 0; }
 .review-step { min-width: 0; }
 .review-step__visual { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; height: 180px; padding: 20px; overflow: hidden; border: 1px solid rgb(251 250 247 / 16%); border-radius: var(--r-lg); background: var(--p-inv-surface); color: var(--p-inv-ink); }
 .review-step__visual > svg { color: var(--sakura-300); }
