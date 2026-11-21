@@ -9,7 +9,7 @@ export function LevelFormatSelector() {
   const categoryLabels = new Map(selected.scoreCategories.map((category) => [category.code, category.label]));
 
   return (
-    <div className="format-picker">
+    <div className="ui format-picker" role="group" aria-label="JLPT test format by level">
       <div className="format-picker__tabs" role="tablist" aria-label="JLPT level">
         {jlptLevels.map((level) => (
           <button
@@ -50,7 +50,6 @@ export function LevelFormatSelector() {
       >
         <div className="format-picker__heading">
           <h3>{selectedLevel} test sections</h3>
-          <p>Timed sections and score-report categories are mapped separately.</p>
         </div>
         <div className="format-table-wrap">
           <table className="format-table">
@@ -73,9 +72,8 @@ export function LevelFormatSelector() {
           </table>
         </div>
         <div className="format-picker__foot">
-          <p>Practice results use raw performance; they do not reproduce an official scaled score.</p>
           <a className="link" href="https://www.jlpt.jp/e/guideline/testsections.html" target="_blank" rel="noreferrer">
-            Read official JLPT test sections
+            JLPT section guide
           </a>
         </div>
       </div>
