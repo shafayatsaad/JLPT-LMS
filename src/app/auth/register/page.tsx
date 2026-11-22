@@ -6,7 +6,7 @@ export const metadata = { title: "Create account · JLPT practice" };
 
 export default function RegisterPage() {
   return (
-    <ProductPage eyebrow="Create a learner account" title="Set up your practice space" description="Create an account with email or phone and a password, or continue with Google." className="product-page--auth">
+    <ProductPage eyebrow="Create a learner account" title="Set up your practice space" description="Create an account with email and a password, or continue with Google. Phone registration will be available after SMS is configured." className="product-page--auth">
       <ProductSection title="Create your account">
         <PaperPanel className="auth-panel">
           <AuthForm mode="register" />
