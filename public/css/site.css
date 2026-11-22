@@ -352,6 +352,8 @@ body { background: var(--p-bg); color: var(--p-ink); }
 .origami-theme .hero__kicker { color: #704c57; }
 .origami-theme .hero__kicker .dot { background: var(--sakura-500); box-shadow: 0 0 0 4px var(--sakura-100); }
 .origami-theme .hero__lead { color: #59454d; }
+.origami-theme #top .hero--split .hero__grid { row-gap: 24px; align-content: start; }
+.origami-theme #top .hero--split .hero__text { grid-column: 1 / span 8; grid-row: 1; max-width: 760px; }
 .origami-theme .hero--split .hero__media {
   position: relative;
   display: grid;
@@ -366,6 +368,8 @@ body { background: var(--p-bg); color: var(--p-ink); }
   align-self: start;
   background: transparent;
   overflow: visible;
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
 .origami-theme .hero--split .hero__motion {
   position: relative;
@@ -489,7 +493,7 @@ body { background: var(--p-bg); color: var(--p-ink); }
     margin-top: 24px;
     margin-left: calc((100% - 100vw) / 2);
   }
-  .origami-theme .hero--split .hero__media { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
+  .origami-theme .hero--split .hero__media { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .origami-theme .format-time-strip { gap: 4px; height: 220px; margin-top: 12px; }
   .origami-theme .format-time-strip__segment { padding: 10px 8px; }
   .origami-theme .format-time-strip__duration { font-size: 18px; }
