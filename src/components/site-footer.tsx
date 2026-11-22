@@ -1,4 +1,6 @@
-export function SiteFooter() {
+import Link from "next/link";
+
+export function SiteFooter({ showActionbar = false }: { showActionbar?: boolean }) {
   return (
     <>
       <footer className="footer closing footer--dark ground-inverse origami-theme" id="closing" aria-labelledby="close-h">
@@ -8,29 +10,35 @@ export function SiteFooter() {
               <h2 id="close-h">Start with a JLPT level</h2>
               <p>See the timed sections for N1–N5.</p>
             </div>
-            <a className="btn btn--primary btn--xl" href="#levels">Choose a JLPT level</a>
+            <Link className="btn btn--primary btn--xl" href="/levels/N5">Choose a JLPT level</Link>
           </div>
           <div className="closing__links">
             <div className="grid">
               <div className="span-6 footer__identity">
-                <a className="nav__logo" href="#top">
+                <Link className="nav__logo" href="/">
                   <span className="mark" data-mark="arc" aria-hidden="true" />
                   JLPT practice
-                </a>
+                </Link>
                 <p className="footer__lede">Independent preparation for the Japanese-Language Proficiency Test.</p>
               </div>
               <div className="span-3 start-7 footer__col">
                 <h3>Practice</h3>
                 <ul>
-                  <li><a href="#practice">Question review</a></li>
-                  <li><a href="#review">Mistake review</a></li>
-                  <li><a href="#levels">Level formats</a></li>
+                  <li><Link href="/#practice">Question review</Link></li>
+                  <li><Link href="/mistakes">Mistake review</Link></li>
+                  <li><Link href="/#levels">Level formats</Link></li>
+                  <li><Link href="/pricing">Plans and access</Link></li>
+                  <li><Link href="/auth/register">Create account</Link></li>
                 </ul>
               </div>
               <div className="span-3 footer__col">
                 <h3>About the scores</h3>
                 <ul>
-                  <li><a href="#questions">Scoring questions</a></li>
+                  <li><Link href="/about">About the platform</Link></li>
+                  <li><Link href="/legal/privacy">Privacy draft</Link></li>
+                  <li><Link href="/legal/terms">Terms draft</Link></li>
+                  <li><Link href="/legal/refunds">Refund draft</Link></li>
+                  <li><Link href="/legal/copyright">Copyright draft</Link></li>
                   <li><a href="https://www.jlpt.jp/e/guideline/results.html" target="_blank" rel="noreferrer">Official JLPT scoring</a></li>
                 </ul>
               </div>
@@ -42,9 +50,9 @@ export function SiteFooter() {
           </div>
         </div>
       </footer>
-      <nav className="actionbar origami-theme" aria-label="Quick action">
-        <a className="btn btn--primary" href="#levels">Choose a JLPT level</a>
-      </nav>
+      {showActionbar && <nav className="actionbar origami-theme" aria-label="Quick action">
+        <Link className="btn btn--primary" href="/#levels">Choose a JLPT level</Link>
+      </nav>}
     </>
   );
 }

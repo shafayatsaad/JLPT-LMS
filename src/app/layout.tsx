@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { OrigamiScrollReveal } from "@/components/origami-scroll-reveal";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -43,9 +44,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="stylesheet" href="/css/site.css" />
       </head>
       <body>
+        <Script id="motion-first-paint" strategy="beforeInteractive">
+          {`document.documentElement.classList.add("m-enter");window.setTimeout(()=>document.documentElement.classList.add("m-enter-done"),700);`}
+        </Script>
         {children}
+        <OrigamiScrollReveal />
         <Script src="/assets/system.js" type="module" strategy="afterInteractive" />
         <Script src="/assets/layout/layout.js" type="module" strategy="afterInteractive" />
+        <Script src="/js/moment-route-sync.js" type="module" strategy="afterInteractive" />
         <Script src="/assets/motion/motion.js" type="module" strategy="afterInteractive" />
       </body>
     </html>

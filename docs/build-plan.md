@@ -5,7 +5,7 @@
 - Product kind: software. Product: an independent JLPT preparation and mock-exam platform.
 - Audience: learners preparing for JLPT N1–N5.
 - Main action: **Choose a JLPT level**. The level selector shows the official test-section timing and scoring-category mapping.
-- Hero: use the supplied origami Sakura artwork as the complete still tree (optimized WebP derived from the supplied PNG) beside the newer Kling MOV, rendered as a muted 1280×720 H.264 loop that plays forward and back. Show the full video frame in its own unframed 16:9 space; do not crop or mask it. Set the complete still tree to the right, and let both paper backgrounds blend into the warm hero ground. Keep the full still tree as the fallback when playback is unavailable or reduced motion is requested.
+- Hero: use only `kling_20261122_VIDEO_Animate_th_2406_0.mov` as the moving hero media, rendered as a muted 1280×720 H.264 loop that plays forward and back. Show the full video frame in an unframed 16:9 space; do not crop or mask it. Use the supplied origami Sakura artwork (optimized WebP derived from the supplied PNG) as the video poster and the static fallback when playback is unavailable or reduced motion is requested.
 - Copy and content: manually authored questions and explanations, with review before publication. No runtime AI or AI-generated study plans.
 - Exam integrity: server-owned timers, deadlines, answer writes, grading, and answer-key release. Approved question revisions and published exam forms are frozen.
 - Site system: Next.js App Router, TypeScript, Supabase PostgreSQL/Auth, accessible paper surfaces, and minimal exam screens.
@@ -16,7 +16,7 @@ Kind: software (`data-type="software"`, `site-kind="software"`).
 
 Palette: follow the user's Origami and Sakura direction throughout the public site: warm paper, blossom pink, and deep cherry ink. Use Shippori Mincho for display headings and Outfit for interface text; reserve DM Mono for timing metadata. Controls and feature surfaces use folded-corner cues and angular paper planes. Keep the exam screen focused on readable test-taking rather than decorative theme details.
 
-Hero composition: split, copy on the left and a full-frame animation with the complete static tree shifted to its right on the other side. The skill dealer returned `product`, `photo`, `film`, and `centred` on successive material-aware deals. Their recipes respectively require a product object, full-bleed photo, a video, or centered copy. The brief requires the tree with left-side copy, so use the supplied video and original still in that composition.
+Hero composition: split, copy on the left and the single full-frame animation on the right. The skill dealer returned `product`, `photo`, `film`, and `centred` on successive material-aware deals. Their recipes respectively require a product object, full-bleed photo, a video, or centered copy. The brief requires the tree with left-side copy; the supplied still is the video's poster and playback fallback.
 
 The first nav deal was `nav-cards`, which requires several different product photographs. Only one brand image is supplied, so re-deal to `nav-split` with no image panel. The random selection gave `footer-dark`, `close-type`, `surface-pairs`, `pill`, and `arc`. Keep the paper palette, `footer-dark`, `close-type`, `surface-pairs`, and `arc`; use the crisp solid button treatment required by the product spec instead of the pill button.
 
@@ -40,6 +40,15 @@ Navigation words: Practice, Review, Levels, Questions. Every link lands on a rea
 3. Build the public experience and product-interface preview using the taste system, followed by the N5 exam vertical slice.
 4. Keep unspecified plan/pricing, payment-provider, OTP, policy, and product-name values configurable until decided.
 
+## Current implementation checkpoint — 22 November 2026
+
+- The homepage and N1–N5 section selector are in place, using the single latest Sakura hero video and the supplied still as its fallback.
+- `/levels/[level]` shows the verified timed sections and score-category mapping for each level.
+- The N5 preview flow covers details, instructions, a sample question workspace, a sample result, and answer review.
+- The N5 flow is interface preview content only. It uses two original sample questions, browser-tab answer storage, an illustrative local timer, and a listening placeholder. It is not a published form or a saved attempt.
+- The exam workspace uses a plain high-contrast layout. Public, level, result, and review pages use the Origami Sakura styling and reduced-motion-aware fold reveals.
+- The authenticated exam vertical slice still requires configured Supabase Auth, server-side attempt/timer actions, approved exam content, and listening assets before it can be treated as a real mock exam.
+
 ## Source checks
 
 - Official JLPT sections and item types: <https://www.jlpt.jp/e/guideline/testsections.html>
@@ -49,3 +58,15 @@ Navigation words: Practice, Review, Levels, Questions. Every link lands on a rea
 ## Browser review
 
 Use the Taste Skill checker, layout checker, screenshot runner, performance checker, and finish gate against the local Next.js HTTP page. Do not serve the page through `file://`.
+
+## Supabase and remaining product routes — 22 November 2026
+
+- `.env.local` was copied from `.env.example` for local development and is ignored by Git. The project Auth health endpoint returned HTTP 200 using the publishable key.
+- The app reads `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and keeps the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` as a fallback. No service-role key is required by browser code.
+- Added Supabase SSR cookie refresh, email-confirmed registration, email OTP sign-in, password recovery, profile preferences, learner dashboard, account, mistake notebook, raw result and completed-attempt review routes.
+- Added independent-platform information, pricing/access placeholder, and clearly marked legal draft routes. Prices, payment instructions, plan terms, and legal terms remain unpublished until approved.
+- Added role-gated staff pages for content, authoring/import, review, assets, blueprints, forms, payments, user roles, and audit records. Question-review decisions use a transactional Postgres function; other privileged operations remain unavailable until their server actions are implemented.
+- The top navigation now shows only sign-in/sign-up while signed out, and Dashboard/Account while signed in. The Staff link appears only for authenticated staff; `/admin` also checks the database role server-side.
+- Email signup and magic-link confirmation can use a click-to-confirm token-hash page, with manual OTP entry as a fallback. Sign-in and sign-up now include Google OAuth; the Google provider still must be configured in Supabase and Google Cloud for it to complete.
+- Added `supabase/migrations/202611220002_auth_and_rls_hardening.sql` for profile/role provisioning, explicit RLS and API grants, a private media bucket, question review, and post-submission answer review. Added `supabase/migrations/202611220003_spec_alignment.sql` for explicit question families, shared-content group ordering, answer-to-form-item integrity, blueprint section durations, and immutable attempt form snapshots. The migrations still need to be applied in the hosted Supabase project after checking migration history; see `docs/supabase-setup.md`.
+- The exam preview remains a browser-only demonstration. It is not connected to the saved-attempt, timer, answer-write, or grading workflow.

@@ -91,7 +91,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="section ground-inverse review-section" id="review" aria-labelledby="review-h">
+        <section className="section ground-inverse review-section" id="review" aria-labelledby="review-h" data-moment="line-carries-colour" data-moment-opts='{"from":"surface"}'>
           <div className="wrap">
             <div className="section-head">
               <h2 id="review-h">Mock exam review steps</h2>
@@ -164,7 +164,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter showActionbar />
     </>
   );
 }

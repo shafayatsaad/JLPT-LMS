@@ -96,6 +96,9 @@ export function LevelFormatSelector() {
           </table>
         </div>
         <div className="format-picker__foot">
+          <a className="btn btn--secondary format-picker__level-link" href={`/levels/${selectedLevel.toLowerCase()}`}>
+            Explore {selectedLevel} level <span aria-hidden="true">↗</span>
+          </a>
           <a className="link" href="https://www.jlpt.jp/e/guideline/testsections.html" target="_blank" rel="noreferrer">
             JLPT section guide
           </a>
