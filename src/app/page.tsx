@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { ArrowUpRight, BookOpen, Check, Clock3, RotateCcw } from "lucide-react";
+import { HeroTreeMedia } from "@/components/hero-tree-media";
 import { LevelFormatSelector } from "@/components/level-format-selector";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -8,32 +8,20 @@ export default function HomePage() {
   return (
     <>
       <SiteHeader />
-      <main id="top">
+      <main id="top" className="origami-theme">
         <section className="hero hero--split" data-enter aria-labelledby="hero-h">
           <div className="wrap">
             <div className="hero-text grid hero__grid">
               <div className="hero__text span-5">
                 <p className="hero__kicker"><span className="dot" aria-hidden="true" />Independent JLPT practice</p>
                 <h1 id="hero-h">JLPT mock exams for N1–N5</h1>
-                <p className="hero__lead">Take timed papers, review each answer, and choose focused practice from a manually prepared question bank.</p>
+                <p className="hero__lead">Timed papers, reviewed answers, and focused practice for JLPT N1–N5.</p>
                 <div className="btn-row">
                   <a className="btn btn--primary" href="#levels">Choose a JLPT level<ArrowUpRight size={16} aria-hidden="true" /></a>
                   <a className="btn btn--secondary" href="#practice">See a question review</a>
                 </div>
               </div>
-              <div className="hero__media span-6 start-7" aria-label="Origami Sakura tree hero image">
-                {/* User-provided still. Replace this image element with the approved loop when the hero video is supplied. */}
-                <Image
-                  src="/hero/origami-sakura-tree.webp"
-                  alt="A cherry blossom tree made from folded pink and ivory paper, with origami cranes and petals."
-                  width={1536}
-                  height={1024}
-                  priority
-                  sizes="(max-width: 1023px) 100vw, 50vw"
-                  data-source="client"
-                  data-subject="origami Sakura tree"
-                />
-              </div>
+              <HeroTreeMedia />
             </div>
           </div>
         </section>
@@ -46,7 +34,7 @@ export default function HomePage() {
             </div>
             <div className="ui app app-frame" role="img" aria-label="JLPT N5 review screen: a vocabulary question, four answer choices, the correct answer, and its explanation." data-ui-pause-host>
               <div className="app__pane app__pane--list">
-                <div className="ui ui-panel ui-win">
+                <div className="ui-win">
                   <div className="ui-win__bar">
                     <span className="ui-dots" aria-hidden="true"><i /><i /><i /></span>
                     <span className="ui-win__crumb">Practice <i>/</i> N5</span>
@@ -67,7 +55,7 @@ export default function HomePage() {
                         <li className="ui-win__row is-active"><span className="ui-avatar" data-tone="3">文</span><span className="ui-win__who">Vocabulary</span><span className="ui-win__sub">Context expression</span><span className="ui-win__st is-you">Open</span></li>
                         <li className="ui-win__row"><span className="ui-avatar" data-tone="4">語</span><span className="ui-win__who">Vocabulary</span><span className="ui-win__sub">Paraphrase</span><span className="ui-win__st">Answered</span></li>
                         <li className="ui-win__row"><span className="ui-avatar" data-tone="5">文</span><span className="ui-win__who">Grammar</span><span className="ui-win__sub">Select a form</span><span className="ui-win__st">Answered</span></li>
-                        <li className="ui-win__row"><span className="ui-avatar" data-tone="2">文</span><span className="ui-win__who">Grammar</span><span className="ui-win__sub">Sentence composition</span><span className="ui-win__st">Next</span></li>
+                        <li className="ui-win__row"><span className="ui-avatar" data-tone="2">文</span><span className="ui-win__who">Grammar</span><span className="ui-win__sub">Sentence building</span><span className="ui-win__st">Next</span></li>
                         <li className="ui-win__row"><span className="ui-avatar" data-tone="1">文</span><span className="ui-win__who">Grammar</span><span className="ui-win__sub">Text grammar</span><span className="ui-win__st">Next</span></li>
                         <li className="ui-win__row"><span className="ui-avatar" data-tone="4">読</span><span className="ui-win__who">Reading</span><span className="ui-win__sub">Short passage</span><span className="ui-win__st">Next</span></li>
                         <li className="ui-win__row"><span className="ui-avatar" data-tone="3">聞</span><span className="ui-win__who">Listening</span><span className="ui-win__sub">Quick response</span><span className="ui-win__st">Next</span></li>
@@ -103,10 +91,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="section ground-inverse review-section" id="review" data-moment="line-carries-colour" data-moment-opts='{"from":"base"}' aria-labelledby="review-h">
+        <section className="section ground-inverse review-section" id="review" aria-labelledby="review-h">
           <div className="wrap">
             <div className="section-head">
-              <h2 id="review-h">Use mistakes to choose what to practise</h2>
+              <h2 id="review-h">Mock exam review steps</h2>
               <p>Each completed paper leads to a review that points back to the skill behind an answer.</p>
             </div>
             <div className="review-steps">
@@ -119,8 +107,8 @@ export default function HomePage() {
                 <div className="review-step__copy"><span className="step-num">02</span><h3>Answer review</h3><p>Compare your answer with the key and the written rationale.</p></div>
               </article>
               <article className="review-step">
-                <div className="review-step__visual"><RotateCcw size={24} aria-hidden="true" /><span>Targeted practice</span><span className="review-step__line" /></div>
-                <div className="review-step__copy"><span className="step-num">03</span><h3>Targeted practice</h3><p>Use question tags to revisit the skills behind missed answers.</p></div>
+                <div className="review-step__visual"><RotateCcw size={24} aria-hidden="true" /><span>Focused JLPT practice</span><span className="review-step__line" /></div>
+                <div className="review-step__copy"><span className="step-num">03</span><h3>Focused JLPT question practice</h3><p>Use question tags to revisit the skills behind missed answers.</p></div>
               </article>
             </div>
           </div>
@@ -139,13 +127,13 @@ export default function HomePage() {
         <section className="section ground-surface faq-section" id="questions" aria-labelledby="questions-h">
           <div className="wrap">
             <div className="section-head faq-head">
-              <h2 id="questions-h">Question quality and mock results</h2>
+              <h2 id="questions-h">Question checks and score reporting</h2>
               <p>Original content is checked before a question enters a paper.</p>
             </div>
             <div className="question-layout">
               <div className="faq-list">
                 <article className="faq-item">
-                  <h3>Independent platform</h3>
+                  <h3>Independent JLPT platform</h3>
                   <p>JLPT organizers do not operate or endorse this platform.</p>
                 </article>
                 <article className="faq-item">
