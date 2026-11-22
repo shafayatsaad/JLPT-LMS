@@ -1,0 +1,720 @@
+{
+ "start": "2026-11-21T21:28:40.583Z",
+ "round": 1,
+ "idle": 0,
+ "errors": 0,
+ "status": "fail",
+ "history": [
+  {
+   "at": "2026-11-22T00:29:05.433Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 17,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": null,
+  "dir": "D:\\JLPT LMS",
+  "kind": "software",
+  "start": "2026-11-21T21:28:40.583Z",
+  "by": "start.mjs",
+  "url": "http://127.0.0.1:3000/",
+  "category": "JLPT mock exams",
+  "primary": "Choose a JLPT level"
+ },
+ "manual": true,
+ "roundKey": "c63d47c75260ad00:da39a3ee",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "c63d47c75260ad00",
+ "page": "http://127.0.0.1:3000/",
+ "found": {
+  "fails": [
+   {
+    "check": "flush",
+    "where": "div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video",
+    "msg": "its last line sits -8px above the lower edge of section.hero.hero--split, where the ground changes to section#practice",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "flush"
+    ],
+    "wheres": [
+     "div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video"
+    ]
+   },
+   {
+    "check": "photo-upscale",
+    "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"img: A cherry blossom tree made from fol\"",
+    "msg": "image: 359x239 shown at 544x363, blown up 1.52x",
+    "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "photo-upscale"
+    ],
+    "wheres": [
+     "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"img: A cherry blossom tree made from fol\""
+    ]
+   },
+   {
+    "check": "hero-enter",
+    "where": "main#top > section.hero.hero--split",
+    "msg": "the hero does not enter on load: no head line setting html.m-enter (motion.md, The hero's entrance)",
+    "fix": "put data-enter on the hero <section> and keep the head line from starter.html that sets html.m-enter",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-enter"
+    ],
+    "wheres": [
+     "main#top > section.hero.hero--split"
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "main#top > section.hero.hero--split \"Independent JLPT practiceJLPT mock exams\"",
+    "msg": "the hero's content is 8px taller than the hero (scrollHeight 908, clientHeight 900): it spills out or scrolls inside it (SR-1)",
+    "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "main#top > section.hero.hero--split \"Independent JLPT practiceJLPT mock exams\""
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\"",
+    "msg": "\"Full-frame Sakura animation besi\" lies outside the hero's box (494-908px, the hero 0-900px) (SR-1)",
+    "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\""
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > div.hero__motion",
+    "msg": "the <div> lies outside the hero's box (494-908px, the hero 0-900px) (and 2 more like it: div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video, \"A cherry blossom tree ma\") (SR-1)",
+    "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "div.wrap > div.hero-text.grid > div.hero__media.span-7 > div.hero__motion"
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"A cherry blossom tree made from folded p\"",
+    "msg": "\"A cherry blossom tree made from \" ends at 908px, below the hero's content line at 876px (the 900px screen less 24px) (SR-1)",
+    "fix": "keep the hero's content between the nav and 24px above the fold (and the action bar): shorten the picture or the text; a docked strip 96px at most",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"A cherry blossom tree made from folded p\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\"",
+    "msg": "the two columns of the split start 51px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "section#questions > div.wrap > div.question-layout \"Independent JLPT platformJLPT organizers\"",
+    "msg": "the split's columns are off the page's one pair of lines: its right column starts at x 623, the first split's at 816 (SR-8)",
+    "fix": "start every split's right column on one shared line (wrap.left + k x (width + 24) / 12, k 5, 6 or 7; 6 on a place page) and end the left one 24px before it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "section#questions > div.wrap > div.question-layout \"Independent JLPT platformJLPT organizers\""
+    ]
+   },
+   {
+    "check": "scroll-reveal",
+    "where": "div.span-3.start-7 > ul > li:nth-of-type(3) > a \"Level formats\"",
+    "msg": "starts \"color\" (0.1 s) the moment it is scrolled into view (an IntersectionObserver)",
+    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "scroll-reveal"
+    ],
+    "wheres": [
+     "div.span-3.start-7 > ul > li:nth-of-type(3) > a \"Level formats\""
+    ]
+   },
+   {
+    "check": "edge-left",
+    "where": "#levels p \"See the timed test sections and \"",
+    "msg": "starts at x 521.4; the lines are 80 and the column starts",
+    "fix": "start it on the .wrap left line",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "edge-left"
+    ],
+    "wheres": [
+     "#levels p \"See the timed test sections and \""
+    ]
+   },
+   {
+    "check": "lines",
+    "where": "page",
+    "msg": "headings and leads start on 3 lines (x 80, 732, 521.4); the page has 80 and one split line",
+    "fix": "put the block on the .wrap lines or the grid columns",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "lines"
+    ],
+    "wheres": [
+     "page"
+    ]
+   },
+   {
+    "check": "sparse",
+    "where": "#review section.section.ground-inverse \"Mock exam review stepsEach compl\"",
+    "msg": "its content fills 49% of its screen; merge it or give it its visual (0.55 is the aim)",
+    "fix": "fill the section or make it a screen shorter",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "sparse"
+    ],
+    "wheres": [
+     "#review section.section.ground-inverse \"Mock exam review stepsEach compl\""
+    ]
+   },
+   {
+    "check": "sparse",
+    "where": "#questions section.section.ground-surface \"Question checks and score report\"",
+    "msg": "its content fills 48% of its screen; merge it or give it its visual (0.55 is the aim)",
+    "fix": "fill the section or make it a screen shorter",
+    "widths": [
+     1440
+    ],
+    "from": "layout",
+    "ids": [
+     "sparse"
+    ],
+    "wheres": [
+     "#questions section.section.ground-surface \"Question checks and score report\""
+    ]
+   },
+   {
+    "check": "hero-fold",
+    "where": "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\"",
+    "msg": "ends at y 865, past the fold (844): 1.02 screens tall",
+    "fix": "the hero fills the first screen alone, its button inside it",
+    "widths": [
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "hero-fold"
+    ],
+    "wheres": [
+     "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\""
+    ]
+   },
+   {
+    "check": "hero-maxchars",
+    "where": "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\"",
+    "msg": "with a 45-character h1 (heroes.json maxChars): ends at y 905, past the fold (844): 1.07 screens tall",
+    "fix": "shorten the h1 or give the hero room for the longest headline",
+    "widths": [
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "hero-maxchars"
+    ],
+    "wheres": [
+     "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\""
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "flush",
+    "where": "h2#levels-h \"JLPT section timings by level\"",
+    "msg": "its first line sits 15px under the top edge of section#levels, where the ground changes",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "col-edge",
+    "where": "section#practice > div.wrap > div.ui.app > div.app__pane.app__pane--open \"Answer review / N5 vocabulary Reviewed Q\"",
+    "msg": "the second column starts at 3 places: 614px (section#practice), 623px (section#questions), 816px (section.hero.hero--split)",
+    "fix": "start the second column of every split on the same one or two grid columns",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "main#top > section.hero.hero--split / section#practice",
+    "msg": "103px between these sections, -58% against the median 245px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#practice / section#review",
+    "msg": "233px between these sections, -34% against the median 355px of gaps at a change of ground",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#questions / footer#closing",
+    "msg": "457px between these sections, +29% against the median 355px of gaps at a change of ground",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#review / section#levels",
+    "msg": "uneven space at the edge of a band: 15px outside its edge, 340px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-current",
+    "where": "header.nav.nav--split",
+    "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
+    "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "section#questions \"Question checks and score reportingOrigi\"",
+    "msg": "the content fills 49.1% of the section's height (443 of 900px): 55% or more (40% WARN) (SR-3)",
+    "fix": "fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-air",
+    "where": "section#review \"Mock exam review stepsEach completed pap\"",
+    "msg": "the content fills 49.8% of the section's height (449 of 900px): 55% or more (40% WARN) (SR-3)",
+    "fix": "fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "no-visual",
+    "where": "section#levels \"JLPT section timings by level\"",
+    "msg": "pictures, effects and mocks cover 24% of this section; a feature section needs a visual (about 25% or more)",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "heading-scale",
+    "where": "div.review-steps > article.review-step:nth-of-type(1) > div.review-step__copy > h3 \"Timed paper\"",
+    "msg": "h3 headings in 3 sizes, 18px (\"Independent JLPT platfor\") to 21px (x1.17)",
+    "fix": "size headings by level: the h1 largest, one size per level, each level below the one above",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "fade-cut",
+    "where": "div.content-review-preview__body > ul.content-review-preview__rows > li:nth-of-type(3) > span:nth-of-type(2) \"Checked\"",
+    "msg": "a line of div.ui.ui-panel fades out under its edge (\"Checked\"): drawn at a fraction of #2f7658 on #fffaf7, half-erased",
+    "fix": "fit the mock's rows inside its panel (fewer rows, a taller panel), or end the fade below the last whole row: no row half-erased",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 90,
+   "layout": 4
+  }
+ },
+ "open": [
+  {
+   "check": "flush",
+   "where": "div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video",
+   "msg": "its last line sits -8px above the lower edge of section.hero.hero--split, where the ground changes to section#practice",
+   "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "flush"
+   ],
+   "wheres": [
+    "div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video"
+   ]
+  },
+  {
+   "check": "photo-upscale",
+   "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"img: A cherry blossom tree made from fol\"",
+   "msg": "image: 359x239 shown at 544x363, blown up 1.52x",
+   "fix": "use a source at least as wide as the picture is shown (twice that for sharp screens)",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "photo-upscale"
+   ],
+   "wheres": [
+    "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"img: A cherry blossom tree made from fol\""
+   ]
+  },
+  {
+   "check": "hero-enter",
+   "where": "main#top > section.hero.hero--split",
+   "msg": "the hero does not enter on load: no head line setting html.m-enter (motion.md, The hero's entrance)",
+   "fix": "put data-enter on the hero <section> and keep the head line from starter.html that sets html.m-enter",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-enter"
+   ],
+   "wheres": [
+    "main#top > section.hero.hero--split"
+   ]
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "main#top > section.hero.hero--split \"Independent JLPT practiceJLPT mock exams\"",
+   "msg": "the hero's content is 8px taller than the hero (scrollHeight 908, clientHeight 900): it spills out or scrolls inside it (SR-1)",
+   "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "main#top > section.hero.hero--split \"Independent JLPT practiceJLPT mock exams\""
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\"",
+   "msg": "\"Full-frame Sakura animation besi\" lies outside the hero's box (494-908px, the hero 0-900px) (SR-1)",
+   "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\""
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > div.hero__motion",
+   "msg": "the <div> lies outside the hero's box (494-908px, the hero 0-900px) (and 2 more like it: div.hero-text.grid > div.hero__media.span-7 > div.hero__motion > video.hero__video, \"A cherry blossom tree ma\") (SR-1)",
+   "fix": "fit the hero's content inside the hero's box: shorten the text or the picture, never let it spill",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "div.wrap > div.hero-text.grid > div.hero__media.span-7 > div.hero__motion"
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"A cherry blossom tree made from folded p\"",
+   "msg": "\"A cherry blossom tree made from \" ends at 908px, below the hero's content line at 876px (the 900px screen less 24px) (SR-1)",
+   "fix": "keep the hero's content between the nav and 24px above the fold (and the action bar): shorten the picture or the text; a docked strip 96px at most",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "div.wrap > div.hero-text.grid > div.hero__media.span-7 > img.hero__still \"A cherry blossom tree made from folded p\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\"",
+   "msg": "the two columns of the split start 51px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "section.hero.hero--split > div.wrap > div.hero-text.grid > div.hero__media.span-7 \"Full-frame Sakura animation beside the c\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "section#questions > div.wrap > div.question-layout \"Independent JLPT platformJLPT organizers\"",
+   "msg": "the split's columns are off the page's one pair of lines: its right column starts at x 623, the first split's at 816 (SR-8)",
+   "fix": "start every split's right column on one shared line (wrap.left + k x (width + 24) / 12, k 5, 6 or 7; 6 on a place page) and end the left one 24px before it",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "section#questions > div.wrap > div.question-layout \"Independent JLPT platformJLPT organizers\""
+   ]
+  },
+  {
+   "check": "scroll-reveal",
+   "where": "div.span-3.start-7 > ul > li:nth-of-type(3) > a \"Level formats\"",
+   "msg": "starts \"color\" (0.1 s) the moment it is scrolled into view (an IntersectionObserver)",
+   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "scroll-reveal"
+   ],
+   "wheres": [
+    "div.span-3.start-7 > ul > li:nth-of-type(3) > a \"Level formats\""
+   ]
+  },
+  {
+   "check": "edge-left",
+   "where": "#levels p \"See the timed test sections and \"",
+   "msg": "starts at x 521.4; the lines are 80 and the column starts",
+   "fix": "start it on the .wrap left line",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "edge-left"
+   ],
+   "wheres": [
+    "#levels p \"See the timed test sections and \""
+   ]
+  },
+  {
+   "check": "lines",
+   "where": "page",
+   "msg": "headings and leads start on 3 lines (x 80, 732, 521.4); the page has 80 and one split line",
+   "fix": "put the block on the .wrap lines or the grid columns",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "lines"
+   ],
+   "wheres": [
+    "page"
+   ]
+  },
+  {
+   "check": "sparse",
+   "where": "#review section.section.ground-inverse \"Mock exam review stepsEach compl\"",
+   "msg": "its content fills 49% of its screen; merge it or give it its visual (0.55 is the aim)",
+   "fix": "fill the section or make it a screen shorter",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "sparse"
+   ],
+   "wheres": [
+    "#review section.section.ground-inverse \"Mock exam review stepsEach compl\""
+   ]
+  },
+  {
+   "check": "sparse",
+   "where": "#questions section.section.ground-surface \"Question checks and score report\"",
+   "msg": "its content fills 48% of its screen; merge it or give it its visual (0.55 is the aim)",
+   "fix": "fill the section or make it a screen shorter",
+   "widths": [
+    1440
+   ],
+   "from": "layout",
+   "ids": [
+    "sparse"
+   ],
+   "wheres": [
+    "#questions section.section.ground-surface \"Question checks and score report\""
+   ]
+  },
+  {
+   "check": "hero-fold",
+   "where": "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\"",
+   "msg": "ends at y 865, past the fold (844): 1.02 screens tall",
+   "fix": "the hero fills the first screen alone, its button inside it",
+   "widths": [
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "hero-fold"
+   ],
+   "wheres": [
+    "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\""
+   ]
+  },
+  {
+   "check": "hero-maxchars",
+   "where": "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\"",
+   "msg": "with a 45-character h1 (heroes.json maxChars): ends at y 905, past the fold (844): 1.07 screens tall",
+   "fix": "shorten the h1 or give the hero room for the longest headline",
+   "widths": [
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "hero-maxchars"
+   ],
+   "wheres": [
+    "section.hero.hero--split section.hero.hero--split \"Independent JLPT practiceJLPT mo\""
+   ]
+  }
+ ],
+ "waived": [],
+ "warnCount": 12,
+ "at": "2026-11-22T00:29:05.434Z"
+}

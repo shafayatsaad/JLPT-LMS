@@ -352,8 +352,8 @@ body { background: var(--p-bg); color: var(--p-ink); }
 .origami-theme .hero__kicker { color: #704c57; }
 .origami-theme .hero__kicker .dot { background: var(--sakura-500); box-shadow: 0 0 0 4px var(--sakura-100); }
 .origami-theme .hero__lead { color: #59454d; }
-.origami-theme #top .hero--split .hero__grid { row-gap: 24px; align-content: start; }
-.origami-theme #top .hero--split .hero__text { grid-column: 1 / span 8; grid-row: 1; max-width: 760px; }
+#top.origami-theme .hero--split .hero__grid { display: flex; flex-direction: column; align-items: stretch; gap: 24px; }
+#top.origami-theme .hero--split .hero__text { width: min(100%, 760px); max-width: 760px; flex: 0 0 auto; }
 .origami-theme .hero--split .hero__media {
   position: relative;
   display: grid;
@@ -368,14 +368,14 @@ body { background: var(--p-bg); color: var(--p-ink); }
   align-self: start;
   background: transparent;
   overflow: visible;
-  grid-column: 1 / -1;
-  grid-row: 2;
+  flex: 0 0 auto;
+  margin-top: 0;
 }
 .origami-theme .hero--split .hero__motion {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  mix-blend-mode: multiply;
+  mix-blend-mode: darken;
 }
 .origami-theme .hero--split .hero__media > .hero__still {
   position: relative;
@@ -388,7 +388,7 @@ body { background: var(--p-bg); color: var(--p-ink); }
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  mix-blend-mode: multiply;
+  mix-blend-mode: darken;
 }
 .origami-theme .hero--split .hero__motion > .hero__video {
   position: absolute;
@@ -487,13 +487,16 @@ body { background: var(--p-bg); color: var(--p-ink); }
 @media (max-width: 639px) {
   .origami-theme .hero--split .hero__media {
     flex: 0 0 auto;
-    width: 100vw;
+    width: 100%;
     height: auto;
     min-height: 0;
-    margin-top: 24px;
-    margin-left: calc((100% - 100vw) / 2);
+    margin-top: 0;
+    margin-left: 0;
   }
-  .origami-theme .hero--split .hero__media { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #top.origami-theme .hero--split .hero__grid { gap: 12px; }
+  #top.origami-theme .hero--split .hero__text .hero__kicker { margin-bottom: 12px; }
+  #top.origami-theme .hero--split .hero__text .btn-row { margin-top: 20px; }
+  .origami-theme .hero--split .hero__media { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
   .origami-theme .format-time-strip { gap: 4px; height: 220px; margin-top: 12px; }
   .origami-theme .format-time-strip__segment { padding: 10px 8px; }
   .origami-theme .format-time-strip__duration { font-size: 18px; }
