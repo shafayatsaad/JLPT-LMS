@@ -7,7 +7,7 @@ export function HeroTreeMedia() {
   const [videoStatus, setVideoStatus] = useState<"loading" | "playing" | "error">("loading");
 
   return (
-    <div className="hero__media span-6 start-7" data-video-state={videoStatus} aria-label="Origami Sakura tree hero image">
+    <div className="hero__media span-7 start-6" data-video-state={videoStatus} aria-label="Origami Sakura tree hero image">
       <Image
         src="/hero/origami-sakura-tree.webp"
         className="hero__still"
