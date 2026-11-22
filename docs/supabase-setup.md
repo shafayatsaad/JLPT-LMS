@@ -14,20 +14,22 @@ Use the Supabase Dashboard SQL Editor with an administrator account. Check migra
 2. `supabase/migrations/202611220002_auth_and_rls_hardening.sql`
 3. `supabase/migrations/202611220003_spec_alignment.sql`
 4. `supabase/migrations/202611220004_first_login_welcome.sql`
+5. `supabase/migrations/202611220005_support_notifications.sql`
 
-For a new, empty project, run all four: create a new SQL Editor query for each file, paste the full file contents, and run them in order. `.env.local` only connects the web app to Supabase; it never creates database tables. Afterward, confirm the tables appear in Database → Table Editor. Do not run migration 001 twice.
+For a new, empty project, run all five: create a new SQL Editor query for each file, paste the full file contents, and run them in order. `.env.local` only connects the web app to Supabase; it never creates database tables. Afterward, confirm the tables appear in Database → Table Editor. Do not run migration 001 twice.
 
 The migrations create the platform tables for profiles and roles; versioned question families/revisions, answer keys, passages/groups, tags, media and reviews; blueprints and frozen forms; attempts, sections, answers, results and mistake statistics; plans, payment submissions, entitlements and audit trails. They also add RLS policies, profile/role provisioning, a private `jlpt-question-assets` bucket, transactional question review, post-submission answer review, grouped-question ordering, and frozen-form snapshots on attempts.
 
-The 26 application tables are:
+The 30 application tables are:
 
 - Identity: `profiles`, `user_roles`.
 - Content: `question_families`, `questions` (immutable revisions), `question_answer_keys`, `tags`, `question_tags`, `passage_groups`, `content_group_items`, `content_assets`, `question_assets`, `question_reviews`.
 - Exam setup: `exam_blueprints`, `blueprint_slots`, `exam_forms`, `exam_form_items`.
 - Learner activity: `exam_attempts`, `attempt_sections`, `attempt_answers`, `exam_results`, `user_question_stats`.
 - Plans and operations: `plans`, `payment_submissions`, `user_entitlements`, `payment_audit_events`, `admin_audit_events`.
+- Learner communications: `notifications`, `support_tickets`, `support_messages`, `support_audit_events`.
 
-Migration 004 adds an atomic one-time welcome claim so the dashboard can greet each newly provisioned account once. The schema is the database foundation. Applying it does not by itself finish the exam engine: server-owned attempt start, timer transitions, answer saving, grading, and payment submission/review still need their application operations before real exams or payments can run.
+Migration 004 adds an atomic one-time welcome claim so the dashboard can greet each newly provisioned account once. Migration 005 adds the student support inbox, in-app notifications, audited support status changes, and the `support_agent` role. Ticket creation/replies and notification read state use authenticated database functions; raw browser writes to these tables are denied. The schema is the database foundation. Applying it does not by itself finish the exam engine or payment operations.
 
 ## Auth settings
 
@@ -83,6 +85,8 @@ where lower(email) = lower('OWNER_EMAIL@example.com')
 on conflict (user_id, role) do nothing;
 ```
 
-There is no separate public admin login or admin signup. Staff use the normal `/auth/login` page; only a trusted database role grants access. The `/admin` route is omitted from public navigation and still performs a server-side role check, so hiding the link is only a usability choice, not the security boundary. After assigning a role, sign in normally; authorized staff see a Staff link in the authenticated navigation. Never grant a role from browser form data.
+The private `/admin/sign-in` entry is omitted from public navigation and uses the same account providers as learner login; there is no separate admin signup or password system. Only a trusted database role grants access, and `/admin` checks it server-side. Hiding the link is a usability choice, not the security boundary. After assigning a role, staff can sign in from `/admin/sign-in`; authorized staff also see a Staff link in the authenticated navigation. Never grant a role from browser form data.
 
-The admin pages read data using the signed-in session. Question review decisions use a database function that writes the decision, status transition, and audit event in one transaction. Payment and exam-form operations remain read-only until their provider rules and transactional server actions are approved.
+The support inbox is restricted to users with `support_agent` or `admin` roles. Assign `support_agent` only to named staff who are approved to handle support. Payment, plan, user-management, and exam operations remain separately restricted until their audited server actions are implemented.
+
+The admin pages read data using the signed-in session. Question review decisions use a database function that writes the decision, status transition, and audit event in one transaction. Support replies and status changes use authenticated functions and append-only audit records. Payment and exam-form operations remain read-only until their rules and transactional server actions are implemented.

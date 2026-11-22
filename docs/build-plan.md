@@ -71,3 +71,38 @@ Use the Taste Skill checker, layout checker, screenshot runner, performance chec
 - Added `supabase/migrations/202611220004_first_login_welcome.sql` for a one-time dashboard welcome message across email, phone, and Google-created accounts.
 - Added `supabase/migrations/202611220002_auth_and_rls_hardening.sql` for profile/role provisioning, explicit RLS and API grants, a private media bucket, question review, and post-submission answer review. Added `supabase/migrations/202611220003_spec_alignment.sql` for explicit question families, shared-content group ordering, answer-to-form-item integrity, blueprint section durations, and immutable attempt form snapshots. The migrations still need to be applied in the hosted Supabase project after checking migration history; see `docs/supabase-setup.md`.
 - The exam preview remains a browser-only demonstration. It is not connected to the saved-attempt, timer, answer-write, or grading workflow.
+
+## V7 blueprint gap review — 22 November 2026
+
+The V7 blueprint is the current product source of truth. This repository is a working foundation, not a launch-complete platform.
+
+### Built or partially built
+
+- Public home, N1–N5 level information, Origami Sakura identity, access placeholder, about page, and draft legal routes.
+- Email/phone account flows, Google sign-in callback, learner dashboard/account shell, mistake notebook, raw result and answer-review routes.
+- N5 exam interface preview only; it does not create a database attempt or use published JLPT content.
+- Role-gated admin overview and read-only inventory pages; content review has a database function, while other admin mutations are not implemented.
+- Supabase migrations 001–005 define the core schema and current RLS/auth foundation. Hosted application of these migrations was previously found incomplete and still needs confirmation.
+- A private `/admin/sign-in` entry reuses the regular identity providers and checks existing staff roles before opening `/admin`. It is deliberately absent from public navigation and does not create a separate admin credential system.
+- Student support tickets, staff replies/status changes with an audit trail, and the private in-app notification inbox are implemented in migration 005 and the `/support`, `/notifications`, and `/admin/support` routes. At present, support replies and status changes are the notification producers; payment, exam, and account event producers remain to be connected.
+
+### Still to build
+
+- **Student shell:** real exam library and history, active attempt lifecycle, bookmarks, progress, practice, security/preferences/privacy settings, complete payment/subscription pages, and optional private support attachments. Notifications and support conversations are now implemented as the first account-services slice.
+- **Admin operations:** payment reconciliation and approval, user detail/actions, staff-role management, plan management, announcement queue, functional settings, exports, and usable content/form authoring and publishing workflows. The support queue/reply/status slice is now implemented.
+- **Real exam loop:** server-owned attempt start, section deadlines, autosave/resume, submission, grading, and result generation over approved frozen forms. The current N5 pages remain a local demo.
+- **Bilingual experience:** English and Bangla student interface and approved translated content support.
+- **Security and operations:** risk-based login step-up, mandatory staff MFA, rate limits, complete authorization/RLS verification, CI, staging/production separation, monitoring, backup/restore, and launch QA.
+- **Public routes:** FAQ, how-it-works, contact/support intake, and any remaining truthful product-detail pages from V7.
+
+### Decisions that block payment implementation
+
+The blueprint confirms bKash Send Money, optional proof upload, and fixed-duration plans, but recipient name/number, exact plans/prices/durations, reference requirements, review SLA, refund/access policy, evidence retention, and staff assignments remain unresolved. Keep checkout and premium activation disabled until those decisions are supplied. Never substitute sample payment details or grant access from a submitted form.
+
+### Continuation order
+
+1. Finish the student account shell with preferences, privacy/security controls, and complete payment/subscription pages.
+2. Turn role-gated admin inventory pages into audited operations, starting with staff/users and content/form workflows.
+3. Implement payment and entitlement workflow after the blocking decisions are confirmed.
+4. Build the real exam attempt and learning loop on reviewed, frozen content.
+5. Complete bilingual content/UI and production hardening before launch.

@@ -31,6 +31,13 @@ export default async function AccountPage() {
           <PaperPanel className="data-panel"><h3>Payment review</h3>{paymentError ? <p className="inline-notice">Payment records are unavailable until the migration is applied.</p> : payments?.length ? <ul className="record-list">{payments.map((item, index) => <li key={`${item.submitted_at}-${index}`}><span>{item.status}</span><span>{item.currency} {item.amount}</span></li>)}</ul> : <p>No payment records are recorded.</p>}<Link className="text-link" href="/pricing">See access information</Link></PaperPanel>
         </div>
       </ProductSection>
+      <ProductSection title="Learner tools" className="product-section--compact">
+        <div className="admin-link-list">
+          <Link href="/notifications">Notifications</Link>
+          <Link href="/support">Support center</Link>
+          <Link href="/mistakes">Mistake notebook</Link>
+        </div>
+      </ProductSection>
     </ProductPage>
   );
 }

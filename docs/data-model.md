@@ -23,6 +23,10 @@ erDiagram
   AUTH_USERS ||--o{ PAYMENT_SUBMISSIONS : submits
   PAYMENT_SUBMISSIONS ||--o| USER_ENTITLEMENTS : activates
   PAYMENT_SUBMISSIONS ||--o{ PAYMENT_AUDIT_EVENTS : audits
+  AUTH_USERS ||--o{ NOTIFICATIONS : receives
+  AUTH_USERS ||--o{ SUPPORT_TICKETS : opens
+  SUPPORT_TICKETS ||--o{ SUPPORT_MESSAGES : contains
+  SUPPORT_TICKETS ||--o{ SUPPORT_AUDIT_EVENTS : records
 ```
 
-`AUTH_USERS` is managed by Supabase Auth. Question revisions and answer keys are server-controlled. Attempt writes, transitions, deadlines, grading, payment verification, and entitlement changes use protected server operations and transactions. PostgreSQL is the operational source of truth; CSV is export-only.
+`AUTH_USERS` is managed by Supabase Auth. Question revisions and answer keys are server-controlled. Attempt writes, transitions, deadlines, grading, payment verification, entitlement changes, support status changes, and notifications use protected database operations. PostgreSQL is the operational source of truth; exports are reporting-only.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const STAFF_ROLES = ["content_editor", "reviewer", "payment_reviewer", "admin"];
+const STAFF_ROLES = ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"];
 
 export async function SiteHeader() {
   let signedIn = false;

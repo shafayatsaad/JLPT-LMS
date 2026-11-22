@@ -13,7 +13,13 @@ export const metadata: Metadata = {
     images: [{ url: "/share.jpg", width: 1200, height: 630, alt: "Origami Sakura tree on a warm paper background" }],
   },
   twitter: { card: "summary_large_image", images: ["/share.jpg"] },
-  icons: { icon: "/icon.svg" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

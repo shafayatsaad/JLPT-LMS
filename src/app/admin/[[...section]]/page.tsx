@@ -7,7 +7,7 @@ import { requireSignedInUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 const routeItems = [
-  { href: "/admin", title: "Overview", roles: ["content_editor", "reviewer", "payment_reviewer", "admin"] },
+  { href: "/admin", title: "Overview", roles: ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"] },
   { href: "/admin/content", title: "Content dashboard", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/questions/new", title: "Authoring and import", roles: ["content_editor", "admin"] },
   { href: "/admin/reviews", title: "Review queue", roles: ["reviewer", "admin"] },
@@ -15,6 +15,7 @@ const routeItems = [
   { href: "/admin/blueprints", title: "Blueprints", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/exam-forms", title: "Exam forms", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/payments", title: "Payment review", roles: ["payment_reviewer", "admin"] },
+  { href: "/admin/support", title: "Support queue", roles: ["support_agent", "admin"] },
   { href: "/admin/users", title: "Users and roles", roles: ["admin"] },
   { href: "/admin/audit", title: "Audit log", roles: ["admin"] },
 ];
@@ -106,6 +107,12 @@ export default async function AdminPage({ params }: { params: Promise<{ section?
     dataError = result.error?.message ?? "";
     columns = [["Account", "user_id"], ["Plan", "plan_id"], ["Amount", "amount"], ["Currency", "currency"], ["Status", "status"], ["Submitted", "submitted_at"]];
     sectionDescription = "Payment review is read-only here. No payment provider or verification rules have been approved, so this page cannot grant access.";
+  } else if (route === "/admin" && roles.includes("support_agent") && !roles.some((role) => ["content_editor", "reviewer", "payment_reviewer", "admin"].includes(role))) {
+    const result = await supabase.from("support_tickets").select("id", { count: "exact", head: true });
+    dataError = result.error?.message ?? "";
+    rows = [{ label: "Support requests visible to your role", value: result.error ? "Unavailable" : result.count ?? 0 }];
+    columns = [["Queue", "label"], ["Count", "value"]];
+    sectionDescription = "This account has support-only staff access. Open the support queue to review requests and reply to learners.";
   } else if (route === "/admin/users") {
     const result = await supabase.from("user_roles").select("user_id,role,assigned_at,assigned_by").order("assigned_at", { ascending: false }).limit(100);
     rows = (result.data ?? []) as Record<string, unknown>[];

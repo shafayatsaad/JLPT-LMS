@@ -20,11 +20,11 @@ function parseIdentifier(value: string): Identifier | null {
   return /^\+[1-9]\d{7,14}$/.test(phone) ? { kind: "phone", phone } : null;
 }
 
-function safeNextPath() {
-  const value = new URLSearchParams(window.location.search).get("next") ?? "/dashboard";
+function safeNextPath(defaultPath = "/dashboard") {
+  const value = new URLSearchParams(window.location.search).get("next") ?? defaultPath;
   return value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")
     ? value
-    : "/dashboard";
+    : defaultPath;
 }
 
 function callbackUrl(next: string) {
@@ -35,7 +35,7 @@ function callbackUrl(next: string) {
   return callback.toString();
 }
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode; defaultNext?: string }) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -80,7 +80,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
-    const next = mode === "recovery" ? "/auth/update-password" : safeNextPath();
+    const next = mode === "recovery" ? "/auth/update-password" : safeNextPath(defaultNext);
     const redirectTo = callbackUrl(next);
     const parsed = mode === "update-password" ? null : parseIdentifier(identifier);
 
@@ -145,7 +145,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           ? await supabase.auth.signInWithPassword({ email: parsed.email, password })
           : await supabase.auth.signInWithPassword({ phone: parsed.phone, password });
         if (credentials.error) throw credentials.error;
-        window.location.assign(safeNextPath());
+        window.location.assign(safeNextPath(defaultNext));
       } else if (mode === "recovery") {
         if (!parsed) throw new Error("Enter the email address or phone number on your account.");
         if (parsed.kind === "email") {
@@ -199,7 +199,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: callbackUrl(safeNextPath()),
+          redirectTo: callbackUrl(safeNextPath(defaultNext)),
           queryParams: { prompt: "select_account" },
         },
       });
