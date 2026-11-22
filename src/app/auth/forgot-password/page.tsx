@@ -6,8 +6,8 @@ export const metadata = { title: "Account recovery · JLPT practice" };
 
 export default function ForgotPasswordPage() {
   return (
-    <ProductPage eyebrow="Account recovery" title="Reset your password" description="We will send recovery instructions to the account email address if an account matches it." className="product-page--auth">
-      <ProductSection title="Request a recovery email">
+    <ProductPage eyebrow="Account recovery" title="Reset your password" description="Enter the email address or phone number on your account to continue." className="product-page--auth">
+      <ProductSection title="Request account recovery">
         <PaperPanel className="auth-panel">
           <AuthForm mode="recovery" />
           <p className="auth-switch"><Link href="/auth/login">Return to sign in</Link></p>

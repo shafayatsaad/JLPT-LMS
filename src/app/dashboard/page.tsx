@@ -13,14 +13,16 @@ export default async function DashboardPage() {
     return <ProductPage eyebrow="Learner dashboard" title="Your practice space" description="Connect the Supabase project to sign in and load saved learner data."><ProductSection title="Supabase setup required"><PaperPanel><p>Copy the configured values from <code>.env.example</code> into <code>.env.local</code>, restart the app, and apply the database migrations.</p><Link className="btn btn--primary" href="/auth/login">Continue to sign in</Link></PaperPanel></ProductSection></ProductPage>;
   }
 
-  const [{ data: profile, error: profileError }, { data: attempts, error: attemptsError }, { data: forms }] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: attempts, error: attemptsError }, { data: forms }, { data: showWelcome }] = await Promise.all([
     supabase.from("profiles").select("display_name,target_level").eq("user_id", user.id).maybeSingle(),
     supabase.from("exam_attempts").select("id,level,status,created_at,submitted_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
     supabase.from("exam_forms").select("id,level,form_code").eq("status", "published").order("created_at", { ascending: false }).limit(8),
+    supabase.rpc("claim_welcome_message"),
   ]);
 
   return (
     <ProductPage eyebrow="Learner dashboard" title={`Welcome${profile?.display_name ? `, ${profile.display_name}` : " back"}`} description="Choose a level, see saved attempts, and return to questions you want to review." className="product-page--dashboard">
+      {showWelcome ? <ProductSection title="A new practice space" className="product-section--tint"><PaperPanel className="welcome-card"><span className="paper-tab">Account ready</span><h2>Welcome{profile?.display_name ? `, ${profile.display_name}` : " to JLPT Practice"}.</h2><p>Your account is set up. Choose your target level and explore your practice options whenever you are ready.</p><Link className="btn btn--secondary" href="/account">Set up your profile and preferences</Link></PaperPanel></ProductSection> : null}
       <ProductSection title="Your next step" className="product-section--tint">
         <div className="dashboard-grid">
           <PaperPanel className="action-panel"><span className="panel-icon"><BookOpen aria-hidden="true" /></span><h3>Explore a JLPT level</h3><p>{profile?.target_level ? `Your target is ${profile.target_level}.` : "Choose a level to see timed sections and practice options."}</p><Link className="text-link" href={profile?.target_level ? `/levels/${profile.target_level}` : "/#levels"}>View level details <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel>
@@ -36,7 +38,7 @@ export default async function DashboardPage() {
           {forms?.length ? <p className="data-footnote">Published mock forms are available for: {Array.from(new Set(forms.map((form) => form.level))).join(", ")}.</p> : null}
         </PaperPanel>
       </ProductSection>
-      <ProductSection title="Account" className="product-section--compact"><PaperPanel className="account-strip"><span>Signed in as <strong>{user.email}</strong></span><div className="account-strip__actions"><Link className="btn btn--secondary" href="/account">Profile and subscription</Link><SignOutButton /></div></PaperPanel></ProductSection>
+      <ProductSection title="Account" className="product-section--compact"><PaperPanel className="account-strip"><span>Signed in as <strong>{user.email ?? user.phone}</strong></span><div className="account-strip__actions"><Link className="btn btn--secondary" href="/account">Profile and subscription</Link><SignOutButton /></div></PaperPanel></ProductSection>
     </ProductPage>
   );
 }

@@ -13,8 +13,9 @@ Use the Supabase Dashboard SQL Editor with an administrator account. Check migra
 1. `supabase/migrations/202611220001_initial_platform.sql`
 2. `supabase/migrations/202611220002_auth_and_rls_hardening.sql`
 3. `supabase/migrations/202611220003_spec_alignment.sql`
+4. `supabase/migrations/202611220004_first_login_welcome.sql`
 
-For a new, empty project, run all three: create a new SQL Editor query for each file, paste the full file contents, and run them in order. `.env.local` only connects the web app to Supabase; it never creates database tables. Afterward, confirm the tables appear in Database → Table Editor. Do not run migration 001 twice.
+For a new, empty project, run all four: create a new SQL Editor query for each file, paste the full file contents, and run them in order. `.env.local` only connects the web app to Supabase; it never creates database tables. Afterward, confirm the tables appear in Database → Table Editor. Do not run migration 001 twice.
 
 The migrations create the platform tables for profiles and roles; versioned question families/revisions, answer keys, passages/groups, tags, media and reviews; blueprints and frozen forms; attempts, sections, answers, results and mistake statistics; plans, payment submissions, entitlements and audit trails. They also add RLS policies, profile/role provisioning, a private `jlpt-question-assets` bucket, transactional question review, post-submission answer review, grouped-question ordering, and frozen-form snapshots on attempts.
 
@@ -26,7 +27,7 @@ The 26 application tables are:
 - Learner activity: `exam_attempts`, `attempt_sections`, `attempt_answers`, `exam_results`, `user_question_stats`.
 - Plans and operations: `plans`, `payment_submissions`, `user_entitlements`, `payment_audit_events`, `admin_audit_events`.
 
-The schema is the database foundation. Applying it does not by itself finish the exam engine: server-owned attempt start, timer transitions, answer saving, grading, and payment submission/review still need their application operations before real exams or payments can run.
+Migration 004 adds an atomic one-time welcome claim so the dashboard can greet each newly provisioned account once. The schema is the database foundation. Applying it does not by itself finish the exam engine: server-owned attempt start, timer transitions, answer saving, grading, and payment submission/review still need their application operations before real exams or payments can run.
 
 ## Auth settings
 
@@ -39,18 +40,23 @@ In Authentication → URL Configuration, set Site URL to the active canonical si
 - `https://YOUR_DEPLOYED_HOST/auth/callback`
 - `https://YOUR_DEPLOYED_HOST/auth/confirm`
 
-Enable email confirmations. In the **Confirm signup** template, use a link that opens the app's confirmation page, where the learner has to press a button before the one-time token is consumed. This avoids email security scanners silently consuming links. Keep the code as a fallback:
+Enable email confirmations. In the **Confirm signup** template, use a link that opens the app's confirmation page, where the learner has to press a button before the one-time token is consumed. This avoids email security scanners silently consuming links:
 
 ```html
-<h2>Confirm your JLPT practice account</h2>
+<h2>Welcome to JLPT Practice</h2>
+<p>Your account is almost ready. Confirm your email address to start practicing.</p>
 <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/dashboard">Confirm email</a></p>
-<p>If the button does not work, enter this code on the sign-up page:</p>
-<p>{{ .Token }}</p>
 ```
 
-For **Magic Link**, use the same app confirmation route with `type=email` and `next=/dashboard`, and include `{{ .Token }}` for email-code sign-in. For **Reset password**, use `type=recovery` and `next=/auth/update-password`. The app has a separate `/auth/callback` handler for OAuth and legacy PKCE callback links.
+For **Reset password**, use a link to `/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery&amp;next=/auth/update-password`. The app has a separate `/auth/callback` handler for Google OAuth. Email login uses the account password; there is no email one-time-code sign-in.
 
-Configure SMTP before inviting real learners. Disable link tracking/rewriting for Supabase auth emails. The app's sign-up page accepts the email confirmation code as well as the confirmation link. Use the provider's recommended Auth rate limits and abuse protection before launch.
+Configure SMTP before inviting real learners. Disable link tracking/rewriting for Supabase auth emails. After email confirmation, the app takes the learner to the dashboard and shows the welcome message once. Use the provider's recommended Auth rate limits and abuse protection before launch.
+
+## Phone and password accounts
+
+The forms accept email or phone plus password. Enter phone numbers in international E.164 format, for example `+8801712345678`. Phone accounts receive an SMS verification code at registration; after confirmation, normal login is phone plus password. Phone password recovery also uses an SMS verification step.
+
+In Supabase Authentication → Providers → Phone, enable phone accounts and configure a supported SMS provider such as Twilio, Twilio Verify, Vonage, or MessageBird. Set an SMS template such as `Welcome to JLPT Practice. Your verification code is {{ .Code }}`. Configure SMS rate limits and CAPTCHA before public launch. Without an SMS provider, phone signup and phone recovery cannot send codes.
 
 ## Google sign-in
 
@@ -59,9 +65,11 @@ The app includes a **Continue with Google** option on sign-in and sign-up. To en
 1. Create a Google OAuth **Web application** client in Google Cloud and set its authorized JavaScript origins to `http://localhost:3000` and the deployed site origin.
 2. In Supabase Authentication → Providers → Google, enable the provider and enter the Google client ID and client secret.
 3. Copy the Supabase callback URI shown on that provider screen (normally `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`) into the Google client's **Authorized redirect URIs**.
-4. Confirm the app URLs above are in Supabase's redirect allow list. Set `NEXT_PUBLIC_SITE_URL` to the same canonical origin for the environment and restart Next.js.
+4. Confirm the app URLs above are in Supabase's redirect allow list. Set `NEXT_PUBLIC_SITE_URL` to the same canonical origin for the environment and restart Next.js. The app returns OAuth to the exact origin where sign-in started so the PKCE cookie survives; use the same hostname throughout the flow, and allow that origin in Supabase (for example, do not start on `127.0.0.1` and return on `localhost`).
 
 Google OAuth credentials belong in the provider dashboards, not in browser environment variables or source control. Google sign-in creates/uses a Supabase Auth user; the profile/role trigger provisions a student row after migration 002 is applied.
+
+The first Dashboard visit also shows the in-app welcome card once for email, phone, and Google-created accounts. The confirmation email can welcome email registrants; sending a separate follow-up email after Google signup requires an outbound email provider or Supabase Edge Function, which has not been configured.
 
 ## Assign the first administrator
 

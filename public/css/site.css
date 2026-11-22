@@ -509,6 +509,10 @@ body { background: var(--p-bg); color: var(--p-ink); }
 .auth-google { display: inline-flex; align-items: center; justify-content: center; gap: 11px; }
 .confirm-email { display: grid; justify-items: start; gap: 18px; color: #66545b; font-size: 15px; line-height: 1.7; }
 .confirm-email p { margin: 0; }
+.auth-quiet-action { justify-self: start; padding: 0; border: 0; background: transparent; color: #963b56; font: 600 13px/1.4 var(--font-text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.welcome-card { display: grid; justify-items: start; gap: 15px; background: linear-gradient(135deg, #fffdfb, #fff1f1); }
+.welcome-card h2 { margin: 0; color: #49313b; font: 600 clamp(26px, 4vw, 38px)/1.16 var(--font-display); }
+.welcome-card p { max-width: 62ch; margin: 0; color: #66545b; line-height: 1.7; }
 .auth-switch { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px !important; font-size: 14px; }
 .auth-switch a { color: #963b56; font-weight: 600; }
 .form-message { padding: 12px 14px; border: 1px solid; font-size: 14px; }

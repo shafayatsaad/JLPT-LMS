@@ -22,7 +22,7 @@ export default async function AccountPage() {
       <ProductSection title="Study preferences" className="product-section--tint">
         <PaperPanel className="auth-panel">
           {profileError ? <p className="inline-notice">The profile table is not available yet. Apply the latest Supabase migration.</p> : <ProfileForm userId={user.id} displayName={profile?.display_name ?? ""} targetLevel={profile?.target_level ?? ""} language={profile?.explanation_language ?? "en"} />}
-          <div className="security-row"><span><strong>Email</strong><br />{user.email}</span><Link className="text-link" href="/auth/forgot-password">Reset password</Link></div>
+          <div className="security-row"><span><strong>Sign-in email or phone</strong><br />{user.email ?? user.phone}</span><Link className="text-link" href="/auth/forgot-password">Reset password</Link></div>
         </PaperPanel>
       </ProductSection>
       <ProductSection title="Subscription and payment status">
