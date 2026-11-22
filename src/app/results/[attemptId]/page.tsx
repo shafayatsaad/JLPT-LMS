@@ -10,7 +10,7 @@ function Breakdown({ title, value }: { title: string; value: unknown }) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const entries = Object.entries(value as Record<string, unknown>);
   if (!entries.length) return null;
-  return <PaperPanel className="data-panel"><h3>{title}</h3><ul className="record-list">{entries.map(([label, count]) => <li key={label}><span>{label.replaceAll("_", " ")}</span><strong>{String(count)}</strong></li>)}</ul></PaperPanel>;
+  return <PaperPanel className="data-panel"><h3>{title}</h3><ul className="record-list">{entries.map(([label, count]) => <li key={label}><span>{label.replaceAll("_", " ")}</span><strong>{count && typeof count === "object" ? Object.entries(count as Record<string, unknown>).map(([metric, amount]) => `${metric}: ${String(amount)}`).join(" · ") : String(count)}</strong></li>)}</ul></PaperPanel>;
 }
 
 export default async function AttemptResultsPage({ params }: { params: Promise<{ attemptId: string }> }) {
