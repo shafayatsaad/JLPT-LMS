@@ -47,12 +47,19 @@ values
   ('77000000-0000-4000-8000-000000000002', '44000000-0000-4000-8000-000000000002', '66000000-0000-4000-8000-000000000001', '34000000-0000-4000-8000-000000000001', 'B'),
   ('77000000-0000-4000-8000-000000000003', '44000000-0000-4000-8000-000000000003', '66000000-0000-4000-8000-000000000001', '34000000-0000-4000-8000-000000000001', 'A');
 
+update public.profiles set display_name = 'Learner two'
+where user_id = '11000000-0000-4000-8000-000000000002';
+
 set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
 
 select is((select count(*) from public.profiles where user_id in ('11000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000002')), 1::bigint, 'a learner can read their own profile but not another learner profile');
 select is((select count(*) from public.user_roles where user_id in ('11000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000002')), 1::bigint, 'a learner can read their own role but not another learner role');
-select is((with changed as (update public.profiles set display_name = 'unauthorized change' where user_id = '11000000-0000-4000-8000-000000000002' returning 1) select count(*) from changed), 0::bigint, 'a learner cannot update another learner profile');
+update public.profiles set display_name = 'unauthorized change' where user_id = '11000000-0000-4000-8000-000000000002';
+reset role;
+select is((select display_name from public.profiles where user_id = '11000000-0000-4000-8000-000000000002'), 'Learner two', 'a learner cannot update another learner profile');
+set local role authenticated;
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
 select is((select count(*) from public.exam_attempts where user_id in ('11000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000002')), 2::bigint, 'a learner can read their own attempts but not another learner attempt');
 select is((select count(*) from public.exam_results where attempt_id in ('44000000-0000-4000-8000-000000000001', '44000000-0000-4000-8000-000000000002', '44000000-0000-4000-8000-000000000003')), 1::bigint, 'a learner sees results only for their completed attempts');
 select is((select count(*) from public.attempt_answers where attempt_id in ('44000000-0000-4000-8000-000000000001', '44000000-0000-4000-8000-000000000002', '44000000-0000-4000-8000-000000000003')), 1::bigint, 'a learner sees answers only for their completed attempts');
