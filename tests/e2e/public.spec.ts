@@ -11,6 +11,7 @@ test("home uses one full-frame Sakura video with a static poster fallback", asyn
   expect(await video.evaluate((element: HTMLVideoElement) => element.loop)).toBe(true);
   expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true);
   expect(await video.evaluate((element: HTMLVideoElement) => getComputedStyle(element).objectFit)).toBe("contain");
+  await expect(page.locator("#top .hero-tree-media button")).toHaveCount(0);
   await expect(page.locator("#top .hero-tree-media img")).toHaveCount(0);
 
   await page.locator("#top").getByRole("link", { name: "Choose a JLPT level" }).click();
