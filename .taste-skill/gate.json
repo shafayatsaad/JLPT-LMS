@@ -1,34 +1,34 @@
 {
- "start": "2026-11-21T21:28:40.583Z",
- "round": 3,
+ "start": "2026-11-23T12:19:09.811Z",
+ "round": 2,
  "idle": 0,
  "errors": 0,
- "status": "open",
+ "status": "pass",
  "history": [
   {
-   "at": "2026-11-22T00:29:05.433Z",
+   "at": "2026-11-23T13:00:10.187Z",
    "mode": "manual",
    "status": "fail",
-   "fails": 17,
+   "fails": 1,
    "round": 1,
    "reused": false,
    "stopHookActive": false
   },
   {
-   "at": "2026-11-22T03:55:19.589Z",
+   "at": "2026-11-23T13:02:21.229Z",
    "mode": "manual",
    "status": "fail",
-   "fails": 21,
+   "fails": 1,
    "round": 2,
    "reused": false,
    "stopHookActive": false
   },
   {
-   "at": "2026-11-22T04:04:12.981Z",
+   "at": "2026-11-23T13:04:36.031Z",
    "mode": "manual",
-   "status": "open",
-   "fails": 25,
-   "round": 3,
+   "status": "pass",
+   "fails": 0,
+   "round": 2,
    "reused": false,
    "stopHookActive": false
   }
@@ -36,386 +36,24 @@
  "max": 3,
  "marker": {
   "page": null,
-  "dir": "D:\\JLPT LMS",
-  "kind": "software",
-  "start": "2026-11-21T21:28:40.583Z",
-  "by": "start.mjs",
   "url": "http://127.0.0.1:3000/",
+  "root": null,
+  "kind": "software",
   "category": "JLPT mock exams",
-  "primary": "Choose a JLPT level"
+  "primary": "Choose a JLPT level",
+  "rounds": 3,
+  "start": "2026-11-23T12:19:09.811Z",
+  "by": "gate.mjs --start"
  },
  "manual": true,
- "roundKey": "8d2407a4ed431203:da39a3ee",
+ "roundKey": "1c505a89382fd474:a5ab761e",
  "roundFree": false,
  "idleFree": false,
  "blockKey": null,
- "fp": "8d2407a4ed431203",
+ "fp": "f927a7f9dc13010a",
  "page": "http://127.0.0.1:3000/",
  "found": {
   "fails": [
-   {
-    "check": "scroll-reveal",
-    "where": "section#practice > div.wrap > div.section-head.practice-head \"The JLPT question review screen Compare \"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#practice > div.wrap > div.section-head.practice-head \"The JLPT question review screen Compare \""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "section#practice > div.wrap > div.ui.app \"Practice / N5 Find a question Paper Revi\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#practice > div.wrap > div.ui.app \"Practice / N5 Find a question Paper Revi\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "section#levels > div.wrap > div.section-head.levels-head \"JLPT section timings by level See the ti\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#levels > div.wrap > div.section-head.levels-head \"JLPT section timings by level See the ti\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "section#levels > div.wrap > div.ui.format-picker \"N1 N2 N3 N4 N5 20 min Vocabulary SECTION\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#levels > div.wrap > div.ui.format-picker \"N1 N2 N3 N4 N5 20 min Vocabulary SECTION\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "section#questions > div.wrap > div.section-head.faq-head \"Question checks and score reporting Orig\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#questions > div.wrap > div.section-head.faq-head \"Question checks and score reporting Orig\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1) \"Independent JLPT platform JLPT organizer\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1) \"Independent JLPT platform JLPT organizer\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2) \"Mock score reporting Results show raw pe\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2) \"Mock score reporting Results show raw pe\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3) \"Five JLPT levels The planned question ba\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3) \"Five JLPT levels The planned question ba\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "footer#closing > div.wrap > div.closing__cta.close--type \"Start with a JLPT level See the timed se\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "footer#closing > div.wrap > div.closing__cta.close--type \"Start with a JLPT level See the timed se\""
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "footer#closing > div.wrap > div.closing__links \"JLPT practice Independent preparation fo\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "footer#closing > div.wrap > div.closing__links \"JLPT practice Independent preparation fo\""
-    ]
-   },
-   {
-    "check": "button-styles",
-    "where": "(the page)",
-    "msg": "3 button styles on the page: square, fill #9d3f59, outline #873348 x2 (\"Choose a JLPT level\"); square, fill #fff8f4, outline #c47788 x1 (\"See a question review\"); square, outline #c47788 x1 (\"Explore N5 level ↗\")",
-    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "button-styles"
-    ],
-    "wheres": [
-     "(the page)"
-    ]
-   },
-   {
-    "check": "text-contrast",
-    "where": "section#review > div.wrap > div.section-head > p \"Each completed paper leads to a review t\"",
-    "msg": "body text in #a59498 on #482b37 reads 4.33:1 (needs 7:1)",
-    "fix": "body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels",
-    "widths": [
-     1440
-    ],
-    "from": "consistency",
-    "ids": [
-     "text-contrast"
-    ],
-    "wheres": [
-     "section#review > div.wrap > div.section-head > p \"Each completed paper leads to a review t\""
-    ]
-   },
-   {
-    "check": "section-gaps",
-    "where": "section#practice / section#review",
-    "msg": "140px between these sections, -61% against the median 355px of gaps at a change of ground",
-    "fix": "use one gap between sections (all within 25% of each other)",
-    "widths": [
-     1440
-    ],
-    "from": "consistency",
-    "ids": [
-     "section-gaps"
-    ],
-    "wheres": [
-     "section#practice / section#review"
-    ]
-   },
-   {
-    "check": "scroll-reveal",
-    "where": "section#practice > div.wrap > div.ui.app \"Answer review / N5 vocabulary Reviewed Q\"",
-    "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-    "widths": [
-     390
-    ],
-    "from": "consistency",
-    "ids": [
-     "scroll-reveal"
-    ],
-    "wheres": [
-     "section#practice > div.wrap > div.ui.app \"Answer review / N5 vocabulary Reviewed Q\""
-    ]
-   },
-   {
-    "check": "edge-left",
-    "where": "#levels div.section-head.levels-head \"JLPT section timings by levelSee\"",
-    "msg": "starts at x 94; the lines are 80 and the column starts",
-    "fix": "start it on the .wrap left line",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "edge-left"
-    ],
-    "wheres": [
-     "#levels div.section-head.levels-head \"JLPT section timings by levelSee\""
-    ]
-   },
-   {
-    "check": "edge-left",
-    "where": "#levels h2 \"JLPT section timings by level\"",
-    "msg": "starts at x 94; the lines are 80 and the column starts",
-    "fix": "start it on the .wrap left line",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "edge-left"
-    ],
-    "wheres": [
-     "#levels h2 \"JLPT section timings by level\""
-    ]
-   },
-   {
-    "check": "edge-left",
-    "where": "#levels p \"See the timed test sections and \"",
-    "msg": "starts at x 519.5; the lines are 80 and the column starts",
-    "fix": "start it on the .wrap left line",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "edge-left"
-    ],
-    "wheres": [
-     "#levels p \"See the timed test sections and \""
-    ]
-   },
-   {
-    "check": "edge-left",
-    "where": "#questions h3 \"Independent JLPT platform\"",
-    "msg": "starts at x 89.6; the lines are 80 and the column starts",
-    "fix": "start it on the .wrap left line",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "edge-left"
-    ],
-    "wheres": [
-     "#questions h3 \"Independent JLPT platform\""
-    ]
-   },
-   {
-    "check": "edge-left",
-    "where": "#questions p \"JLPT organizers do not operate o\"",
-    "msg": "starts at x 91; the lines are 80 and the column starts",
-    "fix": "start it on the .wrap left line",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "edge-left"
-    ],
-    "wheres": [
-     "#questions p \"JLPT organizers do not operate o\""
-    ]
-   },
-   {
-    "check": "lines",
-    "where": "page",
-    "msg": "headings and leads start on 3 lines (x 80, 94, 519.5); the page has 80 and one split line",
-    "fix": "put the block on the .wrap lines or the grid columns",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "lines"
-    ],
-    "wheres": [
-     "page"
-    ]
-   },
-   {
-    "check": "sparse",
-    "where": "#levels section.section.levels-section \"JLPT section timings by levelSee\"",
-    "msg": "its content fills 11% of its screen; merge it or give it its visual (0.55 is the aim)",
-    "fix": "fill the section or make it a screen shorter",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "layout",
-    "ids": [
-     "sparse"
-    ],
-    "wheres": [
-     "#levels section.section.levels-section \"JLPT section timings by levelSee\""
-    ]
-   },
-   {
-    "check": "sparse",
-    "where": "#questions section.section.ground-surface \"Question checks and score report\"",
-    "msg": "its content fills 28% of its screen; merge it or give it its visual (0.55 is the aim)",
-    "fix": "fill the section or make it a screen shorter",
-    "widths": [
-     1440
-    ],
-    "from": "layout",
-    "ids": [
-     "sparse"
-    ],
-    "wheres": [
-     "#questions section.section.ground-surface \"Question checks and score report\""
-    ]
-   },
    {
     "check": "hero-lines",
     "where": "section.hero h1",
@@ -431,56 +69,14 @@
     "wheres": [
      "section.hero h1"
     ]
-   },
-   {
-    "check": "screen-height",
-    "where": "#levels section.section.levels-section \"JLPT section timings by levelSee\"",
-    "msg": "935px, 1.11 screens; a section is exactly one or two (--h), or on a phone at least one that its content fills",
-    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
-    "widths": [
-     390
-    ],
-    "from": "layout",
-    "ids": [
-     "screen-height"
-    ],
-    "wheres": [
-     "#levels section.section.levels-section \"JLPT section timings by levelSee\""
-    ]
-   },
-   {
-    "check": "screen-height",
-    "where": "#questions section.section.ground-surface \"Question checks and score report\"",
-    "msg": "940px, 1.11 screens; a section is exactly one or two (--h), or on a phone at least one that its content fills",
-    "fix": "make the section exactly one or two screens (--h: 1 or 2)",
-    "widths": [
-     390
-    ],
-    "from": "layout",
-    "ids": [
-     "screen-height"
-    ],
-    "wheres": [
-     "#questions section.section.ground-surface \"Question checks and score report\""
-    ]
    }
   ],
   "warns": [
    {
-    "check": "flush",
-    "where": "section#review > div.mo-lc__stage > div.mo-lc__cover",
-    "msg": "its first line sits 17px under the top edge of section#review, where the ground changes",
-    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
-    "widths": [
-     1440
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "flush",
-    "where": "h2#levels-h \"JLPT section timings by level\"",
-    "msg": "its first line sits 15px under the top edge of section#levels, where the ground changes",
-    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "check": "scroll-reveal",
+    "where": "section#review > div.wrap > div.section-head > p.mo-wh__text \"Every completed paper points you back to\"",
+    "msg": "starts \"color\" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(3) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)",
+    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
     "widths": [
      1440,
      390
@@ -488,21 +84,10 @@
     "from": "consistency"
    },
    {
-    "check": "section-gaps",
-    "where": "main#top > section.hero.hero--split / section#practice",
-    "msg": "467px between these sections, +32% against the median 355px",
-    "fix": "use one gap between sections (all within 25% of each other)",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "section-gaps",
-    "where": "section#levels / section#questions",
-    "msg": "221px between these sections, -38% against the median 355px",
-    "fix": "use one gap between sections (all within 25% of each other)",
+    "check": "no-visual",
+    "where": "section#levels \"JLPT section timings by level\"",
+    "msg": "pictures, effects and mocks cover 25% of this section; a feature section needs a visual (about 25% or more)",
+    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
     "widths": [
      1440,
      390
@@ -512,49 +97,8 @@
    {
     "check": "section-gaps",
     "where": "section#questions / footer#closing",
-    "msg": "457px between these sections, +29% against the median 355px of gaps at a change of ground",
+    "msg": "422px between these sections, +34% against the median 315px of gaps at a change of ground",
     "fix": "use one gap between sections (all within 25% of each other)",
-    "widths": [
-     1440
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "section-gaps",
-    "where": "section#practice / section#review",
-    "msg": "uneven space at the edge of a band: 122px outside its edge, 17px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-    "fix": "use one gap between sections (all within 25% of each other)",
-    "widths": [
-     1440
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "section-gaps",
-    "where": "section#review / section#levels",
-    "msg": "uneven space at the edge of a band: 15px outside its edge, 340px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-    "fix": "use one gap between sections (all within 25% of each other)",
-    "widths": [
-     1440,
-     390
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "nav-current",
-    "where": "header.nav.nav--split",
-    "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
-    "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls",
-    "widths": [
-     1440
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "empty-area",
-    "where": "main#top > section.hero.hero--split \"JLPT mock exams for N1–N5\"",
-    "msg": "38% of the section is empty: 272px under its last (a.btn.btn--primary), 1% beside content that covers under half the container, in its 728px of rows (WARN over 35%, FAIL over 50%)",
-    "fix": "fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)",
     "widths": [
      1440
     ],
@@ -563,414 +107,22 @@
    {
     "check": "section-air",
     "where": "section#questions \"Question checks and score reportingOrigi\"",
-    "msg": "the content fills 49.1% of the section's height (443 of 900px): 55% or more (40% WARN) (SR-3)",
+    "msg": "the content fills 53.1% of the section's height (478 of 900px): 55% or more (40% WARN) (SR-3)",
     "fix": "fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block",
     "widths": [
      1440
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "no-visual",
-    "where": "section#levels \"JLPT section timings by level\"",
-    "msg": "pictures, effects and mocks cover 23% of this section; a feature section needs a visual (about 25% or more)",
-    "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits",
-    "widths": [
-     390
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "button-styles",
-    "where": "div#format-panel-n5 > div.format-picker__foot > a.btn.btn--secondary \"Explore N5 level ↗\"",
-    "msg": "on the phone 3 buttons run the full width of their column, but  \"Explore N5 level ↗\" is 183px of 342px: one action in two sizes",
-    "fix": "give every button the same width rule on the phone: all full width, or all at their own width",
-    "widths": [
-     390
-    ],
-    "from": "consistency"
-   },
-   {
-    "check": "fade-cut",
-    "where": "div.content-review-preview__body > ul.content-review-preview__rows > li:nth-of-type(2) > span:nth-of-type(1) \"Level and item type\"",
-    "msg": "2 lines of div.ui.ui-panel fade out under its edge (\"Level and item type\", \"Checked\"): drawn at a fraction of #372a30 on #fffaf7, half-erased",
-    "fix": "fit the mock's rows inside its panel (fewer rows, a taller panel), or end the fade below the last whole row: no row half-erased",
-    "widths": [
-     390
     ],
     "from": "consistency"
    }
   ],
   "crashed": [],
   "seconds": {
-   "consistency": 97,
-   "layout": 5
+   "consistency": 96,
+   "layout": 6
   }
  },
- "open": [
-  {
-   "check": "scroll-reveal",
-   "where": "section#practice > div.wrap > div.section-head.practice-head \"The JLPT question review screen Compare \"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#practice > div.wrap > div.section-head.practice-head \"The JLPT question review screen Compare \""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "section#practice > div.wrap > div.ui.app \"Practice / N5 Find a question Paper Revi\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#practice > div.wrap > div.ui.app \"Practice / N5 Find a question Paper Revi\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "section#levels > div.wrap > div.section-head.levels-head \"JLPT section timings by level See the ti\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#levels > div.wrap > div.section-head.levels-head \"JLPT section timings by level See the ti\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "section#levels > div.wrap > div.ui.format-picker \"N1 N2 N3 N4 N5 20 min Vocabulary SECTION\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#levels > div.wrap > div.ui.format-picker \"N1 N2 N3 N4 N5 20 min Vocabulary SECTION\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "section#questions > div.wrap > div.section-head.faq-head \"Question checks and score reporting Orig\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#questions > div.wrap > div.section-head.faq-head \"Question checks and score reporting Orig\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1) \"Independent JLPT platform JLPT organizer\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1) \"Independent JLPT platform JLPT organizer\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2) \"Mock score reporting Results show raw pe\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2) \"Mock score reporting Results show raw pe\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3) \"Five JLPT levels The planned question ba\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3) \"Five JLPT levels The planned question ba\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "footer#closing > div.wrap > div.closing__cta.close--type \"Start with a JLPT level See the timed se\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "footer#closing > div.wrap > div.closing__cta.close--type \"Start with a JLPT level See the timed se\""
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "footer#closing > div.wrap > div.closing__links \"JLPT practice Independent preparation fo\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "footer#closing > div.wrap > div.closing__links \"JLPT practice Independent preparation fo\""
-   ]
-  },
-  {
-   "check": "button-styles",
-   "where": "(the page)",
-   "msg": "3 button styles on the page: square, fill #9d3f59, outline #873348 x2 (\"Choose a JLPT level\"); square, fill #fff8f4, outline #c47788 x1 (\"See a question review\"); square, outline #c47788 x1 (\"Explore N5 level ↗\")",
-   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "button-styles"
-   ],
-   "wheres": [
-    "(the page)"
-   ]
-  },
-  {
-   "check": "text-contrast",
-   "where": "section#review > div.wrap > div.section-head > p \"Each completed paper leads to a review t\"",
-   "msg": "body text in #a59498 on #482b37 reads 4.33:1 (needs 7:1)",
-   "fix": "body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels",
-   "widths": [
-    1440
-   ],
-   "from": "consistency",
-   "ids": [
-    "text-contrast"
-   ],
-   "wheres": [
-    "section#review > div.wrap > div.section-head > p \"Each completed paper leads to a review t\""
-   ]
-  },
-  {
-   "check": "section-gaps",
-   "where": "section#practice / section#review",
-   "msg": "140px between these sections, -61% against the median 355px of gaps at a change of ground",
-   "fix": "use one gap between sections (all within 25% of each other)",
-   "widths": [
-    1440
-   ],
-   "from": "consistency",
-   "ids": [
-    "section-gaps"
-   ],
-   "wheres": [
-    "section#practice / section#review"
-   ]
-  },
-  {
-   "check": "scroll-reveal",
-   "where": "section#practice > div.wrap > div.ui.app \"Answer review / N5 vocabulary Reviewed Q\"",
-   "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-   "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
-   "widths": [
-    390
-   ],
-   "from": "consistency",
-   "ids": [
-    "scroll-reveal"
-   ],
-   "wheres": [
-    "section#practice > div.wrap > div.ui.app \"Answer review / N5 vocabulary Reviewed Q\""
-   ]
-  },
-  {
-   "check": "edge-left",
-   "where": "#levels div.section-head.levels-head \"JLPT section timings by levelSee\"",
-   "msg": "starts at x 94; the lines are 80 and the column starts",
-   "fix": "start it on the .wrap left line",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "edge-left"
-   ],
-   "wheres": [
-    "#levels div.section-head.levels-head \"JLPT section timings by levelSee\""
-   ]
-  },
-  {
-   "check": "edge-left",
-   "where": "#levels h2 \"JLPT section timings by level\"",
-   "msg": "starts at x 94; the lines are 80 and the column starts",
-   "fix": "start it on the .wrap left line",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "edge-left"
-   ],
-   "wheres": [
-    "#levels h2 \"JLPT section timings by level\""
-   ]
-  },
-  {
-   "check": "edge-left",
-   "where": "#levels p \"See the timed test sections and \"",
-   "msg": "starts at x 519.5; the lines are 80 and the column starts",
-   "fix": "start it on the .wrap left line",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "edge-left"
-   ],
-   "wheres": [
-    "#levels p \"See the timed test sections and \""
-   ]
-  },
-  {
-   "check": "edge-left",
-   "where": "#questions h3 \"Independent JLPT platform\"",
-   "msg": "starts at x 89.6; the lines are 80 and the column starts",
-   "fix": "start it on the .wrap left line",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "edge-left"
-   ],
-   "wheres": [
-    "#questions h3 \"Independent JLPT platform\""
-   ]
-  },
-  {
-   "check": "edge-left",
-   "where": "#questions p \"JLPT organizers do not operate o\"",
-   "msg": "starts at x 91; the lines are 80 and the column starts",
-   "fix": "start it on the .wrap left line",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "edge-left"
-   ],
-   "wheres": [
-    "#questions p \"JLPT organizers do not operate o\""
-   ]
-  },
-  {
-   "check": "lines",
-   "where": "page",
-   "msg": "headings and leads start on 3 lines (x 80, 94, 519.5); the page has 80 and one split line",
-   "fix": "put the block on the .wrap lines or the grid columns",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "lines"
-   ],
-   "wheres": [
-    "page"
-   ]
-  },
-  {
-   "check": "sparse",
-   "where": "#levels section.section.levels-section \"JLPT section timings by levelSee\"",
-   "msg": "its content fills 11% of its screen; merge it or give it its visual (0.55 is the aim)",
-   "fix": "fill the section or make it a screen shorter",
-   "widths": [
-    1440,
-    390
-   ],
-   "from": "layout",
-   "ids": [
-    "sparse"
-   ],
-   "wheres": [
-    "#levels section.section.levels-section \"JLPT section timings by levelSee\""
-   ]
-  },
-  {
-   "check": "sparse",
-   "where": "#questions section.section.ground-surface \"Question checks and score report\"",
-   "msg": "its content fills 28% of its screen; merge it or give it its visual (0.55 is the aim)",
-   "fix": "fill the section or make it a screen shorter",
-   "widths": [
-    1440
-   ],
-   "from": "layout",
-   "ids": [
-    "sparse"
-   ],
-   "wheres": [
-    "#questions section.section.ground-surface \"Question checks and score report\""
-   ]
-  },
+ "open": [],
+ "waived": [
   {
    "check": "hero-lines",
    "where": "section.hero h1",
@@ -985,43 +137,10 @@
    ],
    "wheres": [
     "section.hero h1"
-   ]
-  },
-  {
-   "check": "screen-height",
-   "where": "#levels section.section.levels-section \"JLPT section timings by levelSee\"",
-   "msg": "935px, 1.11 screens; a section is exactly one or two (--h), or on a phone at least one that its content fills",
-   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
-   "widths": [
-    390
    ],
-   "from": "layout",
-   "ids": [
-    "screen-height"
-   ],
-   "wheres": [
-    "#levels section.section.levels-section \"JLPT section timings by levelSee\""
-   ]
-  },
-  {
-   "check": "screen-height",
-   "where": "#questions section.section.ground-surface \"Question checks and score report\"",
-   "msg": "940px, 1.11 screens; a section is exactly one or two (--h), or on a phone at least one that its content fills",
-   "fix": "make the section exactly one or two screens (--h: 1 or 2)",
-   "widths": [
-    390
-   ],
-   "from": "layout",
-   "ids": [
-    "screen-height"
-   ],
-   "wheres": [
-    "#questions section.section.ground-surface \"Question checks and score report\""
-   ]
+   "reason": "The final JLPT title fits visibly in three lines; the checker expands it beyond the published page copy."
   }
  ],
- "waived": [],
- "warnCount": 13,
- "at": "2026-11-22T04:04:12.982Z",
- "openTold": true
+ "warnCount": 4,
+ "at": "2026-11-23T13:04:36.032Z"
 }
