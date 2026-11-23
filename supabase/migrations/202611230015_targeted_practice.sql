@@ -350,7 +350,7 @@ grant execute on function public.submit_targeted_practice(uuid) to authenticated
 create or replace function public.get_targeted_practice_review(p_session_id uuid)
 returns table (
   question_id uuid,
-  position smallint,
+  item_position smallint,
   item_type_code text,
   prompt jsonb,
   options jsonb,

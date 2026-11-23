@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 type PracticeReviewRow = {
   question_id: string;
-  position: number;
+  item_position: number;
   item_type_code: string;
   prompt: unknown;
   options: { id: string; content?: unknown; text?: unknown }[];
@@ -79,7 +79,7 @@ export default async function TargetedPracticeReviewPage({ params }: { params: P
               const distractors = row.distractor_rationales && typeof row.distractor_rationales === "object" ? row.distractor_rationales as Record<string, unknown> : {};
               const explanation = localized(row.explanation, language);
               return <article className="answer-review-card origami-answer-card" key={row.question_id}>
-                <div className="answer-review-card__head"><span>{String(row.position).padStart(2, "0")} · {row.item_type_code.replaceAll("-", " ")}</span><span className={row.is_correct ? "review-status review-status--correct" : "review-status review-status--wrong"}><LocalizedText messageKey={row.is_correct ? "practice.correct" : row.selected_option_id ? "practice.incorrect" : "practice.unanswered"} /></span></div>
+                <div className="answer-review-card__head"><span>{String(row.item_position).padStart(2, "0")} · {row.item_type_code.replaceAll("-", " ")}</span><span className={row.is_correct ? "review-status review-status--correct" : "review-status review-status--wrong"}><LocalizedText messageKey={row.is_correct ? "practice.correct" : row.selected_option_id ? "practice.incorrect" : "practice.unanswered"} /></span></div>
                 <h2 lang="ja">{content(row.prompt)}</h2>
                 <div className="answer-review-card__answers">
                   <p><span><LocalizedText messageKey="practice.yourAnswer" /></span><strong>{chosen ? <>{chosen.id} · {content(chosen.content ?? chosen.text)}</> : <LocalizedText messageKey="practice.noAnswer" />}</strong></p>
