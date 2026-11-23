@@ -46,12 +46,7 @@ export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; all
   }, [enabled]);
 
   useEffect(() => {
-    if (!blueprintId) {
-      setSlots([]);
-      setQuestions([]);
-      setSelected([]);
-      return;
-    }
+    if (!blueprintId) return;
     let cancelled = false;
     async function loadAssemblySource() {
       const supabase = createSupabaseBrowserClient();
@@ -127,7 +122,14 @@ export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; all
     <p className="workflow-note"><strong>Only approved content is selectable.</strong> Form assembly enforces the approved blueprint’s exact counts. Validation separately checks answer keys, approved media, level and timing. Premium is the default; only an administrator can designate a reviewed demo or introductory form as free.</p>
     {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
     {message ? <p className="form-message form-message--success" role="status">{message}</p> : null}
-    <label>Approved blueprint<select value={blueprintId} onChange={(event) => setBlueprintId(event.target.value)}><option value="">Choose a blueprint</option>{blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.level} · version {blueprint.version}</option>)}</select></label>
+    <label>Approved blueprint<select value={blueprintId} onChange={(event) => {
+      const nextBlueprintId = event.target.value;
+      setBlueprintId(nextBlueprintId);
+      setSlots([]);
+      setQuestions([]);
+      setSelected([]);
+      setError("");
+    }}><option value="">Choose a blueprint</option>{blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.level} · version {blueprint.version}</option>)}</select></label>
     {!blueprints.length ? <p className="section-note">No approved blueprint is available yet. Create a draft above and route it through independent review first.</p> : null}
     {slots.length ? <>
       <div className="table-scroll"><table><thead><tr><th>Section</th><th>Category</th><th>Item type</th><th>Required</th><th>Selected</th><th>Timing</th></tr></thead><tbody>{slots.map((slot) => <tr key={slot.slot_order}><td>{slot.test_section_code}</td><td>{slot.score_category_code}</td><td>{slot.item_type_code}</td><td>{slot.question_quota}</td><td>{selectedByKey[keyFor(slot)] ?? 0}</td><td>{Math.round(slot.section_duration_seconds / 60)} min</td></tr>)}</tbody></table></div>

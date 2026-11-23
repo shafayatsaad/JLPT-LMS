@@ -310,6 +310,7 @@ body { background: var(--p-bg); color: var(--p-ink); }
 .origami-theme.nav.nav--split .nav__bar { display: flex; align-items: center; gap: 40px; }
 .origami-theme.nav.nav--split .nav__logo { margin-right: auto; }
 .origami-theme.nav.nav--split .nav__links { flex: 0 1 auto; justify-content: flex-end; }
+.origami-theme .nav__logo { min-height: 44px; }
 .language-switch { position: relative; display: inline-flex; align-items: center; flex: 0 0 auto; }
 .language-switch label { display: inline-flex; align-items: center; gap: 7px; color: #684250; font-size: 12px; font-weight: 600; }
 .language-switch select { min-height: 36px; padding: 6px 27px 6px 9px; border: 1px solid rgb(125 64 79 / 22%); border-radius: 2px 9px 2px 9px; background: #fffaf7; color: #54313d; font: 500 12px/1.3 var(--font-text); }
@@ -403,9 +404,9 @@ body { background: var(--p-bg); color: var(--p-ink); }
 main.origami-theme section#review .section-head > p { color: #fffaf7; }
 /* Keep the review statement legible while its word-highlight scroll moment runs. */
 main.origami-theme section#review .section-head > * { opacity: 1 !important; }
-main.origami-theme section#review .mo-wh .mo-w { color: #e8ccd3; transition: color 180ms ease; }
-main.origami-theme section#review .mo-wh .mo-w.is-on { color: #fffaf7; }
-main.origami-theme section#review .mo-wh strong .mo-w.is-on { color: #ffd4dd; }
+main.origami-theme section#review.mo-wh .mo-w { color: #e8ccd3; transition: color 180ms ease; }
+main.origami-theme section#review.mo-wh .mo-w.is-on { color: #fffaf7; }
+main.origami-theme section#review.mo-wh strong .mo-w.is-on { color: #ffd4dd; }
 .origami-theme .review-step__visual {
   border: 1px solid rgb(255 248 245 / 20%);
   border-radius: 2px 18px 2px 18px;
@@ -450,6 +451,17 @@ main.origami-theme section#review .mo-wh strong .mo-w.is-on { color: #ffd4dd; }
 .origami-theme .footer.origami-theme {
   background: linear-gradient(155deg, #482b37, #593746);
   color: #fff8f5;
+}
+.origami-theme.footer.closing {
+  height: auto;
+  min-height: 100svh;
+  padding-block: calc(var(--nav) + 24px) 48px;
+}
+.origami-theme.footer.closing > .wrap {
+  height: auto;
+  min-height: calc(100svh - var(--nav) - 24px - 48px);
+  grid-template-rows: max-content auto;
+  row-gap: clamp(24px, 4svh, 40px);
 }
 .origami-theme.footer .closing__cta .btn--primary {
   border-color: #873348;

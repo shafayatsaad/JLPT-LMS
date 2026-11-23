@@ -290,7 +290,9 @@ export function PaymentReviewQueue({
   }, []);
 
   useEffect(() => {
-    if (initialPaymentId) void loadDetail(initialPaymentId);
+    if (!initialPaymentId) return;
+    const timer = window.setTimeout(() => void loadDetail(initialPaymentId), 0);
+    return () => window.clearTimeout(timer);
   }, [initialPaymentId, loadDetail]);
 
   async function review(action: "under_review" | "return_to_pending" | "approve" | "reject" | "cancel") {

@@ -63,12 +63,15 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
       "staff-access-required": "auth.notice.staff",
       "recovery-session-missing": "auth.notice.recovery",
     };
-    if (notice && messages[notice]) setError(t(messages[notice]));
-
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
-    if (hashParams.has("error") || hashParams.has("error_code")) {
-      setError(t("auth.notice.failed"));
-    }
+    const message = hashParams.has("error") || hashParams.has("error_code")
+      ? t("auth.notice.failed")
+      : notice && messages[notice]
+        ? t(messages[notice])
+        : "";
+    if (!message) return;
+    const timer = window.setTimeout(() => setError(message), 0);
+    return () => window.clearTimeout(timer);
   }, [phoneEnabled, t]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {

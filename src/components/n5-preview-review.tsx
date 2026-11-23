@@ -11,11 +11,14 @@ export function N5PreviewReview() {
   const [answers, setAnswers] = useState<PreviewAnswers>({});
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
-      if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
-    } catch { setAnswers({}); }
-    setLoaded(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
+        if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
+      } catch { setAnswers({}); }
+      setLoaded(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!loaded) return <p className="result-loading" aria-live="polite">{t("preview.reviewLoading")}</p>;

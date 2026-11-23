@@ -11,9 +11,9 @@ export function OrigamiProductShell({ children }: { children: ReactNode }) {
       <main className="product-main" id="top" tabIndex={-1}>{children}</main>
       <footer className="product-footer">
         <div className="product-footer__inner">
-          <span>Independent JLPT preparation</span>
-          <span>Platform practice scores are not official JLPT scaled scores.</span>
-          <Link href="/">Back to home ↑</Link>
+          <span><LocalizedText messageKey="productShell.footer.brand" /></span>
+          <span><LocalizedText messageKey="productShell.footer.disclaimer" /></span>
+          <Link href="/"><LocalizedText messageKey="productShell.footer.home" /> ↑</Link>
         </div>
       </footer>
     </div>

@@ -32,16 +32,17 @@ export function N5PreviewExam() {
   const [secondsLeft, setSecondsLeft] = useState(jlptFormats.N5.sections[0].minutes * 60);
   const sections = jlptFormats.N5.sections;
   const activeQuestion = useMemo(() => n5PreviewQuestions.find((question) => question.sectionIndex === sectionIndex), [sectionIndex]);
-  const isListening = sectionIndex === 2;
-
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
-      if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
-    } catch {
-      setAnswers({});
-    }
-    setLoaded(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
+        if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
+      } catch {
+        setAnswers({});
+      }
+      setLoaded(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -50,9 +51,12 @@ export function N5PreviewExam() {
   }, [answers, loaded]);
 
   useEffect(() => {
-    setSecondsLeft(sections[sectionIndex].minutes * 60);
+    const reset = window.setTimeout(() => setSecondsLeft(sections[sectionIndex].minutes * 60), 0);
     const timer = window.setInterval(() => setSecondsLeft((current) => Math.max(0, current - 1)), 1000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(reset);
+      window.clearInterval(timer);
+    };
   }, [sectionIndex, sections]);
 
   function chooseAnswer(answer: PreviewAnswer) {

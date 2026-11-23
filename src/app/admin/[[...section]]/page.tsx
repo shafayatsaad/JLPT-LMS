@@ -273,8 +273,11 @@ export default async function AdminPage({ params, searchParams }: {
     sectionDescription = `Signed in as ${user.email ?? "staff"}. Access: ${roles.join(", ")}.`;
   }
 
-  const reportToDate = new Date().toISOString().slice(0, 10);
-  const reportFromDate = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const reportToDateValue = new Date();
+  const reportFromDateValue = new Date(reportToDateValue);
+  reportFromDateValue.setDate(reportFromDateValue.getDate() - 29);
+  const reportToDate = reportToDateValue.toISOString().slice(0, 10);
+  const reportFromDate = reportFromDateValue.toISOString().slice(0, 10);
 
   return (
     <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title={sectionTitle} description={sectionDescription} className="product-page--admin">

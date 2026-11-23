@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: Install, build, and type-check
+    name: Lint, test, and build
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
@@ -35,11 +35,32 @@ jobs:
       - name: Check dependency advisories
         run: npm audit
 
-      - name: Build production application
-        run: npm run build
+      - name: Lint application and tests
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
 
       - name: Check TypeScript
         run: npm run typecheck
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Install Chromium for browser smoke tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run production browser smoke tests
+        run: npm run test:e2e
+
+      - name: Upload browser failure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
 
   database-migrations:
     name: Replay Supabase migrations locally
@@ -63,6 +84,9 @@ jobs:
 
       - name: Replay every migration from a clean local database
         run: supabase db reset --local --no-seed
+
+      - name: Run database security and policy tests
+        run: supabase test db
 
       - name: Stop local Supabase stack
         if: always()

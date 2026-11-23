@@ -2,30 +2,39 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
-import { jlptFormats, jlptLevels } from "@/lib/jlpt-format";
+import { LocalizedText } from "@/components/i18n/localized-text";
+import { jlptFormats, jlptLevels, type JlptLevel, type ScoreCategoryCode } from "@/lib/jlpt-format";
+import type { MessageKey } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "JLPT levels N1–N5 | JLPT practice",
   description: "Compare the JLPT N1 through N5 test sections, timings, and score-report categories.",
 };
 
-const descriptions = {
-  N1: "For advanced Japanese learners working toward broad, fluent comprehension.",
-  N2: "For learners developing the Japanese needed in everyday and professional settings.",
-  N3: "A bridge between foundational Japanese and independent comprehension.",
-  N4: "For learners who can understand basic Japanese in familiar situations.",
-  N5: "An introduction to basic Japanese reading, language knowledge, and listening.",
-} as const;
+const descriptions: Record<JlptLevel, MessageKey> = {
+  N1: "levels.description.n1",
+  N2: "levels.description.n2",
+  N3: "levels.description.n3",
+  N4: "levels.description.n4",
+  N5: "levels.description.n5",
+};
+
+const categoryKeys: Record<ScoreCategoryCode, MessageKey> = {
+  "language-knowledge": "format.category.languageKnowledge",
+  reading: "format.category.reading",
+  listening: "format.category.listening",
+  "language-knowledge-reading": "format.category.languageKnowledgeReading",
+};
 
 export default function LevelsPage() {
   return (
     <ProductPage
-      eyebrow="JLPT level guides"
-      title="Find your level"
-      description="Compare the five JLPT levels, their timed sections, and score-report categories before choosing where to begin."
+      eyebrow="JLPT level guides" eyebrowKey="levels.eyebrow"
+      title="Find your level" titleKey="levels.title"
+      description="Compare the five JLPT levels, their timed sections, and score-report categories before choosing where to begin." descriptionKey="levels.description"
       className="product-page--editorial"
     >
-      <ProductSection title="Explore N1 through N5" className="product-section--tint">
+      <ProductSection title="Explore N1 through N5" titleKey="levels.section.explore" className="product-section--tint">
         <div className="level-directory-grid">
           {jlptLevels.map((level) => {
             const format = jlptFormats[level];
@@ -34,30 +43,32 @@ export default function LevelsPage() {
             return (
               <PaperPanel className="level-directory-card" key={level}>
                 <div className="level-directory-card__top">
-                  <span>JLPT LEVEL</span>
+                  <span><LocalizedText messageKey="levels.card.label" /></span>
                   <strong>{level}</strong>
                 </div>
-                <h3>{descriptions[level]}</h3>
+                <h3><LocalizedText messageKey={descriptions[level]} /></h3>
                 <div className="level-directory-card__meta">
-                  <span>{format.sections.length} timed sections</span>
-                  <span>{totalMinutes} minutes</span>
+                  <span>{format.sections.length} <LocalizedText messageKey="levels.card.timedSections" /></span>
+                  <span>{totalMinutes} <LocalizedText messageKey="levels.card.minutes" /></span>
                 </div>
                 <p className="level-directory-card__categories">
-                  {format.scoreCategories.map((category) => category.label).join(" · ")}
+                  {format.scoreCategories.map((category, index) => (
+                    <span key={category.code}>{index > 0 ? " · " : null}<LocalizedText messageKey={categoryKeys[category.code]} /></span>
+                  ))}
                 </p>
                 <Link className="product-text-link" href={`/levels/${level.toLowerCase()}`}>
-                  Explore {level} guide <ArrowUpRight size={15} aria-hidden="true" />
+                  <LocalizedText messageKey="levels.card.explore" values={{ level }} /> <ArrowUpRight size={15} aria-hidden="true" />
                 </Link>
                 {level === "N5" ? (
                   <Link className="product-text-link level-directory-card__preview" href="/exams/n5/preview">
-                    Try the browser-only N5 interface preview <ArrowUpRight size={15} aria-hidden="true" />
+                    <LocalizedText messageKey="levels.card.preview" /> <ArrowUpRight size={15} aria-hidden="true" />
                   </Link>
                 ) : null}
               </PaperPanel>
             );
           })}
         </div>
-        <p className="product-note"><span aria-hidden="true">◎</span> Mock results show raw platform performance and are not official JLPT scaled scores. Published papers depend on original content passing review.</p>
+        <p className="product-note"><span aria-hidden="true">◎</span> <LocalizedText messageKey="levels.note" /></p>
       </ProductSection>
     </ProductPage>
   );
