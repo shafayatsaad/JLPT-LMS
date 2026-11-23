@@ -1,10 +1,11 @@
 {
  "page": null,
- "dir": "D:\\JLPT LMS",
- "kind": "software",
- "start": "2026-11-21T21:28:40.583Z",
- "by": "start.mjs",
  "url": "http://127.0.0.1:3000/",
+ "root": null,
+ "kind": "software",
  "category": "JLPT mock exams",
- "primary": "Choose a JLPT level"
+ "primary": "Choose a JLPT level",
+ "rounds": 3,
+ "start": "2026-11-23T12:19:09.811Z",
+ "by": "gate.mjs --start"
 }
