@@ -16,7 +16,7 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "supabase:config:validate": "supabase config validate",
-    "supabase:db:reset": "supabase db reset --local --no-seed",
+    "supabase:db:reset": "supabase db reset --no-seed",
     "supabase:test": "supabase test db",
     "supabase:audit": "node scripts/audit-supabase-schema.cjs",
     "supabase:content-audit": "node scripts/audit-published-exams.cjs"
