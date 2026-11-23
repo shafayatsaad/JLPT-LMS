@@ -12,8 +12,8 @@ values
 insert into public.exam_blueprints (id, level, version, status, created_by)
 values ('22000000-0000-4000-8000-000000000001', 'N5', 999, 'approved', '11000000-0000-4000-8000-000000000001');
 
-insert into public.exam_forms (id, blueprint_id, level, form_code, version, status, is_frozen, published_at, created_by)
-values ('33000000-0000-4000-8000-000000000001', '22000000-0000-4000-8000-000000000001', 'N5', 'RLS-TEST-PUBLISHED-001', 999, 'published', true, now(), '11000000-0000-4000-8000-000000000001');
+insert into public.exam_forms (id, blueprint_id, level, form_code, version, status, created_by)
+values ('33000000-0000-4000-8000-000000000001', '22000000-0000-4000-8000-000000000001', 'N5', 'RLS-TEST-PUBLISHED-001', 999, 'draft', '11000000-0000-4000-8000-000000000001');
 
 insert into public.questions (id, content_key, revision, level, test_section_code, score_category_code, item_type_code, prompt, options, status, authored_by)
 values ('66000000-0000-4000-8000-000000000001', '66000000-0000-4000-8000-000000000002', 1, 'N5', 'language_knowledge', 'vocabulary', 'kanji_reading', '[]'::jsonb, '[{"id":"A","text":"sample"},{"id":"B","text":"sample"}]'::jsonb, 'approved', '11000000-0000-4000-8000-000000000001');
@@ -23,6 +23,11 @@ values ('66000000-0000-4000-8000-000000000001', 'A', '{"en":"Sample explanation.
 
 insert into public.exam_form_items (id, exam_form_id, question_id, position)
 values ('34000000-0000-4000-8000-000000000001', '33000000-0000-4000-8000-000000000001', '66000000-0000-4000-8000-000000000001', 1);
+
+-- Publish only after the frozen form has its fixture item attached.
+update public.exam_forms
+set status = 'published', is_frozen = true, published_at = now()
+where id = '33000000-0000-4000-8000-000000000001';
 
 insert into public.exam_attempts (id, user_id, exam_form_id, level, status, attempt_number, started_at, submitted_at)
 values
