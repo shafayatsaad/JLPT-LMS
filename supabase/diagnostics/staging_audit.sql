@@ -120,6 +120,26 @@ join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
   and p.proname = 'custom_access_token_hook';
 
+-- 10) Migration 034 expiry-notice worker: service-role execute only, private ledger.
+select
+  p.proname as function_name,
+  p.prosecdef as security_definer,
+  has_function_privilege('service_role', p.oid, 'EXECUTE') as service_role_can_execute,
+  has_function_privilege('authenticated', p.oid, 'EXECUTE') as learners_can_execute
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname = 'process_entitlement_notifications';
+
+select c.relname as table_name, c.relrowsecurity,
+  has_table_privilege('anon', c.oid, 'SELECT') as anon_can_read,
+  has_table_privilege('authenticated', c.oid, 'SELECT') as authenticated_can_read,
+  has_table_privilege('service_role', c.oid, 'SELECT') as service_role_can_read_directly
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'private'
+  and c.relname = 'entitlement_notification_deliveries';
+
 -- 7) Migration 026 receipt storage columns and private-object policies.
 select column_name, data_type, is_nullable
 from information_schema.columns
