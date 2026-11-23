@@ -1,7 +1,7 @@
 {
  "page": "http://127.0.0.1:3000/",
  "url": "http://127.0.0.1:3000/",
- "at": "2026-11-22T04:02:32.669Z",
+ "at": "2026-11-23T13:02:54.322Z",
  "out": "D:\\JLPT LMS\\.taste-skill\\gate\\consistency",
  "widths": [
   {
@@ -13,172 +13,32 @@
    "findings": [
     {
      "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#practice > div.wrap > div.section-head.practice-head",
-     "text": "The JLPT question review screen Compare your ans",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 1,
-     "crop": "1440-03-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#practice > div.wrap > div.ui.app",
-     "text": "Practice / N5 Find a question Paper Review Mista",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 1,
-     "crop": "1440-04-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#levels > div.wrap > div.section-head.levels-head",
-     "text": "JLPT section timings by level See the timed test",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 3,
-     "crop": "1440-10-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#levels > div.wrap > div.ui.format-picker",
-     "text": "N1 N2 N3 N4 N5 20 min Vocabulary SECTION 01 40 m",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 4,
-     "crop": "1440-13-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#questions > div.wrap > div.section-head.faq-head",
-     "text": "Question checks and score reporting Original con",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 4,
-     "crop": "1440-14-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1)",
-     "text": "Independent JLPT platform JLPT organizers do not",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 4,
-     "crop": "1440-15-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2)",
-     "text": "Mock score reporting Results show raw performanc",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "1440-17-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3)",
-     "text": "Five JLPT levels The planned question bank cover",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "1440-18-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "footer#closing > div.wrap > div.closing__cta.close--type",
-     "text": "Start with a JLPT level See the timed sections f",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 6,
-     "crop": "1440-21-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "footer#closing > div.wrap > div.closing__links",
-     "text": "JLPT practice Independent preparation for the Ja",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 6,
-     "crop": "1440-22-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "button-styles",
-     "sev": "FAIL",
-     "sel": "(the page)",
-     "text": "",
-     "stop": 0,
-     "msg": "3 button styles on the page: square, fill #9d3f59, outline #873348 x2 (\"Choose a JLPT level\"); square, fill #fff8f4, outline #c47788 x1 (\"See a question review\"); square, outline #c47788 x1 (\"Explore N5 level ↗\")",
-     "crop": "1440-01-button-styles.jpg",
-     "fix": "one primary and one secondary button: one shape, one height per size, one label size"
-    },
-    {
-     "check": "text-contrast",
-     "sev": "FAIL",
-     "sel": "section#review > div.wrap > div.section-head > p",
-     "text": "Each completed paper leads to a review that poin",
-     "stop": 2,
-     "msg": "body text in #a59498 on #482b37 reads 4.33:1 (needs 7:1)",
-     "crop": "1440-06-text-contrast.jpg",
-     "fix": "body text in the ink at 7:1 or more; grey (4.5:1 or more) only for captions and labels"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "FAIL",
-     "sel": "section#practice / section#review",
-     "text": "",
-     "stop": 2,
-     "msg": "140px between these sections, -61% against the median 355px of gaps at a change of ground",
-     "crop": "1440-07-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "flush",
      "sev": "WARN",
-     "sel": "section#review > div.mo-lc__stage > div.mo-lc__cover",
-     "text": "",
-     "msg": "its first line sits 17px under the top edge of section#review, where the ground changes",
+     "sel": "section#review > div.wrap > div.section-head > p.mo-wh__text",
+     "text": "Every completed paper points you back to the ski",
+     "msg": "starts \"color\" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(3) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)",
      "stop": 2,
-     "crop": "1440-08-flush.jpg",
-     "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)"
+     "crop": "1440-01-scroll-reveal.jpg",
+     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
     },
     {
-     "check": "flush",
+     "check": "no-visual",
      "sev": "WARN",
-     "sel": "h2#levels-h",
+     "sel": "section#levels",
      "text": "JLPT section timings by level",
-     "msg": "its first line sits 15px under the top edge of section#levels, where the ground changes",
+     "msg": "pictures, effects and mocks cover 25% of this section; a feature section needs a visual (about 25% or more)",
      "stop": 3,
-     "crop": "1440-11-flush.jpg",
-     "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)"
+     "crop": "1440-02-no-visual.jpg",
+     "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits"
     },
     {
      "check": "section-gaps",
      "sev": "WARN",
-     "sel": "main#top > section.hero.hero--split / section#practice",
+     "sel": "section#questions / footer#closing",
      "text": "",
-     "stop": 7,
-     "msg": "467px between these sections, +32% against the median 355px",
-     "crop": "1440-23-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#levels / section#questions",
-     "text": "",
-     "stop": 4,
-     "msg": "221px between these sections, -38% against the median 355px",
-     "crop": "1440-16-section-gaps.jpg",
+     "stop": 5,
+     "msg": "422px between these sections, +34% against the median 315px of gaps at a change of ground",
+     "crop": "1440-03-section-gaps.jpg",
      "fix": "use one gap between sections (all within 25% of each other)"
     },
     {
@@ -187,66 +47,16 @@
      "sel": "section#questions / footer#closing",
      "text": "",
      "stop": 5,
-     "msg": "457px between these sections, +29% against the median 355px of gaps at a change of ground",
-     "crop": "1440-19-section-gaps.jpg",
+     "msg": "uneven space at the edge of a band: 311px outside its edge, 111px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
+     "crop": "1440-04-section-gaps.jpg",
      "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#practice / section#review",
-     "text": "",
-     "stop": 2,
-     "msg": "uneven space at the edge of a band: 122px outside its edge, 17px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-     "crop": "1440-09-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#review / section#levels",
-     "text": "",
-     "stop": 3,
-     "msg": "uneven space at the edge of a band: 15px outside its edge, 340px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-     "crop": "1440-12-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#questions / footer#closing",
-     "text": "",
-     "stop": 5,
-     "msg": "uneven space at the edge of a band: 346px outside its edge, 111px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-     "crop": "1440-20-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "nav-current",
-     "sev": "WARN",
-     "sel": "header.nav.nav--split",
-     "text": "",
-     "stop": 1,
-     "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
-     "crop": "1440-05-nav-current.jpg",
-     "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls"
-    },
-    {
-     "check": "empty-area",
-     "sev": "WARN",
-     "sel": "main#top > section.hero.hero--split",
-     "text": "JLPT mock exams for N1–N5",
-     "msg": "38% of the section is empty: 272px under its last (a.btn.btn--primary), 1% beside content that covers under half the container, in its 728px of rows (WARN over 35%, FAIL over 50%)",
-     "stop": 0,
-     "crop": "1440-02-empty-area.jpg",
-     "fix": "fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)"
     },
     {
      "check": "section-air",
      "sev": "WARN",
      "sel": "section#questions",
      "text": "Question checks and score reportingOrigi",
-     "msg": "the content fills 49.1% of the section's height (443 of 900px): 55% or more (40% WARN) (SR-3)",
+     "msg": "the content fills 53.1% of the section's height (478 of 900px): 55% or more (40% WARN) (SR-3)",
      "fix": "fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block",
      "rule": "SR-3 T-fill",
      "crop": "1440-rhythm-01-section-air.jpg"
@@ -263,123 +73,13 @@
    "findings": [
     {
      "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#practice > div.wrap > div.section-head.practice-head",
-     "text": "The JLPT question review screen Compare your ans",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 1,
-     "crop": "390-02-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#practice > div.wrap > div.ui.app",
-     "text": "Answer review / N5 vocabulary Reviewed Question ",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 1,
-     "crop": "390-03-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#levels > div.wrap > div.section-head.levels-head",
-     "text": "JLPT section timings by level See the timed test",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 3,
-     "crop": "390-04-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#levels > div.wrap > div.ui.format-picker",
-     "text": "N1 N2 N3 N4 N5 20 min Vocabulary SECTION 01 40 m",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 4,
-     "crop": "390-08-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "section#questions > div.wrap > div.section-head.faq-head",
-     "text": "Question checks and score reporting Original con",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "390-11-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(1)",
-     "text": "Independent JLPT platform JLPT organizers do not",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "390-12-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(2)",
-     "text": "Mock score reporting Results show raw performanc",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "390-13-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "div.wrap > div.question-layout > div.faq-list > article.faq-item:nth-of-type(3)",
-     "text": "Five JLPT levels The planned question bank cover",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 5,
-     "crop": "390-14-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "footer#closing > div.wrap > div.closing__cta.close--type",
-     "text": "Start with a JLPT level See the timed sections f",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 6,
-     "crop": "390-17-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "scroll-reveal",
-     "sev": "FAIL",
-     "sel": "footer#closing > div.wrap > div.closing__links",
-     "text": "JLPT practice Independent preparation for the Ja",
-     "msg": "starts \"clip-path\" (0.9 s) the moment it is scrolled into view (an IntersectionObserver)",
-     "stop": 7,
-     "crop": "390-18-scroll-reveal.jpg",
-     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
-    },
-    {
-     "check": "button-styles",
-     "sev": "FAIL",
-     "sel": "(the page)",
-     "text": "",
-     "stop": 0,
-     "msg": "3 button styles on the page: square, fill #9d3f59, outline #873348 x3 (\"Choose a JLPT level\"); square, fill #fff8f4, outline #c47788 x1 (\"See a question review\"); square, outline #c47788 x1 (\"Explore N5 level ↗\")",
-     "crop": "390-01-button-styles.jpg",
-     "fix": "one primary and one secondary button: one shape, one height per size, one label size"
-    },
-    {
-     "check": "flush",
      "sev": "WARN",
-     "sel": "h2#levels-h",
-     "text": "JLPT section timings by level",
-     "msg": "its first line sits 18px under the top edge of section#levels, where the ground changes",
-     "stop": 3,
-     "crop": "390-05-flush.jpg",
-     "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)"
+     "sel": "section#review > div.wrap > div.section-head > p.mo-wh__text",
+     "text": "Every completed paper points you back to the ski",
+     "msg": "starts \"color\" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(1) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)",
+     "stop": 2,
+     "crop": "390-01-scroll-reveal.jpg",
+     "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view"
     },
     {
      "check": "no-visual",
@@ -388,68 +88,8 @@
      "text": "JLPT section timings by level",
      "msg": "pictures, effects and mocks cover 23% of this section; a feature section needs a visual (about 25% or more)",
      "stop": 4,
-     "crop": "390-09-no-visual.jpg",
+     "crop": "390-02-no-visual.jpg",
      "fix": "give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits"
-    },
-    {
-     "check": "button-styles",
-     "sev": "WARN",
-     "sel": "div#format-panel-n5 > div.format-picker__foot > a.btn.btn--secondary",
-     "text": "Explore N5 level ↗",
-     "msg": "on the phone 3 buttons run the full width of their column, but  \"Explore N5 level ↗\" is 183px of 342px: one action in two sizes",
-     "fix": "give every button the same width rule on the phone: all full width, or all at their own width",
-     "stop": 4,
-     "crop": "390-10-button-styles.jpg"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "main#top > section.hero.hero--split / section#practice",
-     "text": "",
-     "stop": 8,
-     "msg": "321px between these sections, +59% against the median 202px",
-     "crop": "390-19-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#review / section#levels",
-     "text": "",
-     "stop": 3,
-     "msg": "133px between these sections, -34% against the median 202px of gaps at a change of ground",
-     "crop": "390-06-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#levels / section#questions",
-     "text": "",
-     "stop": 5,
-     "msg": "121px between these sections, -40% against the median 202px",
-     "crop": "390-15-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "section-gaps",
-     "sev": "WARN",
-     "sel": "section#review / section#levels",
-     "text": "",
-     "stop": 3,
-     "msg": "uneven space at the edge of a band: 18px outside its edge, 115px inside it (the space on either side of a change of ground reads as one gap only when the two match)",
-     "crop": "390-07-section-gaps.jpg",
-     "fix": "use one gap between sections (all within 25% of each other)"
-    },
-    {
-     "check": "fade-cut",
-     "sev": "WARN",
-     "sel": "div.content-review-preview__body > ul.content-review-preview__rows > li:nth-of-type(2) > span:nth-of-type(1)",
-     "text": "Level and item type",
-     "stop": 5,
-     "msg": "2 lines of div.ui.ui-panel fade out under its edge (\"Level and item type\", \"Checked\"): drawn at a fraction of #372a30 on #fffaf7, half-erased",
-     "crop": "390-16-fade-cut.jpg",
-     "fix": "fit the mock's rows inside its panel (fewer rows, a taller panel), or end the fade below the last whole row: no row half-erased"
     }
    ],
    "glAsked": 0
@@ -489,8 +129,8 @@
   "findings": []
  },
  "counts": {
-  "FAIL": 24,
-  "WARN": 19
+  "FAIL": 0,
+  "WARN": 7
  },
  "checks": {
   "assets": "PASS",
@@ -498,7 +138,7 @@
   "gl-fallback": "PASS",
   "empty-visual": "PASS",
   "hero-fill": "PASS",
-  "flush": "WARN",
+  "flush": "PASS",
   "placeholder": "PASS",
   "sample-label": "PASS",
   "caption": "PASS",
@@ -517,7 +157,7 @@
   "fold-cut": "PASS",
   "marquee": "PASS",
   "scroll-linked": "not checked",
-  "scroll-reveal": "FAIL",
+  "scroll-reveal": "WARN",
   "pinned": "PASS",
   "loop-pause": "not checked",
   "reduced-motion": "not checked",
@@ -534,7 +174,7 @@
   "ui-fit": "PASS",
   "ui-centre": "PASS",
   "dark-ground": "PASS",
-  "button-styles": "FAIL",
+  "button-styles": "PASS",
   "button-shape": "PASS",
   "same-action": "PASS",
   "button-picture": "PASS",
@@ -554,10 +194,10 @@
   "centre-axis": "PASS",
   "tilt": "PASS",
   "contrast": "PASS",
-  "text-contrast": "FAIL",
+  "text-contrast": "PASS",
   "body-size": "PASS",
   "busy-ground": "PASS",
-  "section-gaps": "FAIL",
+  "section-gaps": "WARN",
   "proximity": "PASS",
   "hole": "PASS",
   "links": "PASS",
@@ -576,10 +216,10 @@
   "unit-break": "PASS",
   "tab-wrap": "PASS",
   "effects-fit": "PASS",
-  "fade-cut": "WARN",
+  "fade-cut": "PASS",
   "photo-weight": "PASS",
   "copy-length": "PASS",
-  "nav-current": "WARN",
+  "nav-current": "PASS",
   "progress-bar": "PASS",
   "photo-repeat": "PASS",
   "button-contrast": "PASS",
@@ -617,7 +257,7 @@
   "count-text": "PASS",
   "loop-cycle": "PASS",
   "section-tile": "PASS",
-  "empty-area": "WARN",
+  "empty-area": "PASS",
   "a11y-name": "PASS",
   "img-alt": "PASS",
   "field-label": "PASS",

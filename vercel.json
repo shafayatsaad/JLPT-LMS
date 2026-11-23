@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/jobs/google-sheets/payment-sync",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
+

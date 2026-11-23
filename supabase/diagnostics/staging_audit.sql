@@ -63,6 +63,7 @@ with expected(function_name) as (
     ('save_my_notification_preferences'), ('save_targeted_practice_answer'), ('set_exam_answer_flag'),
     ('set_my_mistake_reviewed'), ('set_question_draft_skill_tags'), ('set_support_ticket_status'),
     ('start_exam_attempt'), ('start_targeted_practice'), ('create_payment_request'), ('request_payment_cancellation'), ('review_payment_request'), ('register_trusted_device'), ('revoke_trusted_devices'), ('is_current_user_staff'), ('custom_access_token_hook'), ('submit_content_asset_for_review'),
+    ('claim_payment_sheet_sync_batch'), ('complete_payment_sheet_sync'), ('get_payment_sheet_reconciliation_ids'), ('get_admin_payment_sheet_sync_status'), ('admin_retry_failed_payment_sheet_sync'), ('record_admin_payment_sheet_sync_run'), ('record_admin_payment_sheet_reconciliation'),
     ('submit_exam_attempt'), ('submit_exam_blueprint_for_review'), ('submit_question_for_review'),
     ('submit_targeted_practice'), ('update_admin_announcement_draft'),
     ('update_exam_blueprint_draft_slots'), ('validate_exam_form')
@@ -88,6 +89,17 @@ join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'private'
   and p.proname in ('has_role', 'has_any_role', 'can_manage_support')
 order by p.proname;
+
+-- 9) Migration 033 private payment sync tables and direct-access boundary.
+select c.relname as table_name, c.relrowsecurity,
+  has_table_privilege('anon', c.oid, 'SELECT') as anon_can_read,
+  has_table_privilege('authenticated', c.oid, 'SELECT') as authenticated_can_read,
+  has_table_privilege('service_role', c.oid, 'SELECT') as service_role_can_read_directly
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'private'
+  and c.relname in ('payment_sheet_sync_jobs', 'payment_sheet_sync_events')
+order by c.relname;
 
 -- 8) Migration 032 private state and Auth Hook privileges. The hook must also
 -- be selected/enabled in Supabase Dashboard; SQL presence alone is not enough.

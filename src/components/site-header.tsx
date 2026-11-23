@@ -27,8 +27,8 @@ export async function SiteHeader() {
 
   return (
     <header className="nav nav--split origami-theme">
+      <SiteSkipLink />
       <div className="wrap nav__bar">
-        <SiteSkipLink />
         <Link className="nav__logo" href="/" aria-label="JLPT practice home">
           <span className="mark" data-mark="arc" aria-hidden="true" />
           JLPT practice

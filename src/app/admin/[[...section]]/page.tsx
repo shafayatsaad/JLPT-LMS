@@ -10,8 +10,10 @@ import { UserRoleManager, type AdminUserRow } from "@/components/admin/user-role
 import { QuestionBatchImport } from "@/components/admin/question-batch-import";
 import { AnnouncementWorkflow, type AdminAnnouncement } from "@/components/admin/announcement-workflow";
 import { AdminDashboardSummary, type AdminDashboardData } from "@/components/admin/admin-dashboard-summary";
+import { PaymentSheetSyncPanel, type PaymentSheetSyncStatus } from "@/components/admin/payment-sheet-sync-panel";
 import { ManualPaymentSettingsForm, PaymentPlanManager, PaymentReviewQueue, type AdminPaymentPlan, type AdminPaymentQueueRow } from "@/components/admin/payment-admin-workflows";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
+import { getPaymentSheetReadiness } from "@/lib/google-sheets";
 
 export const dynamic = "force-dynamic";
 
@@ -106,39 +108,23 @@ export default async function AdminPage({ params, searchParams }: {
   await requireStaffMfa(supabase, route);
 
   if (route === "/admin/settings/integrations") {
-    const sheets = {
-      enabled: process.env.GOOGLE_SHEETS_SYNC_ENABLED === "true",
-      spreadsheetId: Boolean(process.env.GOOGLE_SHEETS_SPREADSHEET_ID?.trim()),
-      clientEmail: Boolean(process.env.GOOGLE_SHEETS_CLIENT_EMAIL?.trim()),
-      privateKey: Boolean(process.env.GOOGLE_SHEETS_PRIVATE_KEY?.trim()),
-    };
+    const readiness = getPaymentSheetReadiness();
+    const { data: syncRows, error: syncError } = await supabase.rpc("get_admin_payment_sheet_sync_status");
     const privateImageStorageConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
-    const required = [sheets.spreadsheetId, sheets.clientEmail, sheets.privateKey];
-    const setupState = !sheets.enabled
-      ? "Disabled"
-      : required.every(Boolean)
-        ? "Configuration present; sync adapter pending"
-        : "Enabled with missing configuration";
+    const safeSyncRows = (syncRows ?? []) as PaymentSheetSyncStatus[];
 
     return (
-      <ProductPage eyebrow="Staff workspace · admin only" title="Integration settings" description="Google Sheets sync is staged for later setup. This screen checks presence only; secret values are never displayed." className="product-page--admin">
+      <ProductPage eyebrow="Staff workspace · admin only" title="Integration settings" description="Review the payment reporting connection, sync queue, and remaining owner setup. Secret values are never displayed." className="product-page--admin">
         <ProductSection title="Google Sheets status" className="product-section--tint">
           <PaperPanel className="data-panel integration-panel">
-            <p className="integration-state"><span className={`status-chip${sheets.enabled ? "" : " status-chip--muted"}`}>{setupState}</span></p>
-            <div className="integration-checks">
-              <div><span>Sync enabled</span><strong>{sheets.enabled ? "Yes" : "No"}</strong></div>
-              <div><span>Spreadsheet destination present</span><strong>{sheets.spreadsheetId ? "Yes" : "No"}</strong></div>
-              <div><span>Service account email present</span><strong>{sheets.clientEmail ? "Yes" : "No"}</strong></div>
-              <div><span>Private key present</span><strong>{sheets.privateKey ? "Yes" : "No"}</strong></div>
-              <div><span>Sync worker and retry log</span><strong>Not connected</strong></div>
-            </div>
-            <p className="section-note">No spreadsheet is being read or written by this build. Keep sync disabled until the destination, authorized Google accounts, and server-side sync workflow are supplied and reviewed.</p>
+            <p className="integration-state"><span className={`status-chip${readiness.configured ? "" : " status-chip--muted"}`}>{readiness.configured ? "Enabled · required values present, connection unverified" : readiness.enabled ? "Enabled with incomplete configuration" : "Disabled by default"}</span></p>
+            <PaymentSheetSyncPanel readiness={readiness} rows={safeSyncRows} migrationAvailable={!syncError} />
             <h3>Private image uploads</h3>
             <div className="integration-checks">
               <div><span>Server storage credential present</span><strong>{privateImageStorageConfigured ? "Yes" : "No"}</strong></div>
               <div><span>Storage bucket and credential verified</span><strong>Not checked</strong></div>
             </div>
-            <p className="section-note">This only checks whether the server environment contains a service credential. Receipt and support-image uploads also require the private Supabase buckets and migration policies to be applied; the credential value is never displayed.</p>
+            <p className="section-note">Receipt and support-image uploads also require the private Supabase buckets and migration policies to be applied; the credential value is never displayed.</p>
             <p><Link className="text-link" href="/admin">Return to staff overview <ArrowUpRight size={15} aria-hidden="true" /></Link></p>
           </PaperPanel>
         </ProductSection>

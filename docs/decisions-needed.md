@@ -14,7 +14,7 @@ The V7.2 blueprint is the product source of truth. Its proposed defaults are usa
 
 - A free/premium access matrix follows the V7.2 proposal and remains marked as subject to owner approval and content inventory.
 - Premium plan preview uses 30, 90 and 365 days. Prices are pending; purchase buttons are disabled.
-- Sheets integration configuration remains disabled and read-only until the owner supplies the destination, authorized Google account list, and service-account setup.
+- The Sheets sync and reconciliation implementation is staged locally. It remains disabled and makes no external reads/writes until the owner supplies the destination, authorized Google account list, and service-account setup.
 
 ## Owner-supplied details still required
 

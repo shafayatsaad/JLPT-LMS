@@ -31,7 +31,7 @@ erDiagram
 
 `AUTH_USERS` is managed by Supabase Auth. Question revisions and answer keys are server-controlled. Attempt writes, transitions, deadlines, grading, payment verification, entitlement changes, support status changes, and notifications use protected database operations. PostgreSQL is the operational source of truth; exports are reporting-only.
 
-Migration 020 adds `admin_exports` as an append-only export log and optional sender-name, reference-number and payment-time fields to payment submissions. Payment reports come from an admin/payment-reviewer-only RPC with server-side range and row caps; sender numbers are masked unless an administrator explicitly requests otherwise. CSV/XLSX files do not change payment or entitlement records. Google Sheets synchronization remains a separate, disabled integration.
+Migration 020 adds `admin_exports` as an append-only export log and optional sender-name, reference-number and payment-time fields to payment submissions. Payment reports come from an admin/payment-reviewer-only RPC with server-side range and row caps; sender numbers are masked unless an administrator explicitly requests otherwise. CSV/XLSX files do not change payment or entitlement records. Migration 033 adds a separate private outbox and sync-event log for the disabled-by-default Google Sheets reporting copy; stable payment IDs support safe retries, and sync state never changes payment or entitlement records.
 
 Migration 021 adds a nullable `notifications.source_attempt_id` foreign key and uniqueness guard for idempotent result-ready messages. An exam result insert creates a bilingual inbox notice for its owner when optional exam updates are enabled; no email is sent.
 

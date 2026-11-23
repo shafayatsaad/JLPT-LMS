@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { jlptFormats, jlptLevels, type JlptLevel } from "@/lib/jlpt-format";
 
 export function LevelFormatSelector() {
@@ -72,9 +73,6 @@ export function LevelFormatSelector() {
         aria-labelledby={`format-tab-${selectedLevel.toLowerCase()}`}
         tabIndex={0}
       >
-        <div className="format-picker__heading">
-          <h3>{selectedLevel} test sections</h3>
-        </div>
         <div className="format-table-wrap">
           <table className="format-table">
             <thead>
@@ -96,11 +94,8 @@ export function LevelFormatSelector() {
           </table>
         </div>
         <div className="format-picker__foot">
-          <a className="link format-picker__level-link" href={`/levels/${selectedLevel.toLowerCase()}`}>
-            Explore {selectedLevel} level
-          </a>
-          <a className="link" href="https://www.jlpt.jp/e/guideline/testsections.html" target="_blank" rel="noreferrer">
-            JLPT section guide
+          <a className="link" href="/levels">
+            Browse all five level guides <ArrowUpRight size={15} aria-hidden="true" />
           </a>
         </div>
       </div>

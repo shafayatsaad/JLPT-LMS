@@ -16,13 +16,6 @@ export function OrigamiScrollReveal() {
     const candidates = Array.from(
       document.querySelectorAll<HTMLElement>(
         [
-          "#top.origami-theme > .section > .wrap > .section-head",
-          "#top.origami-theme #practice .app-frame",
-          "#top.origami-theme #review .review-step",
-          "#top.origami-theme #levels .format-picker",
-          "#top.origami-theme #questions .faq-item",
-          "#top.origami-theme #questions .content-review-preview",
-          "#closing.origami-theme > .wrap > *",
           ".product-shell .product-section__heading",
           ".product-shell .level-section-card",
           ".product-shell .preview-section-row",

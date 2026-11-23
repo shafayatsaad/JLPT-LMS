@@ -91,11 +91,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="section ground-inverse review-section" id="review" aria-labelledby="review-h" data-moment="line-carries-colour" data-moment-opts='{"from":"surface"}'>
+        <section className="section ground-inverse review-section" id="review" aria-labelledby="review-h" data-moment="word-highlight">
           <div className="wrap">
             <div className="section-head">
               <h2 id="review-h">Mock exam review steps</h2>
-              <p>Each completed paper leads to a review that points back to the skill behind an answer.</p>
+              <p className="mo-wh__text">Every completed paper points you back to the <strong>skill behind each missed answer</strong>.</p>
             </div>
             <div className="review-steps">
               <article className="review-step">
@@ -118,10 +118,9 @@ export default function HomePage() {
           <div className="wrap">
             <div className="section-head levels-head">
               <h2 id="levels-h">JLPT section timings by level</h2>
-              <p>See the timed test sections and the score categories for each level.</p>
+              <p>See the timed test sections and score categories for each level. <a className="link" href="https://www.jlpt.jp/e/guideline/testsections.html" target="_blank" rel="noreferrer">JLPT section guide<ArrowUpRight size={14} aria-hidden="true" /></a></p>
             </div>
             <LevelFormatSelector />
-            <p className="levels-directory-link"><a className="link" href="/levels">Browse all five level guides <ArrowUpRight size={15} aria-hidden="true" /></a></p>
           </div>
         </section>
 
@@ -158,6 +157,7 @@ export default function HomePage() {
                     <li><span>Japanese accuracy</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
                     <li><span>Level and item type</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
                     <li><span>Answer rationale</span><span><Check size={14} aria-hidden="true" /> Checked</span></li>
+                    <li><span>Rights and provenance</span><span className="content-review-preview__status-required">Required</span></li>
                   </ul>
                 </div>
               </div>

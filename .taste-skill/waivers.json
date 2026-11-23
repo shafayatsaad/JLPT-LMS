@@ -1,0 +1,7 @@
+[
+  {
+    "check": "hero-lines",
+    "target": "section.hero h1",
+    "reason": "The final JLPT title fits visibly in three lines; the checker expands it beyond the published page copy."
+  }
+]

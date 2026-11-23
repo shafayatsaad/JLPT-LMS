@@ -14,6 +14,7 @@ const copy = {
     setup: "Set up authenticator", preparing: "Preparing setup…", scan: "Scan this QR code with your authenticator app. If you cannot scan it, enter the secret manually. Keep the secret private.",
     secret: "Manual setup secret", codeSetup: "Enter the six digit code shown by your authenticator", codeVerify: "Authenticator code",
     verify: "Verify and continue", verifying: "Verifying…", active: "Authenticator app is enabled. New or unrecognized sign-ins will ask for a code.",
+    verifyRemove: "Verify and remove authenticator", verifyForget: "Verify and forget devices",
     disable: "Remove authenticator", disabling: "Removing…", confirmDisable: "Remove the authenticator from this account? This also revokes remembered devices.",
     forget: "Forget all remembered devices", forgotten: "All remembered devices were revoked.", deviceNeedCode: "Verify your authenticator before revoking remembered devices.",
     trust: "Remember this device for 30 days", challengeIntro: "Enter the current code from your authenticator app to continue.",
@@ -31,6 +32,7 @@ const copy = {
     setup: "অথেনটিকেটর সেটআপ করুন", preparing: "সেটআপ প্রস্তুত হচ্ছে…", scan: "আপনার অথেনটিকেটর অ্যাপ দিয়ে QR কোডটি স্ক্যান করুন। স্ক্যান না হলে গোপন কোডটি হাতে লিখুন। কোডটি গোপন রাখুন।",
     secret: "হাতে লেখার গোপন কোড", codeSetup: "অথেনটিকেটর অ্যাপে দেখানো ছয় অঙ্কের কোড লিখুন", codeVerify: "অথেনটিকেটর কোড",
     verify: "যাচাই করে চালিয়ে যান", verifying: "যাচাই হচ্ছে…", active: "অথেনটিকেটর চালু আছে। নতুন বা অপরিচিত সাইন-ইনে কোড চাওয়া হবে।",
+    verifyRemove: "যাচাই করে অথেনটিকেটর সরান", verifyForget: "যাচাই করে ডিভাইস বাতিল করুন",
     disable: "অথেনটিকেটর সরান", disabling: "সরানো হচ্ছে…", confirmDisable: "এই অ্যাকাউন্ট থেকে অথেনটিকেটর সরাবেন? এতে মনে রাখা ডিভাইসগুলোও বাতিল হবে।",
     forget: "মনে রাখা সব ডিভাইস বাতিল করুন", forgotten: "মনে রাখা সব ডিভাইস বাতিল করা হয়েছে।", deviceNeedCode: "মনে রাখা ডিভাইস বাতিলের আগে অথেনটিকেটর যাচাই করুন।",
     trust: "এই ডিভাইস ৩০ দিন মনে রাখুন", challengeIntro: "চালিয়ে যেতে অথেনটিকেটর অ্যাপের বর্তমান কোড লিখুন।",
@@ -187,8 +189,8 @@ export function LearnerMfa({ variant, nextPath = "/dashboard" }: { variant: "cha
     {mode === "challenge" ? <form className="auth-form" onSubmit={(event) => void verify(event)}>
       <p>{text.challengeIntro}</p>
       <label>{text.codeVerify}<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} required /></label>
-      {!pendingRemoval ? <label className="checkbox-row"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} />{text.trust}</label> : null}
-      {variant === "settings" ? <button className="btn btn--primary auth-submit" type="submit" disabled={busy}>{busy ? text.verifying : text.verify}</button> : <button className="btn btn--primary auth-submit" type="submit" disabled={busy}>{busy ? text.verifying : text.continue}</button>}
+      {!pendingRemoval && !pendingForget ? <label className="checkbox-row"><input type="checkbox" checked={rememberDevice} onChange={(event) => setRememberDevice(event.target.checked)} />{text.trust}</label> : null}
+      {variant === "settings" ? <button className="btn btn--primary auth-submit" type="submit" disabled={busy}>{busy ? text.verifying : pendingRemoval ? text.verifyRemove : pendingForget ? text.verifyForget : text.verify}</button> : <button className="btn btn--primary auth-submit" type="submit" disabled={busy}>{busy ? text.verifying : text.continue}</button>}
       {variant === "settings" && assuranceLevel === "aal2" ? <button className="btn btn--secondary" type="button" disabled={busy} onClick={() => void removeAuthenticator()}>{text.disable}</button> : null}
     </form> : null}
 
