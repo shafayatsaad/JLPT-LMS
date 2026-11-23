@@ -1,0 +1,371 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight, Check, Clock3, Flag, Headphones, Send, WifiOff } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
+import type { MessageKey } from "@/lib/i18n";
+
+type ExamOption = { id: string; content?: unknown; text?: unknown };
+type ExamQuestion = {
+  form_item_id: string;
+  question_id: string;
+  position: number;
+  section_code: string;
+  item_type_code: string;
+  stimulus?: unknown;
+  prompt: unknown;
+  options: ExamOption[];
+  selected_option_id: string | null;
+  is_flagged: boolean;
+};
+type AttemptSection = {
+  section_code: string;
+  section_order: number;
+  status: "locked" | "active" | "completed" | "expired";
+  deadline_at: string | null;
+  duration_seconds: number;
+};
+export type ExamAttemptPayload = {
+  attempt: {
+    id: string;
+    level: string;
+    status: "in_progress" | "submitted" | "expired";
+    started_at: string;
+    deadline_at: string;
+    form_code: string;
+    version: string;
+  };
+  active_section: {
+    section_code: string;
+    section_order: number;
+    deadline_at: string;
+    duration_seconds: number;
+  } | null;
+  sections: AttemptSection[];
+  questions: ExamQuestion[];
+  assets: Array<{ question_id: string; purpose: string; media_type: string; storage_path: string; duration_seconds: number | null }>;
+};
+
+function content(value: unknown): React.ReactNode {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map((part, index) => <span key={index}>{content(part)}</span>);
+  if (!value || typeof value !== "object") return null;
+  const block = value as Record<string, unknown>;
+  if (block.type === "text") return String(block.text ?? block.value ?? "");
+  if (block.type === "ruby") return <ruby>{content(block.base ?? block.text)}<rt>{content(block.reading ?? block.rt)}</rt></ruby>;
+  if (block.type === "line_break") return <br />;
+  if (block.type === "image" && typeof block.url === "string" && /^https?:\/\//.test(block.url)) {
+    return <img className="exam-content-image" src={block.url} alt={String(block.alt ?? "Question image")} />;
+  }
+  if ("content" in block) return content(block.content);
+  if ("text" in block) return content(block.text);
+  return null;
+}
+
+function formatTime(seconds: number) {
+  const safe = Math.max(0, seconds);
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60).toString().padStart(2, "0");
+  const remainder = (safe % 60).toString().padStart(2, "0");
+  return hours ? `${hours.toString().padStart(2, "0")}:${minutes}:${remainder}` : `${minutes}:${remainder}`;
+}
+
+function secondsUntil(deadline: string | null | undefined) {
+  if (!deadline) return 0;
+  const timestamp = Date.parse(deadline);
+  return Number.isFinite(timestamp) ? Math.max(0, Math.ceil((timestamp - Date.now()) / 1000)) : 0;
+}
+
+function label(value: string, translate: (key: MessageKey, values?: Record<string, string | number>) => string, level?: string) {
+  const normalized = value.toLowerCase().replaceAll("-", "_");
+  if (normalized === "vocabulary" && (level === "N4" || level === "N5")) return translate("exam.section.language_knowledge_vocabulary");
+  if (normalized === "grammar_reading" && (level === "N4" || level === "N5")) return translate("exam.section.language_knowledge_grammar_reading");
+  const knownLabels: Record<string, MessageKey> = {
+    active: "exam.status.active",
+    completed: "exam.status.completed",
+    expired: "exam.status.expired",
+    locked: "exam.status.locked",
+    language_knowledge_vocabulary: "exam.section.language_knowledge_vocabulary",
+    language_knowledge_grammar_reading: "exam.section.language_knowledge_grammar_reading",
+    language_knowledge_reading: "exam.section.language_knowledge_reading",
+    grammar_reading: "exam.section.grammar_reading",
+    listening: "exam.section.listening",
+    vocabulary: "exam.section.vocabulary",
+    grammar: "exam.section.grammar",
+    reading: "exam.section.reading",
+    kanji_reading: "exam.item.kanjiReading",
+    orthography: "exam.item.orthography",
+    word_formation: "exam.item.wordFormation",
+    contextual_expressions: "exam.item.contextualExpressions",
+    paraphrases: "exam.item.paraphrases",
+    usage: "exam.item.usage",
+    sentential_grammar_form: "exam.item.sententialGrammarForm",
+    sentence_composition: "exam.item.sentenceComposition",
+    text_grammar: "exam.item.textGrammar",
+    short_passages: "exam.item.shortPassages",
+    mid_size_passages: "exam.item.midSizePassages",
+    long_passages: "exam.item.longPassages",
+    integrated_comprehension: "exam.item.integratedComprehension",
+    thematic_comprehension: "exam.item.thematicComprehension",
+    information_retrieval: "exam.item.informationRetrieval",
+    task_based_comprehension: "exam.item.taskBasedComprehension",
+    key_points: "exam.item.keyPoints",
+    general_outline: "exam.item.generalOutline",
+    verbal_expressions: "exam.item.verbalExpressions",
+    quick_response: "exam.item.quickResponse",
+    listening_integrated_comprehension: "exam.item.listeningIntegratedComprehension",
+  };
+  const key = knownLabels[normalized];
+  return key ? translate(key) : value.replaceAll("_", " ").replaceAll("-", " ");
+}
+
+export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAttemptPayload }) {
+  const { t } = useLocale();
+  const router = useRouter();
+  const [payload, setPayload] = useState(initialPayload);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [remaining, setRemaining] = useState(() => secondsUntil(initialPayload.active_section?.deadline_at));
+  const [saveState, setSaveState] = useState<"saved" | "saving" | "notSaved">("saved");
+  const [error, setError] = useState<MessageKey | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [mediaError, setMediaError] = useState(false);
+  const [hasUnsavedAnswers, setHasUnsavedAnswers] = useState(false);
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingAnswers = useRef(new Map<string, { question: ExamQuestion; selectedOptionId: string | null }>());
+  const timedOutKey = useRef("");
+  const activeQuestion = payload.questions[selectedIndex] ?? null;
+  const activeSection = payload.active_section;
+  const answeredCount = payload.questions.filter((question) => Boolean(question.selected_option_id)).length;
+  const flaggedCount = payload.questions.filter((question) => question.is_flagged).length;
+  const finished = !activeSection && payload.attempt.status === "in_progress";
+
+  useEffect(() => {
+    function setOnlineStatus() { setOnline(navigator.onLine); }
+    setOnlineStatus();
+    window.addEventListener("online", setOnlineStatus);
+    window.addEventListener("offline", setOnlineStatus);
+    return () => {
+      window.removeEventListener("online", setOnlineStatus);
+      window.removeEventListener("offline", setOnlineStatus);
+    };
+  }, []);
+
+  async function reloadAttempt() {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) {
+      setError("exam.errorConfig");
+      return;
+    }
+    const { data, error: loadError } = await supabase.rpc("get_exam_attempt_payload", { p_attempt_id: payload.attempt.id });
+    if (loadError || !data) {
+      setError("exam.errorLoad");
+      return;
+    }
+    const next = data as ExamAttemptPayload;
+    setPayload(next);
+    setSelectedIndex(0);
+    if (["submitted", "expired"].includes(next.attempt.status)) router.replace(`/results/${next.attempt.id}`);
+  }
+
+  useEffect(() => {
+    const deadline = activeSection?.deadline_at;
+    if (!deadline) return;
+    const attemptKey = `${payload.attempt.id}:${activeSection.section_code}:${deadline}`;
+    const update = () => {
+      const seconds = secondsUntil(deadline);
+      setRemaining(seconds);
+      if (seconds === 0 && timedOutKey.current !== attemptKey) {
+        timedOutKey.current = attemptKey;
+        window.setTimeout(() => void reloadAttempt(), 250);
+      }
+    };
+    update();
+    const timer = window.setInterval(update, 500);
+    return () => window.clearInterval(timer);
+    // reloadAttempt is intentionally rebound to the current payload after the
+    // deadline; including it would restart the interval after each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection?.section_code, activeSection?.deadline_at, payload.attempt.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMedia() {
+      if (!payload.assets.length) {
+        setMediaUrls({});
+        setMediaError(false);
+        return;
+      }
+      const supabase = createSupabaseBrowserClient();
+      if (!supabase) return;
+      const entries = await Promise.all(payload.assets.map(async (asset) => {
+        // Cover the longest official single section (110 minutes) with a small
+        // playback buffer so listening media does not expire mid-exam.
+        const { data, error: signedError } = await supabase.storage.from("jlpt-question-assets").createSignedUrl(asset.storage_path, 7200);
+        return [asset.storage_path, signedError ? "" : data?.signedUrl ?? ""] as const;
+      }));
+      if (cancelled) return;
+      setMediaUrls(Object.fromEntries(entries));
+      setMediaError(entries.some(([, url]) => !url));
+    }
+    void loadMedia();
+    return () => { cancelled = true; };
+  }, [payload.assets]);
+
+  async function saveAnswer(question: ExamQuestion, selectedOptionId: string | null) {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return setError("exam.errorConfig");
+    setPayload((current) => ({ ...current, questions: current.questions.map((item) => item.form_item_id === question.form_item_id ? { ...item, selected_option_id: selectedOptionId } : item) }));
+    pendingAnswers.current.set(question.form_item_id, { question, selectedOptionId });
+    setHasUnsavedAnswers(true);
+    setSaveState("saving");
+    setError(null);
+    const write = saveQueue.current.catch(() => undefined).then(async () => {
+      const { error: saveError } = await supabase.rpc("save_exam_answer", {
+        p_attempt_id: payload.attempt.id,
+        p_form_item_id: question.form_item_id,
+        p_selected_option_id: selectedOptionId,
+        p_time_spent_seconds: 0,
+      });
+      if (saveError) throw saveError;
+      const pending = pendingAnswers.current.get(question.form_item_id);
+      if (pending?.selectedOptionId === selectedOptionId) pendingAnswers.current.delete(question.form_item_id);
+    });
+    saveQueue.current = write;
+    try {
+      await write;
+      setSaveState("saved");
+      setHasUnsavedAnswers(pendingAnswers.current.size > 0);
+    } catch {
+      setSaveState("notSaved");
+      setError("exam.errorSave");
+    }
+  }
+
+  async function toggleFlag(question: ExamQuestion) {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return setError("exam.errorConfig");
+    const flagged = !question.is_flagged;
+    setPayload((current) => ({ ...current, questions: current.questions.map((item) => item.form_item_id === question.form_item_id ? { ...item, is_flagged: flagged } : item) }));
+    const { error: flagError } = await supabase.rpc("set_exam_answer_flag", {
+      p_attempt_id: payload.attempt.id,
+      p_form_item_id: question.form_item_id,
+      p_is_flagged: flagged,
+    });
+    if (flagError) {
+      setError("exam.errorFlag");
+      void reloadAttempt();
+    }
+  }
+
+  async function advanceSection() {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) { setError("exam.errorConfig"); return; }
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    await saveQueue.current.catch(() => undefined);
+    if (pendingAnswers.current.size > 0) {
+      setError("exam.unsavedBeforeAdvance");
+      setBusy(false);
+      return;
+    }
+    const { error: advanceError } = await supabase.rpc("advance_exam_section", { p_attempt_id: payload.attempt.id });
+    if (advanceError) setError("exam.errorAdvance");
+    else await reloadAttempt();
+    setBusy(false);
+  }
+
+  async function submitAttempt() {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) { setError("exam.errorConfig"); return; }
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    await saveQueue.current.catch(() => undefined);
+    if (pendingAnswers.current.size > 0) {
+      setError("exam.unsavedBeforeSubmit");
+      setBusy(false);
+      return;
+    }
+    const { data, error: submitError } = await supabase.rpc("submit_exam_attempt", { p_attempt_id: payload.attempt.id });
+    if (submitError) {
+      setError("exam.errorSubmit");
+      setBusy(false);
+      return;
+    }
+    router.replace(`/results/${String(data ?? payload.attempt.id)}`);
+    router.refresh();
+  }
+
+  async function retryUnsavedAnswers() {
+    const pending = Array.from(pendingAnswers.current.values());
+    for (const answer of pending) await saveAnswer(answer.question, answer.selectedOptionId);
+  }
+
+  const currentMedia = useMemo(() => payload.assets.filter((asset) => asset.question_id === activeQuestion?.question_id), [payload.assets, activeQuestion?.question_id]);
+  const unanswered = payload.questions.length - answeredCount;
+
+  return (
+    <div className="exam-shell active-exam-shell">
+      <a className="skip-link" href="#exam-content">{t("common.skip")}</a>
+      <header className="exam-topbar">
+        <Link className="exam-topbar__brand" href="/dashboard"><span aria-hidden="true">JLPT</span><strong>{t("exam.workspace")}</strong></Link>
+        <p>JLPT {payload.attempt.level} · {payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</p>
+        <LanguageSwitch compact />
+        <Link className="exam-topbar__exit" href="/dashboard">{t("exam.exitDashboard")}</Link>
+      </header>
+      <main className="exam-main" id="exam-content" tabIndex={-1}>
+        <div className="exam-workspace">
+          <div className="exam-workspace__head">
+            <div><span className="exam-kicker">{activeSection ? t("exam.timedSection", { order: activeSection.section_order }) : t("exam.reviewSection")}</span><h1>{activeSection ? label(activeSection.section_code, t, payload.attempt.level) : t("exam.readySubmit")}</h1><p>{t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</p></div>
+            {activeSection ? <div className="exam-clock" role="timer" aria-live="off" aria-label={t("exam.remaining", { time: formatTime(remaining) })}><Clock3 size={17} aria-hidden="true" /><span>{formatTime(remaining)}</span><small>{t("exam.sectionTime")}</small></div> : null}
+          </div>
+          {!online ? <div className="exam-preview-banner exam-preview-banner--offline" role="status"><WifiOff size={15} aria-hidden="true" /> {t("exam.offline")}</div> : null}
+          {payload.sections.length > 0 ? <div className="exam-progress" aria-label={t("exam.sections")}>{payload.sections.map((section) => <div className={`exam-progress__section ${section.status === "active" ? "is-active" : ""} ${section.status === "completed" ? "is-answered" : ""}`} key={section.section_code} aria-current={section.status === "active" ? "step" : undefined}><span className="exam-progress__index">{String(section.section_order).padStart(2, "0")}</span><span className="exam-progress__name">{label(section.section_code, t, payload.attempt.level)}</span><span className="exam-progress__time">{label(section.status, t)}</span></div>)}</div> : null}
+
+          {activeQuestion && activeSection ? <div className="exam-question-layout">
+            <aside className="exam-question-rail" aria-label={t("exam.sectionQuestions")}>
+              <p>{t("exam.sectionQuestionsHeading")}</p>
+              {payload.questions.map((question, index) => <button type="button" key={question.form_item_id} className={`exam-question-rail__item ${selectedIndex === index ? "is-active" : ""} ${question.selected_option_id ? "is-answered" : ""}`} onClick={() => setSelectedIndex(index)} aria-current={selectedIndex === index ? "step" : undefined}><span>{String(question.position).padStart(2, "0")}</span>{t("exam.question", { number: index + 1 })}{question.selected_option_id ? <Check size={14} aria-label={t("exam.answered")} /> : null}{question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}</button>)}
+            </aside>
+            <section className="exam-question-panel" aria-live="polite">
+              <div className="exam-question-panel__meta"><span>{label(activeQuestion.item_type_code, t)}</span><span>{t("exam.questionPosition", { current: selectedIndex + 1, total: payload.questions.length })}</span></div>
+              {activeQuestion.stimulus ? <div className="exam-question-stimulus" lang="ja">{content(activeQuestion.stimulus)}</div> : null}
+              <div className="exam-question-rich-content" lang="ja">{content(activeQuestion.prompt)}</div>
+              {currentMedia.map((asset) => {
+                const url = mediaUrls[asset.storage_path];
+                if (!url) return null;
+                return asset.media_type.startsWith("audio/") ? <div className="exam-question-media" key={asset.storage_path}><span><Headphones size={15} aria-hidden="true" /> {t("exam.listeningAudio")}</span><audio controls preload="metadata" src={url}>{t("exam.audioUnsupported")}</audio></div> : asset.media_type.startsWith("image/") ? <img className="exam-question-asset-image" key={asset.storage_path} src={url} alt={t("exam.questionImage")} /> : null;
+              })}
+              {mediaError ? <p className="exam-save-state" role="status">{t("exam.mediaUnavailable")}</p> : null}
+              <fieldset className="exam-answer-list">
+                <legend className="sr-only">{t("exam.chooseAnswer")}</legend>
+                {activeQuestion.options.map((option) => <label className={`exam-answer-option ${activeQuestion.selected_option_id === option.id ? "is-selected" : ""}`} key={option.id}><input type="radio" name={activeQuestion.form_item_id} value={option.id} checked={activeQuestion.selected_option_id === option.id} disabled={busy || remaining <= 0} onChange={() => void saveAnswer(activeQuestion, option.id)} /><span className="exam-answer-option__letter">{option.id}</span><span lang="ja">{content(option.content ?? option.text)}</span></label>)}
+              </fieldset>
+              <div className="exam-question-panel__footer active-exam-footer">
+                <button className="exam-control exam-control--quiet" type="button" disabled={selectedIndex === 0} onClick={() => setSelectedIndex((index) => Math.max(0, index - 1))}><ArrowLeft size={16} aria-hidden="true" /> {t("exam.previousQuestion")}</button>
+                <button className={`exam-control exam-control--quiet ${activeQuestion.is_flagged ? "is-flagged" : ""}`} type="button" disabled={busy || remaining <= 0} onClick={() => void toggleFlag(activeQuestion)}><Flag size={15} aria-hidden="true" />{activeQuestion.is_flagged ? t("exam.unflag") : t("exam.flagForReview")}</button>
+                {selectedIndex < payload.questions.length - 1 ? <button className="exam-control" type="button" onClick={() => setSelectedIndex((index) => Math.min(payload.questions.length - 1, index + 1))}>{t("exam.nextQuestion")} <ArrowRight size={16} aria-hidden="true" /></button> : activeSection ? <button className="exam-control" type="button" disabled={busy} onClick={() => void advanceSection()}>{busy ? t("exam.savingSection") : t("exam.finishSection")} <ArrowRight size={16} aria-hidden="true" /></button> : null}
+              </div>
+              <p className="exam-save-state" aria-live="polite">{online ? t("exam.answerStatus", { status: t(`exam.${saveState}` as MessageKey) }) : t("exam.offlineHeld")}</p>
+              {hasUnsavedAnswers ? <button className="exam-finish-link" type="button" disabled={!online || busy} onClick={() => void retryUnsavedAnswers()}>{t("exam.retrySave")}</button> : null}
+            </section>
+          </div> : <section className="exam-finish-panel">
+            <h2>{finished ? t("exam.reviewAttempt") : t("exam.attemptClosed")}</h2>
+            {finished ? <><p>{t("exam.finishSummary", { answered: answeredCount, unanswered, flagged: flaggedCount })}</p>{confirmSubmit ? <div className="exam-submit-confirm" role="group" aria-label={t("exam.confirmGroup")}><p>{t("exam.submitWarning")}</p><button className="exam-control" type="button" disabled={busy} onClick={() => void submitAttempt()}>{busy ? t("exam.submitting") : t("exam.confirmSubmission")} <Send size={15} aria-hidden="true" /></button><button className="exam-control exam-control--quiet" type="button" disabled={busy} onClick={() => setConfirmSubmit(false)}>{t("exam.continueReviewing")}</button></div> : <button className="exam-control" type="button" onClick={() => setConfirmSubmit(true)}>{t("exam.reviewSubmit")} <Send size={15} aria-hidden="true" /></button>}</> : <p>{t("exam.loadingStatus")}</p>}
+          </section>}
+          {confirmSubmit && activeSection ? <div className="exam-submit-confirm" role="group" aria-label={t("exam.confirmEarlyGroup")}><p>{t("exam.submitWarning")} {t("exam.unansweredEarly", { count: unanswered })}</p><button className="exam-control" type="button" disabled={busy} onClick={() => void submitAttempt()}>{busy ? t("exam.submitting") : t("exam.confirmSubmission")} <Send size={15} aria-hidden="true" /></button><button className="exam-control exam-control--quiet" type="button" disabled={busy} onClick={() => setConfirmSubmit(false)}>{t("exam.keepWorking")}</button></div> : null}
+          {error ? <p className="exam-error" role="alert">{t(error)}</p> : null}
+          {activeSection && payload.questions.length > 0 ? <button className="exam-finish-link" type="button" onClick={() => setConfirmSubmit(true)}>{t("exam.earlySubmit")}</button> : null}
+        </div>
+      </main>
+    </div>
+  );
+}

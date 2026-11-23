@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Check, CircleHelp } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { LocalizedText } from "@/components/i18n/localized-text";
 import { requireSignedInUser } from "@/lib/auth";
+import { BookmarkButton } from "@/components/bookmark-button";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +44,9 @@ function optionRows(value: unknown) {
 }
 
 function explanationText(value: unknown) {
-  if (!value || typeof value !== "object") return "No written explanation is available.";
+  if (!value || typeof value !== "object") return null;
   const object = value as Record<string, unknown>;
-  return typeof object.correctAnswer === "string" ? object.correctAnswer : "No written explanation is available.";
+  return typeof object.correctAnswer === "string" ? object.correctAnswer : null;
 }
 
 function distractorRows(value: unknown) {
@@ -60,7 +62,7 @@ export default async function AttemptReviewPage({ params }: { params: Promise<{ 
   const { attemptId } = await params;
   const { supabase, user } = await requireSignedInUser(`/review/${attemptId}`);
   if (!supabase || !user) {
-    return <ProductPage eyebrow="Answer review" title="Review a completed attempt" description="Connect Supabase and sign in to request the answer review for a saved attempt."><ProductSection title="Supabase setup required"><PaperPanel><p>The answer-key function is restricted to the attempt owner after submission or expiry.</p><Link className="btn btn--primary" href="/auth/login">Sign in</Link></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="Answer review" eyebrowKey="review.eyebrow" title="Review a completed attempt" titleKey="review.title" description="Connect Supabase and sign in to request the answer review for a saved attempt." descriptionKey="review.description"><ProductSection title="Supabase setup required" titleKey="results.setupTitle"><PaperPanel><p><LocalizedText messageKey="review.setupMessage" /></p><Link className="btn btn--primary" href="/auth/login"><LocalizedText messageKey="results.signIn" /></Link></PaperPanel></ProductSection></ProductPage>;
   }
 
   const { data: attempt, error: attemptError } = await supabase.from("exam_attempts").select("id,level,status").eq("id", attemptId).eq("user_id", user.id).maybeSingle();
@@ -68,24 +70,29 @@ export default async function AttemptReviewPage({ params }: { params: Promise<{ 
   const closed = attempt && ["submitted", "expired"].includes(attempt.status);
   const review = closed ? await supabase.rpc("get_attempt_review", { p_attempt_id: attemptId }) : { data: null, error: null };
   const rows = (review.data ?? []) as ReviewRow[];
+  const bookmarkResult = rows.length
+    ? await supabase.from("user_bookmarks").select("question_id").eq("user_id", user.id).in("question_id", rows.map((row) => row.question_id))
+    : { data: [], error: null };
+  const bookmarkedIds = new Set((bookmarkResult.data ?? []).map((item) => item.question_id));
 
   return (
-    <ProductPage eyebrow={`Answer review · ${attempt?.level ?? "JLPT"}`} title="Review your answers" description="Correct answers and explanations are released only after a saved attempt is submitted or expired." className="product-page--dashboard">
-      <ProductSection title="Completed attempt review" className="product-section--tint">
-        {attemptError || review.error ? <PaperPanel><p className="inline-notice">The review could not be loaded. Confirm the latest migration is applied and that this account owns the attempt.</p></PaperPanel> : !closed ? <PaperPanel><p>This attempt is still active. Answer keys remain hidden until it is submitted or expires.</p></PaperPanel> : !rows.length ? <PaperPanel><p>No review items are available for this attempt.</p></PaperPanel> : <div className="answer-review-list">{rows.map((row, index) => {
+    <ProductPage eyebrow="Answer review" eyebrowKey="review.eyebrow" title="Review your answers" titleKey="review.title" description="Correct answers and explanations are released only after a saved attempt is submitted or expired." descriptionKey="review.description" className="product-page--dashboard">
+      <ProductSection title="Completed attempt review" titleKey="review.completedTitle" className="product-section--tint">
+        {attemptError || review.error ? <PaperPanel><p className="inline-notice"><LocalizedText messageKey="review.loadError" /></p></PaperPanel> : !closed ? <PaperPanel><p><LocalizedText messageKey="review.activeAttempt" /></p></PaperPanel> : !rows.length ? <PaperPanel><p><LocalizedText messageKey="review.noItems" /></p></PaperPanel> : <div className="answer-review-list">{rows.map((row, index) => {
           const options = optionRows(row.options);
           const chosen = options.find((option) => option.id === row.selected_option_id);
           const correct = options.find((option) => option.id === row.correct_option_id);
-          return <article className="answer-review-card origami-answer-card" key={row.question_id}>
-            <div className="answer-review-card__head"><span>{String(index + 1).padStart(2, "0")} · {row.level}</span><span className={row.selected_option_id === row.correct_option_id ? "review-status review-status--correct" : "review-status review-status--wrong"}>{row.selected_option_id === row.correct_option_id ? "Correct" : row.selected_option_id ? "Review this item" : "Unanswered"}</span></div>
+          return <article className="answer-review-card origami-answer-card" id={`question-${row.question_id}`} key={row.question_id}>
+            <div className="answer-review-card__head"><span>{String(index + 1).padStart(2, "0")} · {row.level}</span><span className={row.selected_option_id === row.correct_option_id ? "review-status review-status--correct" : "review-status review-status--wrong"}><LocalizedText messageKey={row.selected_option_id === row.correct_option_id ? "review.correct" : row.selected_option_id ? "review.reviewThis" : "review.unanswered"} /></span></div>
             <h2 lang="ja">{blockText(row.prompt)}</h2>
-            <div className="answer-review-card__answers"><p><span>Your response</span><strong>{chosen ? `${chosen.id} · ${chosen.text}` : "No response selected"}</strong></p><p><span>Correct answer</span><strong><Check size={15} aria-hidden="true" /> {correct ? `${correct.id} · ${correct.text}` : row.correct_option_id}</strong></p></div>
-            <div className="answer-review-card__explanation"><CircleHelp size={17} aria-hidden="true" /><p>{explanationText(row.explanation)}</p></div>
+            <div className="answer-review-card__answers"><p><span><LocalizedText messageKey="review.yourResponse" /></span><strong>{chosen ? `${chosen.id} · ${chosen.text}` : <LocalizedText messageKey="review.noResponse" />}</strong></p><p><span><LocalizedText messageKey="review.correctAnswer" /></span><strong><Check size={15} aria-hidden="true" /> {correct ? `${correct.id} · ${correct.text}` : row.correct_option_id}</strong></p></div>
+            <div className="answer-review-card__explanation"><CircleHelp size={17} aria-hidden="true" /><p>{explanationText(row.explanation) ?? <LocalizedText messageKey="review.noExplanation" />}</p></div>
             {distractorRows(row.explanation).length > 0 && <ul className="review-rationales">{distractorRows(row.explanation).map((item) => <li key={item.optionId}><strong>{item.optionId}</strong><span>{item.rationale}</span></li>)}</ul>}
+            <BookmarkButton questionId={row.question_id} initiallyBookmarked={bookmarkedIds.has(row.question_id)} />
           </article>;
         })}</div>}
       </ProductSection>
-      <ProductSection title="Continue" className="product-section--compact"><PaperPanel><Link className="text-link" href={`/results/${attemptId}`}>Return to raw result <ArrowUpRight size={15} aria-hidden="true" /></Link><span className="link-separator">·</span><Link className="text-link" href="/dashboard">Dashboard <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel></ProductSection>
+      <ProductSection title="Continue" titleKey="review.continue" className="product-section--compact"><PaperPanel><Link className="text-link" href={`/results/${attemptId}`}><LocalizedText messageKey="review.returnResult" /> <ArrowUpRight size={15} aria-hidden="true" /></Link><span className="link-separator">·</span><Link className="text-link" href="/dashboard"><LocalizedText messageKey="review.dashboard" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel></ProductSection>
     </ProductPage>
   );
 }

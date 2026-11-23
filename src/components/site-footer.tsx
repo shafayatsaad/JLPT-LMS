@@ -1,16 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale } from "@/components/i18n/locale-provider";
 
 export function SiteFooter({ showActionbar = false }: { showActionbar?: boolean }) {
+  const { t } = useLocale();
   return (
     <>
       <footer className="footer closing footer--dark ground-inverse origami-theme" id="closing" aria-labelledby="close-h">
         <div className="wrap">
           <div className="closing__cta close--type">
             <div className="section-head">
-              <h2 id="close-h">Start with a JLPT level</h2>
-              <p>See the timed sections for N1–N5.</p>
+              <h2 id="close-h">{t("footer.start")}</h2>
+              <p>{t("footer.timed")}</p>
             </div>
-            <Link className="btn btn--primary btn--xl" href="/levels/N5">Choose a JLPT level</Link>
+            <Link className="btn btn--primary btn--xl" href="/levels/N5">{t("footer.choose")}</Link>
           </div>
           <div className="closing__links">
             <div className="grid">
@@ -19,39 +23,45 @@ export function SiteFooter({ showActionbar = false }: { showActionbar?: boolean 
                   <span className="mark" data-mark="arc" aria-hidden="true" />
                   JLPT practice
                 </Link>
-                <p className="footer__lede">Independent preparation for the Japanese-Language Proficiency Test.</p>
+                <p className="footer__lede">{t("footer.lede")}</p>
               </div>
               <div className="span-3 start-7 footer__col">
-                <h3>Practice</h3>
+                <h3>{t("footer.practice")}</h3>
                 <ul>
-                  <li><Link href="/#practice">Question review</Link></li>
-                  <li><Link href="/mistakes">Mistake review</Link></li>
-                  <li><Link href="/#levels">Level formats</Link></li>
-                  <li><Link href="/pricing">Plans and access</Link></li>
-                  <li><Link href="/auth/register">Create account</Link></li>
+                  <li><Link href="/#practice">{t("footer.review")}</Link></li>
+                  <li><Link href="/exams">{t("footer.examLibrary")}</Link></li>
+                  <li><Link href="/progress">{t("footer.progress")}</Link></li>
+                  <li><Link href="/mistakes">{t("footer.mistakes")}</Link></li>
+                  <li><Link href="/#levels">{t("footer.levels")}</Link></li>
+                  <li><Link href="/pricing">{t("footer.plans")}</Link></li>
+                  <li><Link href="/how-it-works">{t("footer.how")}</Link></li>
+                  <li><Link href="/faq">{t("footer.questions")}</Link></li>
+                  <li><Link href="/auth/register">{t("footer.create")}</Link></li>
                 </ul>
               </div>
               <div className="span-3 footer__col">
-                <h3>About the scores</h3>
+                <h3>{t("footer.aboutScores")}</h3>
                 <ul>
-                  <li><Link href="/about">About the platform</Link></li>
-                  <li><Link href="/legal/privacy">Privacy draft</Link></li>
-                  <li><Link href="/legal/terms">Terms draft</Link></li>
-                  <li><Link href="/legal/refunds">Refund draft</Link></li>
-                  <li><Link href="/legal/copyright">Copyright draft</Link></li>
-                  <li><a href="https://www.jlpt.jp/e/guideline/results.html" target="_blank" rel="noreferrer">Official JLPT scoring</a></li>
+                  <li><Link href="/about">{t("footer.about")}</Link></li>
+                  <li><Link href="/contact">{t("footer.contact")}</Link></li>
+                  <li><Link href="/settings">{t("footer.settings")}</Link></li>
+                  <li><Link href="/legal/privacy">{t("footer.privacy")}</Link></li>
+                  <li><Link href="/legal/terms">{t("footer.terms")}</Link></li>
+                  <li><Link href="/legal/refunds">{t("footer.refunds")}</Link></li>
+                  <li><Link href="/legal/copyright">{t("footer.copyright")}</Link></li>
+                  <li><a href="https://www.jlpt.jp/e/guideline/results.html" target="_blank" rel="noreferrer">{t("footer.official")}</a></li>
                 </ul>
               </div>
             </div>
             <div className="footer__legal">
               <span>© 2026 JLPT practice</span>
-              <span>Independent platform. No JLPT endorsement.</span>
+              <span>{t("footer.independent")}</span>
             </div>
           </div>
         </div>
       </footer>
       {showActionbar && <nav className="actionbar origami-theme" aria-label="Quick action">
-        <Link className="btn btn--primary" href="/#levels">Choose a JLPT level</Link>
+        <Link className="btn btn--primary" href="/#levels">{t("footer.choose")}</Link>
       </nav>}
     </>
   );

@@ -37,7 +37,15 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: authData, error } = await supabase.auth.exchangeCodeForSession(code);
+  const languagePreference = request.cookies.get("jlpt_ui_language")?.value;
+  if (!error && authData.user && (languagePreference === "en" || languagePreference === "bn")) {
+    // Best effort while migration 012 is being rolled out. OAuth should still
+    // complete normally on a hosted project that has not received it yet.
+    await supabase.from("profiles")
+      .update({ ui_language: languagePreference, updated_at: new Date().toISOString() })
+      .eq("user_id", authData.user.id);
+  }
   const errorPath = next === "/auth/update-password"
     ? "/auth/login?notice=verification-failed"
     : "/auth/login?notice=oauth-session-failed";

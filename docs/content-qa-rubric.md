@@ -2,6 +2,8 @@
 
 Every published question and form must pass the checks below. Schema validation and item counts are necessary, not sufficient.
 
+Track the 15-form target with [`mock-content-coverage-template.csv`](../public/templates/mock-content-coverage-template.csv). Keep every row at `not_started` until its actual content and independent review evidence exist; the tracker itself does not approve or publish content.
+
 ## Question review
 
 - Japanese is correct, natural, and appropriate for the assigned level.

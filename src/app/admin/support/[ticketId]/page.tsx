@@ -28,6 +28,11 @@ export default async function AdminSupportTicketPage({ params }: { params: Promi
         supabase.from("support_audit_events").select("id,action,details,created_at").eq("ticket_id", ticket.id).order("created_at", { ascending: false }).limit(30),
       ])
     : [{ data: null, error: null }, { data: null }];
+  const { data: attachments, error: attachmentsError } = ticket
+    ? await supabase.from("support_attachments").select("message_id").eq("ticket_id", ticket.id).eq("status", "attached")
+    : { data: [], error: null };
+  const supportAttachmentReady = !attachmentsError && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  const attachedMessageIds = new Set((attachments ?? []).map((attachment) => attachment.message_id));
 
   return (
     <ProductPage eyebrow="Staff support" title={ticket?.subject ?? "Support request"} description="Reply to the learner and record status changes. Private staff notes remain separate from the learner conversation." className="product-page--dashboard">
@@ -36,8 +41,9 @@ export default async function AdminSupportTicketPage({ params }: { params: Promi
           {ticketError || messagesError ? <p className="inline-notice">The request could not be loaded. Confirm migration 005 is applied.</p> : ticket ? (
             <>
               <div className="support-ticket-meta"><span className="status-chip">{ticket.status.replaceAll("_", " ")}</span><span>{ticket.category.replaceAll("_", " ")}</span><span>Account {ticket.user_id.slice(0, 8)}</span><time dateTime={ticket.created_at}>Opened {new Date(ticket.created_at).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" })}</time></div>
-              <SupportThread messages={(messages ?? []) as SupportMessage[]} staffView />
-              <SupportReplyForm ticketId={ticket.id} staff />
+              {!supportAttachmentReady ? <p className="inline-notice">Private screenshot attachments are unavailable until migration 031 and server-side storage credentials are configured.</p> : null}
+              <SupportThread messages={(messages ?? []).map((message) => ({ ...message, attachment_available: attachedMessageIds.has(message.id) })) as SupportMessage[]} staffView />
+              <SupportReplyForm ticketId={ticket.id} staff attachmentsEnabled={supportAttachmentReady} />
             </>
           ) : <p className="inline-notice">This request is unavailable or the support tables are not installed yet.</p>}
         </PaperPanel>

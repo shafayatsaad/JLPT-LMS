@@ -10,8 +10,6 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-const STAFF_ROLES = ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"];
-
 export default async function AdminSignInPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } = { user: null } } = supabase
@@ -19,11 +17,14 @@ export default async function AdminSignInPage() {
     : { data: { user: null } };
 
   if (user && supabase) {
-    const { data: roles, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const hasStaffAccess = roles?.some((row) => STAFF_ROLES.includes(row.role)) ?? false;
+    const { data: staffFromRpc, error: rpcError } = await supabase.rpc("is_current_user_staff");
+    let hasStaffAccess = !rpcError && staffFromRpc === true;
+    let error = rpcError;
+    if (rpcError) {
+      const { data: roles, error: queryError } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      error = queryError;
+      hasStaffAccess = !queryError && roles?.some((row) => ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"].includes(row.role)) === true;
+    }
 
     if (hasStaffAccess) {
       return (

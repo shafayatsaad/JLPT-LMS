@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <>
       <SiteHeader />
-      <main id="top" className="origami-theme">
+      <main id="top" className="origami-theme" tabIndex={-1}>
         <section className="hero hero--split" data-enter aria-labelledby="hero-h">
           <div className="wrap">
             <div className="hero-text grid hero__grid">
@@ -121,6 +121,7 @@ export default function HomePage() {
               <p>See the timed test sections and the score categories for each level.</p>
             </div>
             <LevelFormatSelector />
+            <p className="levels-directory-link"><a className="link" href="/levels">Browse all five level guides <ArrowUpRight size={15} aria-hidden="true" /></a></p>
           </div>
         </section>
 

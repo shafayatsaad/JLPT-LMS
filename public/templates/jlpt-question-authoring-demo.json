@@ -1,0 +1,48 @@
+{
+  "template_version": 1,
+  "notice": "DRAFT DEMO ONLY — this original example is not an official JLPT question or a published exam item.",
+  "source_type": "original",
+  "source_reference": null,
+  "rights_notes": "Original demo material authored for this platform. Replace these notes with the correct rights record for any imported content.",
+  "question": {
+    "content_key": "REPLACE-WITH-UUID-FOR-THIS-QUESTION-FAMILY",
+    "revision": 1,
+    "level": "N5",
+    "test_section_code": "vocabulary",
+    "score_category_code": "language-knowledge-reading",
+    "item_type_code": "kanji-reading",
+    "tags": ["vocabulary", "kanji-reading"],
+    "difficulty_estimate": 1,
+    "prompt": [
+      {
+        "type": "text",
+        "text": "【DEMO】「水」を なんと よみますか。"
+      }
+    ],
+    "options": [
+      { "id": "A", "content": [{ "type": "text", "text": "みず" }] },
+      { "id": "B", "content": [{ "type": "text", "text": "みせ" }] },
+      { "id": "C", "content": [{ "type": "text", "text": "みち" }] },
+      { "id": "D", "content": [{ "type": "text", "text": "みみ" }] }
+    ]
+  },
+  "answer_key": {
+    "correct_option_id": "A",
+    "explanation": {
+      "en": "水 is read みず in this context.",
+      "ja": "この場合、「水」は「みず」と読みます。"
+    },
+    "distractor_rationales": {
+      "B": "みせ is a different word and kanji reading.",
+      "C": "みち is a different word and kanji reading.",
+      "D": "みみ is a different word and kanji reading."
+    }
+  },
+  "editor_checklist": [
+    "Replace the family UUID and increment revision for each approved correction.",
+    "Confirm the level, section, score category and item type against the current blueprint.",
+    "Record the source and rights review outside this demo payload before submitting content.",
+    "Have a second reviewer check the answer key, explanation and distractors.",
+    "Do not publish this example as production exam content."
+  ]
+}

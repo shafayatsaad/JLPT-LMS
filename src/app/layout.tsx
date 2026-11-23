@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { OrigamiScrollReveal } from "@/components/origami-scroll-reveal";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
+import { DisplayPreferenceSync } from "@/components/display-preference-sync";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
@@ -53,7 +55,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Script id="motion-first-paint" strategy="beforeInteractive">
           {`document.documentElement.classList.add("m-enter");window.setTimeout(()=>document.documentElement.classList.add("m-enter-done"),700);`}
         </Script>
-        {children}
+        <LocaleProvider>
+          <DisplayPreferenceSync />
+          {children}
+        </LocaleProvider>
         <OrigamiScrollReveal />
         <Script src="/assets/system.js" type="module" strategy="afterInteractive" />
         <Script src="/assets/layout/layout.js" type="module" strategy="afterInteractive" />

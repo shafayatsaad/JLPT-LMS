@@ -1,5 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const TRUSTED_DEVICE_COOKIE = "jlpt_trusted_device";
@@ -44,4 +45,21 @@ export async function resolveStepUpAccess(supabase: ServerClient, deviceToken?: 
 
   if (process.env.SUPABASE_TOTP_STEP_UP_ENABLED === "true") return "unavailable";
   return "ready";
+}
+
+export function isSameOriginRequest(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  try {
+    const originUrl = new URL(origin);
+    const requestUrl = new URL(request.url);
+    return originUrl.origin === requestUrl.origin;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveRequestStepUpAccess(supabase: ServerClient): Promise<StepUpAccess> {
+  const cookieStore = await cookies();
+  return resolveStepUpAccess(supabase, cookieStore.get(TRUSTED_DEVICE_COOKIE)?.value);
 }

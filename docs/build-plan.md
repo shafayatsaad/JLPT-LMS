@@ -57,7 +57,7 @@ Navigation words: Practice, Review, Levels, Questions. Every link lands on a rea
 
 ## Browser review
 
-Use the Taste Skill checker, layout checker, screenshot runner, performance checker, and finish gate against the local Next.js HTTP page. Do not serve the page through `file://`.
+The last recorded quick Taste Skill consistency pass ran against local HTTP at 1440 and 390 px before the current keyboard-navigation and localization edits. It reported 2 FAIL and 19 WARN findings: one short desktop gap between the practice preview and review-process sections, plus a mobile scroll-reveal timing finding on the fold motion the owner requested. It also flagged uneven section spacing, unused lower hero space, two partially faded lines in one mobile panel, and that the global skip link was not the first Tab stop. The skip link has since moved before the logo, but the visual/accessibility pass has not been rerun. Hero frame alignment, pause control, contrast and tap sizes passed in the recorded pass. It did not cover reduced-motion behavior, media-loop/pause interaction, form submissions or the authenticated `/admin/reports` screen. Run the full layout checker, screenshot runner, performance checker and finish gate after the remaining visual pass; do not serve pages through `file://`.
 
 ## Supabase and remaining product routes — 22 November 2026
 
@@ -65,7 +65,7 @@ Use the Taste Skill checker, layout checker, screenshot runner, performance chec
 - The app reads `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and keeps the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` as a fallback. No service-role key is required by browser code.
 - Added Supabase SSR cookie refresh, email/phone password registration and sign-in, email confirmation, SMS verification for new phone accounts, Google OAuth, password recovery, profile preferences, learner dashboard, account, mistake notebook, raw result and completed-attempt review routes.
 - Added independent-platform information, a V7.2 free/premium access matrix and fixed-duration plan preview, and clearly marked legal draft routes. Prices and purchase actions remain disabled; payment instructions and legal terms remain unpublished until approved.
-- Added role-gated staff pages for content, authoring/import, review, assets, blueprints, forms, payments, user roles, and audit records. Question-review decisions use a transactional Postgres function; other privileged operations remain unavailable until their server actions are implemented.
+- Added role-gated staff pages for content, authoring/import, review, assets, blueprints, forms, payments, user roles, announcements, reports, support, and audit records. Privileged workflows use guarded database functions and audit events; hosted migration application and multi-role acceptance remain pending.
 - The top navigation now shows only sign-in/sign-up while signed out, and Dashboard/Account while signed in. The Staff link appears only for authenticated staff; `/admin` also checks the database role server-side.
 - Email signup uses a click-to-confirm token-hash page. Email/password and Google sign-in are enabled for the current testing setup. The phone/SMS path is behind `NEXT_PUBLIC_AUTH_ENABLE_PHONE=false` until the owner configures SMS.
 - Added `supabase/migrations/202611220004_first_login_welcome.sql` for a one-time dashboard welcome message across email, phone, and Google-created accounts.
@@ -81,48 +81,47 @@ The V7.2 blueprint is the current product source of truth. Its proposed defaults
 - Public home, N1–N5 level information, Origami Sakura identity, about page, and draft legal routes. Pricing now presents the V7.2 proposed matrix and 30/90/365-day plan structure with pending prices and disabled purchases.
 - Email/password and Google sign-in flows, learner dashboard/account shell, mistake notebook, raw result and answer-review routes. Phone/SMS UI is disabled by default pending provider setup.
 - The N5 preview itself remains a local interface demo and does not create a database attempt. A separate attempt flow is ready for approved, published frozen forms after hosted migrations are applied.
-- Role-gated admin overview and inventory pages; editors can create question drafts with provenance, upload private audio/images, and submit content for separate review. Reviewers see question keys and rights notes and can preview/review assets. JSON import and form/blueprint operations remain unimplemented.
-- Supabase migrations 001–009 define the core schema and current RLS/auth foundation. The hosted testing project was last confirmed to have no application tables; apply all nine migrations there before using database-backed features.
+- Role-gated admin overview and workflows for question authoring, atomic JSON draft import, reviewed assets, blueprint approval, frozen exam-form assembly/publication, account roles, support and audit history are implemented locally. Hosted database application and end-to-end acceptance remain pending.
+- Supabase migrations 001–032 define the local schema/RLS implementation and 41 expected application tables. Migration 025 adds AAL2 enforcement to staff role helpers and the `/admin/mfa` TOTP enrollment/challenge flow. Migrations 026 and 031 add optional private payment receipts and support screenshots; uploads use server-side decoding/resizing/re-encoding and audited five-minute viewing links when the server-only service credential is configured. The latest read-only probe on 23 November found 30 of 41 expected table names present and 11 missing; see [`supabase-setup.md`](supabase-setup.md) for the list. The hosted migration ledger and full function/RLS state are not verified. Reconcile the authenticated Supabase migration ledger before applying anything. Do not run the full sequence or migration 001 blindly.
 - A private `/admin/sign-in` entry reuses the regular identity providers and checks existing staff roles before opening `/admin`. It is deliberately absent from public navigation and does not create a separate admin credential system.
-- Student support tickets, staff replies/status changes with an audit trail, and the private in-app notification inbox are implemented in migration 005 and the `/support`, `/notifications`, and `/admin/support` routes. At present, support replies and status changes are the notification producers; payment, exam, and account event producers remain to be connected.
+- Student support tickets, staff replies/status changes with an audit trail, and the private in-app notification inbox are implemented in migration 005 and the `/support`, `/notifications`, and `/admin/support` routes. Support replies/status changes, published admin announcements, and finalized exam results produce idempotent in-app notices. Payment and account event producers and outbound email delivery remain to be connected.
 - The admin-only integration settings route shows whether server-side Google Sheets environment fields are present. It does not read/write Sheets; sync remains disabled pending the owner destination, authorized-account list, and server sync worker.
 - Vercel `*.vercel.app` is the current shared testing origin. Supabase redirects and Google OAuth origins must be kept aligned with that exact host; the final production domain is pending.
 - Public `/faq`, `/how-it-works`, and `/contact` pages now explain current availability and route learners to the existing private support inbox.
 - Learner `/exams` library and `/exams/[formId]` details read published Supabase forms and start an attempt only through the server-owned access/deadline checks. `/progress`, `/payments`, and `/subscription` show per-account records only.
 - Migration 006 and `/attempts/[attemptId]` add server-owned start, per-section deadlines, answer autosave/flagging, refresh/resume, early section advance, confirmed submission and raw grading for published frozen forms. Correct answers are still released only through the completed-attempt review function. Published form content and the hosted migration are required before learners can use this path.
 - `docs/staging-launch-runbook.md` records the hosted setup sequence, manual acceptance walkthrough and production release gates. It is a checklist for later verification, not evidence of hosted end-to-end QA.
-- `/admin/questions/new` creates a draft, supports private media attachment, and submits question and asset records to separate peer-review queues; it also links a clearly labeled original N5 example. Batch import remains pending.
-- `/settings` now links profile, security, notifications and privacy request areas. Security controls are transparent about pending MFA/session workflows; privacy export/deletion is a support handoff template pending the approved policy and backend workflow.
+- `/admin/questions/new` creates drafts manually or from an atomic JSON batch, supports private media attachment, and submits question and asset records to separate peer-review queues; it also links a clearly labeled original N5 example.
+- `/settings` now links profile, security, notifications and privacy request areas. Staff TOTP setup and AAL2 gating are implemented locally. Learners can revoke other Supabase sessions from `/settings/security` while preserving the current session; an existing access token may remain valid until expiry. Learner TOTP step-up is implemented locally; hosted hook activation, recovery-contact ownership, rate-limit review and account-deletion fulfillment remain pending. `/settings/privacy` downloads a private JSON export of the signed-in learner's own profile, practice/exam activity, preferences, inbox, public support messages, bookmarks, payments and entitlements. Account deletion remains a verified support handoff pending the approved retention policy and deletion backend.
 
 ### Still to build
 
-- **Student shell:** bookmarks, targeted practice, complete security/preferences/privacy workflows, payment submission and subscription operations, and optional private support attachments. Read-only exam library/details, server-authoritative attempt lifecycle, progress, payment history and subscription records are present. Notifications and support conversations are implemented as the first account-services slice.
-- **Admin operations:** payment reconciliation and approval, user detail/actions, staff-role management, plan management, announcement queue, functional settings and exports remain. Question, asset, blueprint and exam-form authoring/review operations are implemented with guarded RPCs and audit events; hosted database application and end-to-end QA remain.
+- **Student shell:** optional outbound email delivery and event producers, remaining security/privacy workflows. Private support screenshots now have a local owner/staff-scoped upload and audited viewing flow; external malware scanning and an owner-approved retention/deletion policy remain launch gates. Notification preference controls now store in-app exam/service choices and opt-in email preferences; email delivery stays off until the provider is configured. The inbox localizes known security, payment, result and support templates in English/Bangla and keeps essential notices visible. Profile settings include target level, UI/explanation language, a validated time zone and reduced-motion preference. The mistake notebook supports level, skill, question-type, date and review-state filters, mark-reviewed/reopen behavior, selected-answer/explanation details, bookmarks and similar-skill practice links. A five-question, tag-based text practice preview with saved/resumed sessions and post-submit grading is present locally, alongside bookmarks, read-only exam library/details, server-authoritative attempt lifecycle, progress, payment history and subscription records. The bKash Send Money request form, server validation, idempotency, cancellation request and saved-plan snapshot are implemented in migration 022 and `/upgrade/bkash`; migration 026 adds an optional private image receipt with server-side signature checking. Checkout remains closed until verified owner settings and at least one active priced plan are supplied. Receipt retention/deletion automation remains pending owner approval.
+- **Admin operations:** suspension, recovery, profile correction and complimentary entitlement actions, general operational writes and Google Sheets sync remain. Read-only status/templates now cover `/admin/settings`, general, security, email, notifications and maintenance; email delivery, rate limits, maintenance control and Sheets sync are still not connected. Migration 023 adds an audited account detail view for verification, activity, roles, attempts/results, payments, access history, support and account-level admin events. Migration 024 adds an audited entitlement directory with status and learner/plan search. Migration 025 adds staff TOTP enrollment/challenge and AAL2 enforcement to the private staff role helpers. Migration 026 lets only admins and payment reviewers generate audited, five-minute links to attached receipts. Migration 022 adds audited plan management, bKash account/instruction settings, the filtered payment review queue, sensitive-number reveal audit, bilingual rejection messages, one-time approval, entitlement extension and in-app notices. `/admin/plans`, `/admin/settings/payments`, `/admin/payments/[paymentId]`, `/admin/users/[userId]` and `/admin/entitlements` are implemented locally; checkout remains off by default. `/admin/reports` downloads CSV/XLSX payment reports through a server-authorized, audited RPC with masked numbers by default, admin-only unmasking, a bounded date range and row cap. `/admin/announcements` has an admin-only bilingual draft/publish queue with audited, idempotent in-app distribution. The admin account directory and staff-role management, plus question, asset, blueprint and exam-form authoring/review operations, use guarded RPCs and audit events; hosted migration application and end-to-end QA remain.
 - **Real exam loop:** core attempt start, deadlines, autosave/resume, submission, raw grading and result generation are implemented over approved frozen forms. Blueprint and form workflows can prepare those forms, but the hosted schema, reviewed source content, operational evidence and end-to-end QA are still needed. The separate N5 preview remains a local demo.
-- **Bilingual experience:** English and Bangla student interface and approved translated content support.
-- **Security and operations:** risk-based login step-up, mandatory staff MFA, rate limits, complete authorization/RLS verification, CI, staging/production separation, monitoring, backup/restore, and launch QA. Vercel testing is active; production hardening remains open.
+- **Bilingual experience:** English/Bangla switching, local persistence and profile synchronization cover navigation, dashboard, account/settings, auth/recovery, notifications, learner support, the exam library/details and progress history, active timed-exam controls, result summaries, answer-review labels, the N5 demo interface/instructions/result/review screens, payment-history/access records, and the proposed pricing matrix. Japanese questions/options and supplied sample explanations stay in their authored language. Remaining student copy, administrator content and human-reviewed translations still need translation.
+- **Security and operations:** hosted/staging verification of learner TOTP step-up and mandatory staff MFA, rate limits, complete authorization/RLS verification, running the new CI gate on GitHub, staging/production separation, monitoring, backup/restore, and launch QA. Vercel testing is active; production hardening remains open.
 - **Public routes:** any remaining product-detail pages and final approved legal/contact copy from V7. FAQ, how-it-works, and contact routing now exist.
 
-### Decisions that block payment implementation
+### Decisions that block live payment collection
 
-The blueprint confirms bKash Send Money, optional proof upload, fixed-duration plans, and reporting exports/Sheets. Recipient name/number, final plan prices/access matrix, reference requirements, review SLA, refund/access policy, evidence retention, staff assignments and Sheets destination/authorized accounts remain unresolved. Keep checkout, premium activation and Sheets writes disabled until the relevant details and operations are ready. Never substitute sample payment details or grant access from a submitted form.
+The local workflow supports bKash Send Money, fixed-duration plan templates, and reporting exports. Recipient name/number, final plan prices/access matrix, reference requirements, review SLA, refund/access policy, evidence retention, staff assignments and Sheets destination/authorized accounts remain unresolved. Keep checkout and payment-derived premium grants disabled until the relevant details and operations are ready. Never substitute sample payment details or grant access from a submitted form.
 
 ### Continuation order
 
-1. Apply migrations 001–009 to the staging Supabase project after checking its migration history, then validate auth and the attempt lifecycle with a reviewed staging form.
-2. Turn the remaining payment, user, plan, announcement and export inventory pages into audited operations after the required owner decisions are available.
+1. Reconcile the live migration ledger and the read-only `npm run supabase:audit` output. Apply only unapplied migrations in numeric order, then validate auth, tagged authoring, bookmarks, profile and notification preferences, announcements, result notices, the mistake notebook, targeted practice, payment-report role boundaries, question editing, attempt monitoring, privacy requests, audit search and attempt lifecycle, dashboard role summaries and audit search with reviewed staging content.
+2. After migrations 022-031 are reconciled and applied, complete payment, receipt, account-detail, entitlement-inventory, staff MFA, question-editing, attempt-monitor, privacy-request, dashboard-summary and support-attachment acceptance using the staging runbook. Keep checkout off until the owner supplies verified bKash details and approved plan settings. Keep Google Sheets sync disabled until the destination, account list and service account are ready. Add the service-role key only to the server-side environment when private image uploads are enabled; the admin integration page reports presence without validating the credential or buckets.
 3. Populate and human-review a representative N5 form, including answer keys and listening assets, before opening learner attempts.
-4. Implement payment and entitlement workflow after the owner decisions in `docs/decisions-needed.md` are confirmed.
-5. Complete bilingual UI/content, staff MFA, operational recovery and production hardening before public launch.
+4. Complete the remaining bilingual UI/content, operational recovery and production hardening before public launch.
 
 ## Continued build checkpoint — 23 November 2026
 
 - Added the authenticated attempt screens and migration 006, including exact blueprint quota, level, answer-key, media and section-duration checks. Shared passage content is rendered in the timed session.
 - Added migration 007 and an in-app question draft editor with author submission and a reviewer queue showing the item, key, explanation and provenance.
 - Added migration 008 and private question-asset upload, attachment, submit-for-review and reviewer preview/decision flows.
-- Added an original N5 authoring example and field guide. The admin page labels it as a draft reference; batch import remains pending.
+- Added an original N5 authoring example and field guide. At this checkpoint it was labeled as a draft reference; batch import was still pending.
 - Updated learner-facing availability copy and added `docs/staging-launch-runbook.md` for the hosted schema setup, manual acceptance walkthrough and production gates.
-- `npm run build` completed successfully after the authoring and asset-review UI changes. The hosted Supabase database still needs migrations 001–008 and reviewed demo content; no hosted end-to-end QA or production deployment is recorded here.
+- `npm run build` completed successfully after the authoring and asset-review UI changes. At that checkpoint, the hosted Supabase database still needed migrations 001–008 and reviewed demo content; no hosted end-to-end QA or production deployment was recorded.
 
 ## Content-to-form workflow checkpoint — 23 November 2026
 
@@ -130,4 +129,187 @@ The blueprint confirms bKash Send Money, optional proof upload, fixed-duration p
 - The blueprint workspace provides editable slot structure and a review queue. The starter row is explicitly a structural draft scaffold; full JLPT item quotas and content decisions still require human completion.
 - The form workspace selects an approved blueprint and approved questions, limits selection to each required slot quota, sets free/premium access, and submits draft forms for independent validation/publication.
 - Database validation checks same-level approved content, exact slot quotas, valid answer keys, approved required media, consistent positive section timing and the approved blueprint. Start-attempt validation remains in place as a second server-side gate.
-- The hosted Supabase project still needs migrations 001–009 and reviewed original staging content. No hosted schema changes, manual account-flow acceptance or production deployment are recorded here.
+- The hosted Supabase project still needs migrations 001–011 and reviewed original staging content. No hosted schema changes, manual account-flow acceptance or production deployment are recorded here.
+
+## Admin role management checkpoint — 23 November 2026
+
+- Migration 010 adds a private admin account directory plus grant/revoke operations for staff roles. The admin users page can find accounts by email or UUID and change staff access through an audited RPC.
+- The database rejects unknown accounts, blocks student-role changes through this control, serializes administrator-role changes, and prevents revoking the final admin. Initial admin provisioning remains a one-time SQL Editor action.
+- The hosted Supabase project still needs migrations 001–011 before these controls can work. Payment verification and other money-related operations remain disabled pending the owner decisions listed in [`decisions-needed.md`](decisions-needed.md).
+
+## Question batch import checkpoint — 23 November 2026
+
+- Migration 011 adds atomic import of up to 100 question drafts through the existing validated authoring function. Each item retains answer-key validation, provenance checks, author ownership and its own audit event; any invalid item rolls back the batch.
+- The authoring page previews JSON items before import and supports the supplied single-question example, a top-level list, or a `questions` list. Import never approves content or attaches media.
+- The staging runbook now includes batch rollback checks. The feature is locally compiled, but remains unavailable on the hosted database until migrations 001–011 are applied.
+
+## Learner language and bookmarks checkpoint — 23 November 2026
+
+- Migration 012 adds the `profiles.ui_language` preference and updates first-party profile provisioning to accept the validated English/Bangla signup preference. The app remembers the preference locally, syncs it to signed-in profiles, and carries it through Google OAuth via a same-site cookie.
+- The language selector and dictionary now cover public navigation, dashboard, account/profile, core settings and email/Google auth/recovery flows. The remaining account services and exam flows are still to be translated before the bilingual launch gate.
+- Migration 013 creates `user_bookmarks` with learner-only RLS. Learners can save approved/exam-eligible questions from completed answer reviews and remove them from `/bookmarks`; active exam payloads remain answer-key-free.
+- `npm run build` passed after the language, auth, and bookmark changes. The hosted Supabase project still needs migrations 001–013, reviewed content, and manual hosted acceptance; nothing in this checkpoint indicates hosted database changes or a production deployment.
+
+## Skill-tag authoring checkpoint — 23 November 2026
+
+- Migration 014 adds an audited function for assigning up to eight skill tags to an editor's own question draft. Submitting an untagged question for review is rejected at the database boundary.
+- The manual authoring form accepts comma-separated tag slugs. Atomic JSON batch imports now require and attach tags for every question; the supplied original N5 example includes `vocabulary` and `kanji-reading` tags.
+- This creates the content foundation for the V7.2 “practice similar skill” flow. Targeted practice sessions and mistake filters remain to be built.
+- No table was added. The application schema remains 32 tables. The hosted Supabase project still needs migrations 001–014; local build and staging acceptance do not establish hosted readiness.
+
+## Targeted-practice checkpoint — 23 November 2026
+
+- Migration 015 adds two private learner tables and owner-checked RPCs for a five-question practice set, idempotent start, saved answers, submission grading, result review and recent-session listing.
+- The practice picker lists only level/skill pairs with at least five approved or exam-eligible questions that have valid answer keys and no attached or inline media. Recently used items rank after alternatives from the prior seven days.
+- `/practice` selects a level and tag, `/practice/[sessionId]` supports saved answers and refresh/resume, and `/practice/[sessionId]/review` exposes correct answers and approved explanations only after submission. The flow is available in English and Bangla and links from the learner dashboard.
+- The UI labels this as a diagnostic preview. Listening/media practice and final free/premium usage limits still depend on reviewed assets and owner-approved access settings.
+- `npm run build` completed successfully with all three practice routes. The local build does not validate SQL execution; the hosted Supabase project still needs migrations 001–015 and the manual acceptance checks in the staging runbook. The application schema now contains 34 tables.
+
+## Mistake-notebook checkpoint — 23 November 2026
+
+- Migration 016 adds a private learner review marker and an owner-scoped RPC over completed exam attempts. It excludes unanswered items, reports a learner's most recent incorrect answer and all-time wrong count, and exposes the original reviewed explanation.
+- `/mistakes` now filters by level, skill tag, item type, date range and review status. Each item can be marked reviewed or reopened, bookmarked independently, opened in its full attempt review, or used to start practice at the same level and skill.
+- The full attempt review supports question anchors, and targeted practice accepts a preselected level/tag from the notebook.
+- The schema now contains 35 application tables. Migration 016 remains local until applied to the hosted Supabase project; SQL execution and manual multi-account acceptance are still required.
+
+## Student display-preferences checkpoint — 23 November 2026
+
+- Migration 017 adds a validated IANA time zone and reduced-motion preference on the existing profile row; it adds no tables, so the schema remains at 35 application tables.
+- The account form saves these values to Supabase. Reduced motion is also cached locally and applied to transitions, animation and smooth scrolling; the account, dashboard, practice history and mistake notebook format dates in the saved time zone.
+- The mistake notebook passes local date boundaries and the selected IANA zone to its private RPC so date filters work across daylight-saving changes.
+- This preference slice compiles locally. Migration 017 and its profile timezone checks remain unverified in the hosted Supabase project.
+
+## Notification-preferences checkpoint — 23 November 2026
+
+- Migration 018 adds an owner-scoped notification-preference table and read/write RPCs. Optional in-app exam/service categories can be hidden. Email learning and product-news choices default off and record opt-in timestamps.
+- `/settings/notifications` stores those choices in the authenticated account. Required security, authentication, payment and support notices remain visible. The inbox localizes known event types and status updates in English and Bangla, and formats notice times in the learner's saved time zone.
+- The UI states that outbound email is not configured. No email is sent, and optional exam/service notice producers are not yet connected; those controls are ready for the later producer/email-provider work.
+- The schema now contains 36 application tables. Migration 018 and all prior changes remain local pending hosted migration application and account-isolation acceptance.
+
+## Admin-announcement checkpoint — 23 November 2026
+
+- Migration 019 adds an admin-only announcements table and guarded RPCs to list, create, edit and publish bilingual notices. Draft edits and publication write `admin_audit_events`; published messages are immutable.
+- Publishing inserts one `service_announcement` inbox record per learner with the optional service category enabled. `source_announcement_id` and a unique recipient index make retries idempotent. English and Bangla titles/bodies are stored with the inbox record. No email is sent.
+- `/admin/announcements` is visible only to admins and includes a bilingual draft queue, edit form, publish confirmation and published-recipient count.
+- The schema now contains 37 application tables. Migration 019 remains local, so publication authorization and delivery behavior still need hosted staging acceptance.
+
+## Payment report export checkpoint — 23 November 2026
+
+- Migration 020 adds the expected-amount snapshot and optional payment fields missing from the report template, plus an append-only export log. Existing rows are backfilled from their current plan; any future submission RPC must capture the plan amount at submission time. Its guarded RPC supplies payment reviewers/admins with date-filtered rows, masks sender numbers by default, allows unmasking only to admins, caps reports at 20,000 rows, and audits format, date range, row count and unmasking.
+- `/admin/reports` now offers CSV and XLSX download from the signed-in server route. The export is a database reporting copy and cannot approve a payment or change entitlements; Google Sheets remains disabled pending owner setup.
+- Dependency audit found a moderate advisory in ExcelJS's transitive `uuid` dependency; the lock now overrides it to patched `uuid@11.1.1`. `npm audit` reports zero vulnerabilities after the override.
+- Migration 020 has not been applied to Supabase. The new export flow still needs the role/privacy acceptance steps in `staging-launch-runbook.md` against the hosted project.
+
+## Result notification checkpoint — 23 November 2026
+
+- Migration 021 adds an idempotent, bilingual `result_ready` inbox notice when an exam result is finalized. It respects each learner's optional exam-update preference and links to the matching result route.
+- The preference filter now includes result-ready and attempt-submitted notices along with exam publication/update notices. No outbound email is sent; the schema remains at 38 application tables.
+- Migration 021 is local only. The result-notice delivery and preference cases have been added to the staging acceptance runbook; hosted database behavior remains unverified until migrations 001–021 are applied.
+
+## Learner workflow localization and keyboard navigation — 23 November 2026
+
+- Localized the active timed-exam controls, progress/status labels, item types, submission confirmations, offline/saving feedback and learner-safe error messages in English and Bangla. Result summaries, score-category labels, answer-review controls, bookmarks, the N5 preview flow and empty/error states are localized too. Japanese prompts, choices and authored explanations remain unchanged. A language selector is available in the exam toolbars and changing it does not change the server-owned attempt state or the demo's browser-tab storage.
+- Localized the support center, ticket list/detail, learner replies, support status labels and date formatting. Learner-facing errors no longer display raw database messages.
+- Moved the global skip link before the logo so it is the first keyboard stop, and made the target main regions focusable. The timed exam has its own skip link to the question workspace.
+- `npm run typecheck` and `npm run build` pass after these changes. Hosted Supabase behavior is still unverified; bilingual workflows and keyboard navigation are included in the staging acceptance checklist.
+
+## Reproducible build checkpoint — 23 November 2026
+
+- Replaced floating `latest` dependency declarations with the exact versions already resolved in `package-lock.json`; pinned the project to Node 22.21.1 and npm 10.9.4.
+- Added `npm run typecheck`, a read-only GitHub Actions pull-request/push gate, and [`ci-and-environments.md`](ci-and-environments.md). CI installs from the lockfile, checks npm advisories, builds and type-checks without Supabase secrets or deployment permissions.
+- `npm run build` and `npm run typecheck` both pass locally. The workflow does not apply hosted migrations, verify account isolation, or replace the staging acceptance and release checklist.
+
+## Payment and access localization — 23 November 2026
+
+- Localized the learner payment-history and subscription/access pages in English and Bangla, including empty/error states, payment-status labels, currency/date formatting and saved-time-zone date display.
+- Payment history remains read-only. Checkout, bKash recipient details, plan prices and entitlement changes stay disabled or unavailable pending owner approval; no payment instructions or records were invented.
+- `npm run typecheck` passes after the localization change. Hosted payment operations and full bilingual review remain outstanding.
+
+## Pricing preview localization — 23 November 2026
+
+- Localized the proposed access matrix and 30/90/365-day plan preview in English and Bangla. Plan names and access descriptions remain centralized in the proposal catalog and are clearly labeled as unapproved previews.
+- Purchases remain disabled. No prices, bKash details or access promises were added.
+
+## Exam library and progress localization — 23 November 2026
+
+- Localized the published exam library, form details, start/resume controls, progress table, statuses, raw result counts and empty/error states in English and Bangla.
+- Publication and attempt dates now use the learner's saved time zone and selected language. Exam-start errors show safe learner-facing messages instead of raw database text.
+- Active attempts and result access remain protected by the existing user-scoped Supabase queries and server/database rules; the hosted access checks still need staging acceptance.
+
+## Manual payment operations — 23 November 2026
+
+- Added migration 022 with a blank, default-disabled bKash settings row; zero-price inactive 30/90/365-day plan templates; immutable plan snapshots; and server-side request, idempotency, one-pending-request, transaction-duplicate, cancellation, reviewer, audit, bilingual in-app notice and transactional entitlement-extension operations.
+- Added the authenticated bKash request screen and Zod-validated no-store route. It only displays recipient details when database configuration is enabled and a priced active plan exists. Added cancellation requests to learner history.
+- Added admin plan/settings/payment-review screens and a direct `/admin/payments/[paymentId]` review route. The queue masks sender numbers, explicit reveal writes an audit event, reviewers cannot review their own request, rejection requires safe English and Bangla copy, and approval uses a single guarded RPC. If a learner requests cancellation after sending payment, the reviewer can verify the funds, approve the request and resolve cancellation in the same audited transaction.
+- The work is local only. Migration 022 has not been applied or SQL-validated against the hosted database. Checkout remains disabled by default; no recipient, prices, receipt upload, email delivery or production payment promises have been added.
+
+## Admin account detail checkpoint — 23 November 2026
+
+- Added migration 023 and `/admin/users/[userId]`, a read-only account summary for admins with verification state, profile, roles, exam attempts/results, payment requests, entitlements, support tickets and account-level audit events. Opening a record writes an audit event; secrets, sender numbers and transaction IDs are excluded.
+- Linked the account directory to detail pages and added the RPC to staging diagnostics and acceptance steps. Suspension/reactivation, recovery actions, profile corrections and complimentary access remain unavailable pending approved policies and server credentials.
+- TypeScript and production builds pass. Migration 023 is local only and has not been validated against the hosted PostgreSQL project.
+
+## Admin entitlement inventory checkpoint — 23 November 2026
+
+- Added migration 024 and `/admin/entitlements`, an admin-only filtered inventory of active, scheduled, expired, cancelled and revoked access records with account and source-payment links. Directory views are audited.
+- Kept grant/revoke actions unavailable until reason, duration, permission and complimentary-access policies are approved. Updated Supabase setup, diagnostics, and staging acceptance documentation.
+- Migrations 024–025 are local only. Hosted schema, AAL2 role checks and function behavior are still unverified.
+
+## Admin settings readiness templates — 23 November 2026
+
+- Added `/admin/settings` plus general, security, email, notification and maintenance status pages. They distinguish Supabase-managed auth mail from app mail, identify remaining staff MFA/risk-step-up verification work, and keep maintenance mode and Google Sheets writes disconnected.
+- Each page is admin-only and read-only; configuration secrets are not displayed and pending owner/provider decisions are named. No database migration was needed.
+
+## Staff MFA checkpoint — 23 November 2026
+
+- Added `/admin/mfa` with TOTP enrollment for staff accounts that do not yet have a verified factor and a TOTP challenge for subsequent AAL1 staff sessions. Redirects are restricted to local `/admin` paths.
+- Added migration 025 to require AAL2 in private staff role helpers, so direct staff RPC/RLS access is gated as well as page rendering. Student-only checks remain usable at AAL1.
+- Updated the security settings status, staging runbook and database diagnostics. TOTP still needs to be enabled in Supabase Auth and migration 025 needs to be reconciled/applied to the confirmed staging project before claiming hosted enforcement. SQL has not been run against hosted PostgreSQL.
+
+## Private payment receipt checkpoint — 23 November 2026
+
+- Migration 026 adds a private receipt bucket, size/MIME restrictions, owner-bound upload reservation/attachment, and audited receipt access for admin/payment reviewers using five-minute signed links.
+- Added a payment form image picker with a 4 MB limit, input signature checks, image decode/pixel/page limits, resize and WebP re-encoding. A failed optional upload can be retried without creating a second payment request. Receipts do not approve or grant access.
+- Added staging acceptance steps and database diagnostics. Migration 026 is local only; external malware scanning and receipt expiry/deletion are not connected, hosted SQL/storage behavior remains unverified, and the owner still needs to approve retention.
+
+
+## Admin attempt monitoring and question editing — 23 November 2026
+
+- Added migration 027 and `/admin/attempts`, an audited read-only monitor that shows attempt timing, section progress and answer counts without selected answers.
+- Added migration 028 and question library/detail/edit pages, plus a read-only form manifest. Authors and admins can edit only draft questions; submitted content is immutable.
+- Added staff acceptance steps and database function diagnostics. Both migrations are local only; reconcile the hosted ledger and verify role boundaries before relying on these workflows.
+
+
+## Account deletion request intake — 23 November 2026
+
+- Added migration 029 with owner-scoped privacy-request intake, withdrawal, audited admin status tracking, and `/admin/privacy`. The data export now includes the learner's request history.
+- The workflow explicitly does not delete accounts. Identity verification, retention exceptions and fulfillment remain owner-approved operational policy; all SQL remains local until migration history is reconciled.
+
+
+## Admin dashboard summary — 23 November 2026
+
+- Added migration 030 and a role-filtered `/admin` operational summary: pending reviews, payments and support are shown only to the roles that can act on them; admins also see aggregate account/access counts and recent audit activity. Published forms are grouped by JLPT level.
+- Backup and restore status is called out as unverified until provider configuration and a restore drill are recorded. The function adds no tables and remains local pending hosted migration reconciliation and role acceptance.
+
+
+## Private support attachments — 23 November 2026
+
+- Added migration 031, an optional private screenshot upload for support replies, server-side image signature/decode validation and WebP re-encoding, owner/staff authorization, five-minute signed viewing, and audited attachment access. Learner data export includes attachment metadata.
+- Hosted SQL is still local/unverified. External malware scanning and the owner-approved retention/deletion schedule are required before production use; support text replies continue to work when migration 031 is unavailable.
+
+## Learner session controls and level directory — 23 November 2026
+
+- Ordinary sign-out now explicitly ends only the current browser session. `/settings/security` offers a confirmed action to revoke other Supabase sessions while keeping the current one active; the English/Bangla notices explain that already-issued access tokens can remain valid until expiry.
+- Added the missing `/levels` public directory, built from the shared N1–N5 timing data, with links to each level guide and an accurately labeled browser-only N5 preview. The home level section now links to the directory.
+- `npm run typecheck` and `npm run build` pass. Hosted session behavior has not been exercised against the configured Supabase project.
+
+## Published exam inventory audit — 23 November 2026
+
+- Added `npm run supabase:content-audit`, a read-only public-schema check that counts published exam forms by JLPT level and compares them with V7.2's three-form launch target. It requests no learner data and prints no form IDs.
+- The configured project returned zero published forms at all five levels. The command exits nonzero until each level reaches the count target; this count alone does not establish item completeness or content approval.
+
+## Learner TOTP step-up checkpoint — 23 November 2026
+
+- Added `/auth/continue`, `/auth/mfa`, and `/settings/security` TOTP enrollment/challenge/management flows. Email/password and Google remain first factors; accounts without a verified TOTP factor continue without the challenge.
+- Added migration 032 with a private 30-day trusted-device registry (hashed tokens), Supabase Custom Access Token Hook and owner-scoped registration/revocation RPCs. Verified-factor AAL1 sessions receive the `anon` Data API role until TOTP verification or trusted-session refresh. Service-backed account/export/upload routes use the same step-up decision.
+- `npm run typecheck` and `npm run build` pass. This is local only: hosted migration history is unreconciled, the Auth Hook is not enabled or tested in Supabase, and recovery policy plus manual Preview acceptance remain open.

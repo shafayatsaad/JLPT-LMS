@@ -1,9 +1,12 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function HeroTreeMedia() {
-  const [videoStatus, setVideoStatus] = useState<"loading" | "playing" | "error">("loading");
+  const [videoStatus, setVideoStatus] = useState<"loading" | "playing" | "paused" | "error">("loading");
+  const [userPaused, setUserPaused] = useState(false);
+  const [motionReduced, setMotionReduced] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -12,9 +15,15 @@ export function HeroTreeMedia() {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncPlayback = () => {
+      setMotionReduced(reducedMotion.matches);
       if (reducedMotion.matches) {
         video.pause();
-        setVideoStatus("loading");
+        setVideoStatus("paused");
+        return;
+      }
+      if (userPaused) {
+        video.pause();
+        setVideoStatus("paused");
         return;
       }
 
@@ -24,10 +33,23 @@ export function HeroTreeMedia() {
     syncPlayback();
     reducedMotion.addEventListener("change", syncPlayback);
     return () => reducedMotion.removeEventListener("change", syncPlayback);
-  }, []);
+  }, [userPaused]);
+
+  function togglePlayback() {
+    const video = videoRef.current;
+    if (!video || motionReduced) return;
+    if (video.paused) {
+      setUserPaused(false);
+      void video.play().catch(() => setVideoStatus("error"));
+    } else {
+      setUserPaused(true);
+      video.pause();
+      setVideoStatus("paused");
+    }
+  }
 
   return (
-    <div className="hero__media span-7 start-6" data-video-state={videoStatus} role="img" aria-label="Origami Sakura tree with animated blossoms, paper cranes, and drifting petals">
+    <div className="hero__media hero-tree-media span-7 start-6" data-video-state={videoStatus} role="group" aria-label="Origami Sakura tree animation">
       <video
         ref={videoRef}
         className="hero__video"
@@ -44,6 +66,16 @@ export function HeroTreeMedia() {
       >
         <source src="/hero/origami-sakura-tree.mp4" type="video/mp4" />
       </video>
+      {!motionReduced && videoStatus !== "error" ? <button
+        className="btn btn--secondary loop-pause hero-tree-media__toggle"
+        data-pause
+        type="button"
+        aria-label={videoStatus === "playing" ? "Pause Sakura tree animation" : "Play Sakura tree animation"}
+        aria-pressed={userPaused}
+        onClick={togglePlayback}
+      >
+        {videoStatus === "playing" ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
+      </button> : null}
     </div>
   );
 }

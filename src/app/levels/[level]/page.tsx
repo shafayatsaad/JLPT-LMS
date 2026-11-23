@@ -35,7 +35,7 @@ export default async function LevelOverviewPage({ params }: { params: Promise<{ 
     <OrigamiProductShell>
       <section className="product-hero" data-enter>
         <div className="product-wrap">
-          <nav className="product-breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link><span aria-hidden="true">/</span><span>{level} guide</span></nav>
+          <nav className="product-breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/levels">All levels</Link><span aria-hidden="true">/</span><span>{level} guide</span></nav>
           <p className="product-eyebrow"><span aria-hidden="true">✳</span> Level guide · {level}</p>
           <h1>{copy.title}</h1>
           <p className="product-lede">{copy.description}</p>
@@ -78,7 +78,7 @@ export default async function LevelOverviewPage({ params }: { params: Promise<{ 
           {level === "N5" ? (
             <Link className="product-button" href="/exams/n5/preview">Open N5 interface preview <span aria-hidden="true">↗</span></Link>
           ) : (
-            <Link className="product-button product-button--quiet" href="/#levels">Compare all five formats <span aria-hidden="true">↗</span></Link>
+            <Link className="product-button product-button--quiet" href="/levels">Compare all five formats <span aria-hidden="true">↗</span></Link>
           )}
         </div>
       </section>

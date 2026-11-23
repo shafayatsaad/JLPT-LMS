@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LocalizedText } from "@/components/i18n/localized-text";
 import { SupportReplyForm } from "@/components/support-forms";
 import { SupportThread, type SupportMessage } from "@/components/support-thread";
+import { SupportTicketMeta } from "@/components/support-ui";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { requireSignedInUser } from "@/lib/auth";
 
@@ -12,7 +14,7 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   const { ticketId } = await params;
   const { supabase, user } = await requireSignedInUser(`/support/${ticketId}`);
   if (!supabase || !user) {
-    return <ProductPage eyebrow="Support request" title="Sign in to view this request" description="Support conversations are private to the account that opened them."><ProductSection title="Sign in required"><PaperPanel><Link className="btn btn--primary" href={`/auth/login?next=${encodeURIComponent(`/support/${ticketId}`)}`}>Continue to sign in</Link></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="" eyebrowKey="support.eyebrow" title="" titleKey="support.signInTitle" description="" descriptionKey="support.signInDescription"><ProductSection title="" titleKey="support.signInRequired"><PaperPanel><Link className="btn btn--primary" href={`/auth/login?next=${encodeURIComponent(`/support/${ticketId}`)}`}><LocalizedText messageKey="support.continueSignIn" /></Link></PaperPanel></ProductSection></ProductPage>;
   }
 
   const { data: ticket, error: ticketError } = await supabase
@@ -26,21 +28,27 @@ export default async function SupportTicketPage({ params }: { params: Promise<{ 
   const { data: messages, error: messagesError } = ticket
     ? await supabase.from("support_messages").select("id,sender_side,body,is_internal,created_at").eq("ticket_id", ticket.id).order("created_at", { ascending: true })
     : { data: null, error: null };
+  const { data: attachments, error: attachmentsError } = ticket
+    ? await supabase.from("support_attachments").select("message_id").eq("ticket_id", ticket.id).eq("status", "attached")
+    : { data: [], error: null };
+  const supportAttachmentReady = !attachmentsError && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  const attachedMessageIds = new Set((attachments ?? []).map((attachment) => attachment.message_id));
 
   return (
-    <ProductPage eyebrow="Learner support" title={ticket?.subject ?? "Support request"} description="Your conversation is visible only to you and authorized support staff." className="product-page--dashboard">
-      <ProductSection title="Request details" className="product-section--tint">
+    <ProductPage eyebrow="" eyebrowKey="support.eyebrow" title={ticket?.subject ?? "Support request"} description="" descriptionKey="support.requestDescription" className="product-page--dashboard">
+      <ProductSection title="" titleKey="support.requestDetails" className="product-section--tint">
         <PaperPanel className="data-panel">
-          {ticketError || messagesError ? <p className="inline-notice">The support request could not be loaded. If this is a new setup, apply migration 005.</p> : ticket ? (
+          {ticketError || messagesError ? <p className="inline-notice"><LocalizedText messageKey="support.loadError" /></p> : ticket ? (
             <>
-              <div className="support-ticket-meta"><span className="status-chip">{ticket.status.replaceAll("_", " ")}</span><span>{ticket.category.replaceAll("_", " ")}</span><time dateTime={ticket.created_at}>Opened {new Date(ticket.created_at).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" })}</time></div>
-              <SupportThread messages={(messages ?? []) as SupportMessage[]} />
-              <SupportReplyForm ticketId={ticket.id} />
+              <SupportTicketMeta status={ticket.status} category={ticket.category} createdAt={ticket.created_at} />
+              {!supportAttachmentReady ? <p className="inline-notice"><LocalizedText messageKey="support.attachmentsUnavailable" /></p> : null}
+              <SupportThread messages={(messages ?? []).map((message) => ({ ...message, attachment_available: attachedMessageIds.has(message.id) })) as SupportMessage[]} />
+              <SupportReplyForm ticketId={ticket.id} attachmentsEnabled={supportAttachmentReady} />
             </>
-          ) : <p className="inline-notice">This request is unavailable or the support tables are not installed yet.</p>}
+          ) : <p className="inline-notice"><LocalizedText messageKey="support.unavailable" /></p>}
         </PaperPanel>
       </ProductSection>
-      <ProductSection title="Support navigation" className="product-section--compact"><Link className="text-link" href="/support">Back to support requests</Link></ProductSection>
+      <ProductSection title="" titleKey="support.navigation" className="product-section--compact"><Link className="text-link" href="/support"><LocalizedText messageKey="support.backToRequests" /></Link></ProductSection>
     </ProductPage>
   );
 }

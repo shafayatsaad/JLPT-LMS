@@ -56,18 +56,32 @@ export function OrigamiScrollReveal() {
       },
       { threshold: 0.08, rootMargin: "0px 0px -6% 0px" },
     );
+    const revealVisibleFallback = () => {
+      for (const element of targets) {
+        if (element.dataset.origamiReveal !== "pending") continue;
+        const bounds = element.getBoundingClientRect();
+        if (bounds.top < window.innerHeight * 0.94 && bounds.bottom > window.innerHeight * 0.06) {
+          element.dataset.origamiReveal = "shown";
+          observer.unobserve(element);
+        }
+      }
+    };
 
     targets.forEach((element, index) => {
       element.dataset.origamiReveal = "pending";
       const isCard = element.matches(".review-step, .app-frame, .format-picker, .faq-item, .content-review-preview, .product-page .paper-panel, .product-page .admin-link-list a");
       element.style.setProperty("--origami-reveal-delay", `${(index % 3) * 110}ms`);
-      element.style.setProperty("--origami-reveal-lift", isCard ? "48px" : "34px");
-      element.style.setProperty("--origami-reveal-fold", isCard ? "-11deg" : "-8deg");
+      element.style.setProperty("--origami-reveal-lift", isCard ? "24px" : "18px");
+      element.style.setProperty("--origami-reveal-fold", isCard ? "-5deg" : "-3deg");
       observer.observe(element);
     });
     root.classList.add("origami-scroll-motion-ready");
+    window.addEventListener("scroll", revealVisibleFallback, { passive: true });
+    window.addEventListener("resize", revealVisibleFallback);
 
     return () => {
+      window.removeEventListener("scroll", revealVisibleFallback);
+      window.removeEventListener("resize", revealVisibleFallback);
       observer.disconnect();
       root.classList.remove("origami-scroll-motion-ready");
       targets.forEach((element) => {
