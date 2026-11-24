@@ -12,6 +12,7 @@ export function ProductPage({
   title,
   description,
   children,
+  navigation,
   className = "",
   eyebrowKey,
   titleKey,
@@ -22,6 +23,7 @@ export function ProductPage({
   title: string;
   description: string;
   children: ReactNode;
+  navigation?: ReactNode;
   className?: string;
   eyebrowKey?: MessageKey;
   titleKey?: MessageKey;
@@ -38,6 +40,7 @@ export function ProductPage({
         </aside>
       ) : null}
       <main className={`origami-theme product-page ${className}`} id="top" tabIndex={-1}>
+        {navigation}
         <section className="product-hero" data-enter aria-labelledby="product-page-title">
           <div className="wrap grid product-hero__wrap">
             <div className="product-hero__copy">
