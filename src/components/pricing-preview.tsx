@@ -1,10 +1,11 @@
 "use client";
 
 import { Check } from "lucide-react";
+import Link from "next/link";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { proposedAccessRows, proposedPlans } from "@/lib/access-catalog";
 
-export function PricingPlanCards() {
+export function PricingPlanCards({ demoMode = false, nextPath = "/exams" }: { demoMode?: boolean; nextPath?: string }) {
   const { language, t } = useLocale();
   const numberLocale = language === "bn" ? "bn-BD" : "en";
   return (
@@ -13,9 +14,19 @@ export function PricingPlanCards() {
         <div className={`paper-panel plan-preview-card${index === 1 ? " plan-preview-card--featured" : ""}`} key={plan.code}>
           <span className="product-small-label">{t("pricing.days", { count: new Intl.NumberFormat(numberLocale).format(plan.durationDays) })}</span>
           <h3>{t(plan.nameKey)}</h3>
-          <p className="plan-preview-price">{t("pricing.pricePending")}</p>
-          <p>{t("pricing.priceApproval")}</p>
-          <button className="btn btn--secondary" type="button" disabled aria-disabled="true">{t("pricing.purchasesClosed")}</button>
+          {demoMode ? (
+            <>
+              <p className="plan-preview-price">{t("pricing.demoPrice", { amount: `BDT ${new Intl.NumberFormat(numberLocale).format([10, 25, 50][index])}` })}</p>
+              <p>{t("pricing.demoPriceHint")}</p>
+              <Link className="btn btn--secondary" href={`/upgrade/bkash?next=${encodeURIComponent(nextPath)}`}>{t("pricing.demoCheckout")}</Link>
+            </>
+          ) : (
+            <>
+              <p className="plan-preview-price">{t("pricing.pricePending")}</p>
+              <p>{t("pricing.priceApproval")}</p>
+              <button className="btn btn--secondary" type="button" disabled aria-disabled="true">{t("pricing.purchasesClosed")}</button>
+            </>
+          )}
         </div>
       ))}
     </div>
