@@ -50,10 +50,12 @@ export function PaymentSheetSyncPanel({
   readiness,
   rows,
   migrationAvailable,
+  demoMode = false,
 }: {
   readiness: Readiness;
   rows: PaymentSheetSyncStatus[];
   migrationAvailable: boolean;
+  demoMode?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<"sync" | "retry_failed" | "reconcile" | null>(null);
@@ -82,6 +84,7 @@ export function PaymentSheetSyncPanel({
         failed?: number;
         retried?: number;
         state?: string;
+        simulated?: boolean;
         reconciliation?: {
           databaseApprovedCount: number;
           sheetApprovedCount: number;
@@ -96,11 +99,13 @@ export function PaymentSheetSyncPanel({
       }
       if (action === "reconcile" && result.reconciliation) {
         setReconciliation(result.reconciliation);
-        setMessage("Reconciled approved database payments against the sheet.");
+        setMessage(result.simulated
+          ? "Reconciled approved payments against the local demo mirror. No Google Sheets connection was used."
+          : "Reconciled approved database payments against the sheet.");
       } else {
         setMessage(action === "retry_failed"
-          ? "Retried " + (result.retried ?? 0) + " failed record(s). Synced " + (result.synced ?? 0) + " in this batch."
-          : "Processed " + (result.claimed ?? 0) + " due record(s): " + (result.synced ?? 0) + " synced, " + (result.failed ?? 0) + " failed.");
+          ? "Retried " + (result.retried ?? 0) + " failed record(s). " + (result.simulated ? "Simulated " : "Synced ") + (result.synced ?? 0) + " in this batch."
+          : "Processed " + (result.claimed ?? 0) + " due record(s): " + (result.synced ?? 0) + (result.simulated ? " simulated" : " synced") + ", " + (result.failed ?? 0) + " failed.");
         router.refresh();
       }
     } catch (error) {
@@ -116,34 +121,43 @@ export function PaymentSheetSyncPanel({
 
   return (
     <div className="payment-sheet-sync">
+      {demoMode ? <p className="section-note demo-notice"><strong>Local simulation:</strong> these actions update a local database mirror only. They do not contact Google or send payment data anywhere.</p> : null}
       <div className="integration-checks">
-        <div><span>Automatic sync</span><strong>{readiness.enabled ? "Enabled" : "Disabled"}</strong></div>
-        <div><span>Spreadsheet destination</span><strong>{readiness.hasSpreadsheetId ? "Present" : "Missing"}</strong></div>
-        <div><span>Service account email</span><strong>{readiness.hasClientEmail ? "Present" : "Missing"}</strong></div>
-        <div><span>Private key</span><strong>{readiness.hasPrivateKey ? "Present" : "Missing"}</strong></div>
-        <div><span>Supabase service key</span><strong>{readiness.hasServiceRoleKey ? "Present" : "Missing"}</strong></div>
-        <div><span>Scheduled job secret</span><strong>{readiness.hasCronSecret ? "Present" : "Missing"}</strong></div>
-        <div><span>Sheet tab</span><strong>{readiness.sheetName}</strong></div>
-        <div><span>Queue in latest 100</span><strong>{queuedCount} queued · {failedCount} failed · {syncedCount} synced</strong></div>
+        {demoMode ? <>
+          <div><span>Integration mode</span><strong>Local simulation</strong></div>
+          <div><span>Google connection</span><strong>Not contacted</strong></div>
+          <div><span>Local service access</span><strong>{readiness.hasServiceRoleKey ? "Available" : "Missing"}</strong></div>
+          <div><span>Manual simulation</span><strong>Available</strong></div>
+          <div><span>Queue in latest 100</span><strong>{queuedCount} queued · {failedCount} failed · {syncedCount} simulated</strong></div>
+        </> : <>
+          <div><span>Automatic sync</span><strong>{readiness.enabled ? "Enabled" : "Disabled"}</strong></div>
+          <div><span>Spreadsheet destination</span><strong>{readiness.hasSpreadsheetId ? "Present" : "Missing"}</strong></div>
+          <div><span>Service account email</span><strong>{readiness.hasClientEmail ? "Present" : "Missing"}</strong></div>
+          <div><span>Private key</span><strong>{readiness.hasPrivateKey ? "Present" : "Missing"}</strong></div>
+          <div><span>Supabase service key</span><strong>{readiness.hasServiceRoleKey ? "Present" : "Missing"}</strong></div>
+          <div><span>Scheduled job secret</span><strong>{readiness.hasCronSecret ? "Present" : "Missing"}</strong></div>
+          <div><span>Sheet tab</span><strong>{readiness.sheetName}</strong></div>
+          <div><span>Queue in latest 100</span><strong>{queuedCount} queued · {failedCount} failed · {syncedCount} synced</strong></div>
+        </>}
       </div>
       {!migrationAvailable ? <p className="section-note">Migration 033 or its required access grants are not available in this Supabase project yet. Reconcile and apply the migration before using the queue.</p> : null}
-      {!readiness.configured ? <p className="section-note">No Google API calls are made until the owner supplies and enables the spreadsheet destination, service account credentials, and server-side Supabase service key.</p> : null}
+      {!demoMode && !readiness.configured ? <p className="section-note">No Google API calls are made until the owner supplies and enables the spreadsheet destination, service account credentials, and server-side Supabase service key.</p> : null}
       {readiness.configured && !readiness.hasCronSecret ? <p className="section-note">Manual sync is available, but the scheduled worker will not run until a server-side CRON_SECRET is configured.</p> : null}
       <div className="payment-sheet-actions">
-        <button className="btn btn--primary" type="button" onClick={() => run("sync")} disabled={!readiness.configured || !migrationAvailable || busy !== null}>
-          {busy === "sync" ? "Syncing…" : "Sync due batch"}
+        <button className="btn btn--primary" type="button" onClick={() => run("sync")} disabled={(!demoMode && !readiness.configured) || !migrationAvailable || busy !== null}>
+          {busy === "sync" ? "Syncing…" : demoMode ? "Simulate due batch" : "Sync due batch"}
         </button>
-        <button className="btn btn--secondary" type="button" onClick={() => run("retry_failed")} disabled={!readiness.configured || !migrationAvailable || failedCount === 0 || busy !== null}>
-          {busy === "retry_failed" ? "Retrying…" : "Retry failed"}
+        <button className="btn btn--secondary" type="button" onClick={() => run("retry_failed")} disabled={(!demoMode && !readiness.configured) || !migrationAvailable || failedCount === 0 || busy !== null}>
+          {busy === "retry_failed" ? "Retrying…" : demoMode ? "Retry simulated failures" : "Retry failed"}
         </button>
-        <button className="btn btn--secondary" type="button" onClick={() => run("reconcile")} disabled={!readiness.configured || !migrationAvailable || busy !== null}>
-          {busy === "reconcile" ? "Reconciling…" : "Reconcile approved payment IDs"}
+        <button className="btn btn--secondary" type="button" onClick={() => run("reconcile")} disabled={(!demoMode && !readiness.configured) || !migrationAvailable || busy !== null}>
+          {busy === "reconcile" ? "Reconciling…" : demoMode ? "Reconcile local demo IDs" : "Reconcile approved payment IDs"}
         </button>
       </div>
       {message ? <p className="section-note" role="status" aria-live="polite">{message}</p> : null}
       {reconciliation ? <div className="payment-sheet-reconciliation" role="status">
         <h3>Latest reconciliation</h3>
-        <p>{reconciliation.databaseApprovedCount} approved database payments · {reconciliation.sheetApprovedCount} matching sheet rows · {reconciliation.missingInSheetCount} missing · {reconciliation.duplicateSheetRows} duplicate IDs</p>
+        <p>{reconciliation.databaseApprovedCount} approved database payments · {reconciliation.sheetApprovedCount} matching {demoMode ? "local mirror rows" : "sheet rows"} · {reconciliation.missingInSheetCount} missing · {reconciliation.duplicateSheetRows} duplicate IDs</p>
         {reconciliation.missingRequestIds.length ? <p>Missing request IDs (first {reconciliation.missingRequestIds.length}): <code>{reconciliation.missingRequestIds.join(", ")}</code></p> : null}
       </div> : null}
       {!rows.length ? (
@@ -158,7 +172,7 @@ export function PaymentSheetSyncPanel({
                 <td>{row.student_name || "Learner"}<br /><span>{row.student_email || "—"}</span></td>
                 <td>{row.plan_code}</td>
                 <td>{row.payment_status}</td>
-                <td><span className={"status-chip" + (row.sync_status === "failed" ? " status-chip--danger" : row.sync_status === "synced" ? "" : " status-chip--muted")}>{statusLabel(row.sync_status)}</span>{row.last_error_code ? <><br /><span>{row.last_error_code}</span></> : null}</td>
+                <td><span className={"status-chip" + (row.sync_status === "failed" ? " status-chip--danger" : row.sync_status === "synced" ? "" : " status-chip--muted")}>{demoMode && row.sync_status === "synced" ? "Simulated" : statusLabel(row.sync_status)}</span>{row.last_error_code ? <><br /><span>{row.last_error_code}</span></> : null}</td>
                 <td>{row.attempt_count}</td>
                 <td>{formatDate(row.last_synced_at)}</td>
               </tr>
@@ -166,7 +180,7 @@ export function PaymentSheetSyncPanel({
           </table>
         </div>
       )}
-      <p className="section-note">The queue is the latest 100 requests by change time. Sender phone numbers are masked in the sheet; Google access still depends on sharing the sheet with the dedicated service account and limiting the spreadsheet audience.</p>
+      <p className="section-note">{demoMode ? "The queue is the latest 100 requests by change time. Simulated completion changes only local sync status and creates no external sheet row." : "The queue is the latest 100 requests by change time. Sender phone numbers are masked in the sheet; Google access still depends on sharing the sheet with the dedicated service account and limiting the spreadsheet audience."}</p>
     </div>
   );
 }
