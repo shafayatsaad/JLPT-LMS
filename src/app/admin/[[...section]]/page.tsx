@@ -19,40 +19,12 @@ import { isLocalDemoEnvironment } from "@/lib/local-demo";
 import { ExamBookletRenderer } from "@/components/exam-booklet-renderer";
 import { SignOutButton } from "@/components/sign-out-button";
 import previewStyles from "@/components/exam-preview-admin.module.css";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
+import { ADMIN_NAVIGATION_ITEMS } from "@/lib/admin-navigation";
 
 export const dynamic = "force-dynamic";
 
-const routeItems = [
-  { href: "/admin", title: "Overview", roles: ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"] },
-  { href: "/admin/content", title: "Content dashboard", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/questions/new", title: "Authoring and import", roles: ["content_editor", "admin"] },
-  { href: "/admin/sources", title: "Past paper source library", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/questions", title: "Question bank", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/reviews", title: "Review queue", roles: ["reviewer", "admin"] },
-  { href: "/admin/assets", title: "Listening and image assets", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/blueprints", title: "Blueprints", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/exam-forms", title: "Exam forms", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/exam-preview", title: "Paper exam preview", roles: ["content_editor", "reviewer", "admin"] },
-  { href: "/admin/payments", title: "Payment review", roles: ["payment_reviewer", "admin"] },
-  { href: "/admin/plans", title: "Plans and pricing", roles: ["admin"] },
-  { href: "/admin/reports", title: "Reports and exports", roles: ["payment_reviewer", "admin"] },
-  { href: "/admin/attempts", title: "Attempt monitor", roles: ["reviewer", "admin"] },
-  { href: "/admin/support", title: "Support queue", roles: ["support_agent", "admin"] },
-  { href: "/admin/users", title: "Users and roles", roles: ["admin"] },
-  { href: "/admin/staff", title: "Staff and roles", roles: ["admin"] },
-  { href: "/admin/entitlements", title: "Entitlement inventory", roles: ["admin"] },
-  { href: "/admin/privacy", title: "Privacy requests", roles: ["admin"] },
-  { href: "/admin/announcements", title: "Announcements", roles: ["admin"] },
-  { href: "/admin/audit", title: "Audit log", roles: ["admin"] },
-  { href: "/admin/settings/integrations", title: "Integrations", roles: ["admin"] },
-  { href: "/admin/settings", title: "Settings overview", roles: ["admin"] },
-  { href: "/admin/settings/general", title: "General settings", roles: ["admin"] },
-  { href: "/admin/settings/security", title: "Security settings", roles: ["admin"] },
-  { href: "/admin/settings/email", title: "Email settings", roles: ["admin"] },
-  { href: "/admin/settings/notifications", title: "Notification settings", roles: ["admin"] },
-  { href: "/admin/settings/maintenance", title: "Maintenance settings", roles: ["admin"] },
-  { href: "/admin/settings/payments", title: "Payment settings", roles: ["admin"] },
-];
+const routeItems = ADMIN_NAVIGATION_ITEMS;
 
 function displayValue(value: unknown) {
   if (value == null || value === "") return "—";
