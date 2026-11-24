@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import type { MessageKey } from "@/lib/i18n";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
 export function ProductPage({
   eyebrow,
@@ -29,6 +31,12 @@ export function ProductPage({
   return (
     <>
       <SiteHeader />
+      {isLocalDemoEnvironment() ? (
+        <aside className="local-demo-banner" aria-label="Local demo mode">
+          <p><strong><LocalizedText messageKey="demo.bannerLabel" /></strong><span><LocalizedText messageKey="demo.bannerMessage" /></span></p>
+          <Link href="/dev/test-accounts"><LocalizedText messageKey="demo.bannerAccounts" /></Link>
+        </aside>
+      ) : null}
       <main className={`origami-theme product-page ${className}`} id="top" tabIndex={-1}>
         <section className="product-hero" data-enter aria-labelledby="product-page-title">
           <div className="wrap grid product-hero__wrap">
