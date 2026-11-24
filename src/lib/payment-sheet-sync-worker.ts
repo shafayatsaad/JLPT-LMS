@@ -7,21 +7,24 @@ import {
   upsertPaymentRows,
   type PaymentSheetRow,
 } from "@/lib/google-sheets";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
 export type PaymentSheetSyncRunResult = {
   state: "disabled" | "configuration_incomplete" | "service_unavailable" | "processed" | "empty";
   claimed: number;
   synced: number;
   failed: number;
+  simulated?: boolean;
 };
 
 export async function processPaymentSheetSyncBatch(): Promise<PaymentSheetSyncRunResult> {
-  if (process.env.GOOGLE_SHEETS_SYNC_ENABLED !== "true") {
+  const simulated = isLocalDemoEnvironment();
+  if (!simulated && process.env.GOOGLE_SHEETS_SYNC_ENABLED !== "true") {
     return { state: "disabled", claimed: 0, synced: 0, failed: 0 };
   }
 
   const readiness = getPaymentSheetReadiness();
-  if (!readiness.configured) {
+  if (!simulated && !readiness.configured) {
     return { state: "configuration_incomplete", claimed: 0, synced: 0, failed: 0 };
   }
 
@@ -33,13 +36,15 @@ export async function processPaymentSheetSyncBatch(): Promise<PaymentSheetSyncRu
     return { state: "service_unavailable", claimed: 0, synced: 0, failed: 0 };
   }
   const rows = (data ?? []) as unknown as PaymentSheetRow[];
-  if (rows.length === 0) return { state: "empty", claimed: 0, synced: 0, failed: 0 };
+  if (rows.length === 0) return { state: "empty", claimed: 0, synced: 0, failed: 0, simulated };
 
   let batchError: ReturnType<typeof paymentSheetErrorCode> | null = null;
-  try {
-    await upsertPaymentRows(rows);
-  } catch (error) {
-    batchError = paymentSheetErrorCode(error);
+  if (!simulated) {
+    try {
+      await upsertPaymentRows(rows);
+    } catch (error) {
+      batchError = paymentSheetErrorCode(error);
+    }
   }
 
   const completions = await Promise.all(rows.map(async (row) => {
@@ -56,6 +61,6 @@ export async function processPaymentSheetSyncBatch(): Promise<PaymentSheetSyncRu
 
   const synced = completions.filter(Boolean).length;
   const failed = rows.length - synced;
-  return { state: "processed", claimed: rows.length, synced, failed };
+  return { state: "processed", claimed: rows.length, synced, failed, simulated };
 }
 
