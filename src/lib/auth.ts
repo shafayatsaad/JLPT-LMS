@@ -20,6 +20,12 @@ export async function requireSignedInUser(nextPath = "/dashboard") {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/auth/login?next=${encodeURIComponent(nextPath)}`);
 
+  // Phone verification is a required learner account attribute, including for
+  // accounts created with Google. Keep the onboarding route itself reachable.
+  if (!user.phone || !user.phone_confirmed_at) {
+    redirect(`/auth/phone?next=${encodeURIComponent(nextPath)}`);
+  }
+
   const stepUp = await resolveStepUpAccess(supabase);
   if (stepUp === "required") redirect(`/auth/continue?next=${encodeURIComponent(nextPath)}`);
   if (stepUp === "unavailable") redirect(`/auth/step-up-unavailable?next=${encodeURIComponent(nextPath)}`);
