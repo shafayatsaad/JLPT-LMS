@@ -61,17 +61,18 @@ export async function POST(request: Request) {
     return json(400, { error: safeErrorKey(error?.message ?? "Payment request could not be created") });
   }
 
-  const { data: saved, error: loadError } = await supabase.from("payment_submissions")
-    .select("id,amount,currency,transaction_reference,plan_snapshot")
-    .eq("id", data)
-    .eq("user_id", user.id)
-    .single();
-  if (loadError || !saved) return json(503, { error: "payment.submitError" });
+  const { data: confirmation, error: loadError } = await supabase.rpc("get_own_payment_request_confirmation", {
+    p_payment_submission_id: data,
+  });
+  if (loadError || !confirmation || typeof confirmation !== "object" || Array.isArray(confirmation)) {
+    return json(503, { error: "payment.submitError" });
+  }
+  const saved = confirmation as Record<string, unknown>;
 
-  const snapshot = saved.plan_snapshot && typeof saved.plan_snapshot === "object"
+  const snapshot = saved.plan_snapshot && typeof saved.plan_snapshot === "object" && !Array.isArray(saved.plan_snapshot)
     ? saved.plan_snapshot as Record<string, unknown>
     : {};
-  const transactionId = saved.transaction_reference ?? "";
+  const transactionId = typeof saved.transaction_reference === "string" ? saved.transaction_reference : "";
   const masked = transactionId.length > 7 ? `${transactionId.slice(0, 3)}••••${transactionId.slice(-4)}` : "••••";
   return json(200, {
     id: saved.id,
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
     currency: saved.currency,
     planName: typeof snapshot.name === "string" ? snapshot.name : "",
     planNameBn: typeof snapshot.name_bn === "string" ? snapshot.name_bn : "",
-    durationDays: typeof snapshot.duration_days === "number" ? snapshot.duration_days : 0,
+    durationDays: typeof snapshot.duration_days === "number" ? snapshot.duration_days : Number(snapshot.duration_days) || 0,
     transactionMasked: masked,
   });
 }
