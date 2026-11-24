@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, BookOpen, Check, Clock3, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { HeroTreeMedia } from "@/components/hero-tree-media";
 import { LevelFormatSelector } from "@/components/level-format-selector";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -18,9 +19,10 @@ export function HomeContent() {
               <h1 id="hero-h">{t("home.hero.title")}</h1>
               <p className="hero__lead">{t("home.hero.lead")}</p>
               <div className="btn-row">
-                <a className="btn btn--primary" href="#levels">{t("home.hero.chooseLevel")}<ArrowUpRight size={16} aria-hidden="true" /></a>
-                <a className="btn btn--secondary" href="#practice">{t("home.hero.seeReview")}</a>
+                <Link className="btn btn--primary" href="/exams/n5/preview/session">{t("home.hero.freeMock")}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+                <a className="btn btn--secondary" href="#levels">{t("home.hero.chooseLevel")}</a>
               </div>
+              <p className="hero__secondary-link"><Link href="/pricing?next=%2Fexams">{t("home.hero.fullMock")} <ArrowUpRight size={14} aria-hidden="true" /></Link><span aria-hidden="true">·</span><a href="#practice">{t("home.hero.seeReview")}</a></p>
             </div>
             <HeroTreeMedia />
           </div>
