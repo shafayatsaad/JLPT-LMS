@@ -17,6 +17,11 @@
     "typecheck": "tsc --noEmit",
     "supabase:config:validate": "supabase config validate",
     "supabase:db:reset": "supabase db reset --no-seed",
+    "supabase:db:reset:demo": "supabase db reset --sql-paths ./seed.sql",
+    "demo:local": "powershell -ExecutionPolicy Bypass -File scripts/start-local-demo.ps1",
+    "demo:local:resume": "powershell -ExecutionPolicy Bypass -File scripts/start-local-demo.ps1 -Resume",
+    "demo:local:production": "powershell -ExecutionPolicy Bypass -File scripts/start-local-demo.ps1 -Production",
+    "demo:local:production:resume": "powershell -ExecutionPolicy Bypass -File scripts/start-local-demo.ps1 -Production -Resume",
     "supabase:test": "supabase test db",
     "supabase:audit": "node scripts/audit-supabase-schema.cjs",
     "supabase:content-audit": "node scripts/audit-published-exams.cjs"
