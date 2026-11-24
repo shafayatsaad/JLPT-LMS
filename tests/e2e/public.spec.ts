@@ -34,6 +34,23 @@ test("home content and JLPT timing table switch between English and Bangla", asy
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
+test("home links directly to the free N5 section and preserves a full-mock path to plans", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: /try the free n5 section/i })).toHaveAttribute("href", "/exams/n5/preview/session");
+  await expect(page.getByRole("link", { name: /unlock full mock exams/i })).toHaveAttribute("href", "/pricing?next=%2Fexams");
+});
+
+test("signed-out premium checkout returns to the requested exam after sign-in", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the local payment sandbox.");
+  await page.goto("/pricing?next=%2Fexams");
+  await page.getByRole("link", { name: "Test this plan" }).first().click();
+  await expect(page).toHaveURL(/\/auth\/login\?/);
+  const signInUrl = new URL(page.url());
+  const checkoutUrl = new URL(signInUrl.searchParams.get("next") ?? "", "http://local.invalid");
+  expect(checkoutUrl.pathname).toBe("/upgrade/bkash");
+  expect(checkoutUrl.searchParams.get("next")).toBe("/exams");
+});
+
 test("public information and level guides follow the saved Bangla preference", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("jlpt-ui-language", "bn"));
 
@@ -112,4 +129,95 @@ test("N5 preview remains a demo and the account form offers Google", async ({ pa
   await expect(page.locator('input[type="password"]')).toBeVisible();
   await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
   await expect(page.locator('input[autocomplete="one-time-code"]')).toHaveCount(0);
+});
+
+test("account creation requires a phone number even when Google is offered", async ({ page }) => {
+  await page.goto("/auth/register");
+  await expect(page.locator('input[type="tel"][autocomplete="tel"]')).toHaveAttribute("required", "");
+  await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
+  await expect(page.getByText(/every account, including Google/i)).toBeVisible();
+});
+
+test("local learner can sign in, reach the dashboard, and sign out", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase learner.");
+  await page.goto("/auth/login");
+  await page.locator('input[autocomplete="username"]').fill("student@n5.test");
+  await page.locator('input[type="password"]').fill("N5learn26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  const dashboardSignOut = page.locator(".account-strip__actions").getByRole("button", { name: /sign out/i });
+  await expect(dashboardSignOut).toBeVisible();
+  await dashboardSignOut.click();
+  await expect(page).toHaveURL("/");
+});
+
+test("local admin sign-in reaches the mandatory authenticator challenge", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase administrator.");
+  await page.goto("/admin/sign-in");
+  await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
+  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/auth\/mfa\?next=/);
+  await expect(page.getByRole("heading", { name: "Verify your sign-in" })).toBeVisible();
+});
+
+test("N5 sample separates the printed question booklet from its mapped bubble sheet", async ({ page }) => {
+  await page.goto("/exams/n5/preview/session");
+
+  await expect(page.getByRole("heading", { name: "N5 practice booklet · sample" })).toBeVisible();
+  await expect(page.locator("#answers-panel")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Question 1, A" })).toHaveAttribute("aria-checked", "false");
+
+  await page.getByRole("navigation", { name: "Booklet pages" }).getByRole("button", { name: /02 Language Knowledge \(Vocabulary\)/ }).click();
+  await expect(page.getByRole("heading", { name: "「水」の読み方はどれですか。" })).toBeVisible();
+  await expect(page.locator("#booklet-panel")).toContainText("みず");
+
+  const firstBubble = page.getByRole("radio", { name: "Question 1, A" });
+  await firstBubble.click();
+  await expect(firstBubble).toHaveAttribute("aria-checked", "true");
+  await firstBubble.click();
+  await expect(firstBubble).toHaveAttribute("aria-checked", "true");
+  await page.reload();
+  await expect(page.getByRole("radio", { name: "Question 1, A" })).toHaveAttribute("aria-checked", "true");
+
+  await page.getByRole("button", { name: "Erase answer for question 1" }).click();
+  await expect(page.getByRole("radio", { name: "Question 1, A" })).toHaveAttribute("aria-checked", "false");
+});
+
+test("free N5 vocabulary booklet keeps all sample questions in one scrollable paper section", async ({ page }) => {
+  await page.goto("/exams/n5/preview/session");
+  await page.getByRole("navigation", { name: "Booklet pages" }).getByRole("button", { name: /02 Language Knowledge \(Vocabulary\)/ }).click();
+  const paper = page.locator("#booklet-panel article");
+  await expect(paper.locator("h2[id^='question-title-']")).toHaveCount(5);
+  expect(await paper.evaluate((element) => getComputedStyle(element).overflow)).toBe("visible");
+  await expect(paper.getByText("としょかんで ほんを（　）。")).toBeVisible();
+});
+
+test("mobile booklet switches to the answer sheet and honors reduced motion", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/exams/n5/preview/session");
+
+  await page.getByRole("button", { name: /Answer sheet/ }).click();
+  const answerB = page.getByRole("radio", { name: "Question 1, B" });
+  await answerB.click();
+  await expect(answerB).toHaveAttribute("aria-checked", "true");
+  expect(await answerB.locator("span").evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
+  await page.reload();
+  await page.getByRole("button", { name: /Answer sheet/ }).click();
+  await expect(page.getByRole("radio", { name: "Question 1, B" })).toHaveAttribute("aria-checked", "true");
+});
+
+test("test profile details are exposed only in explicit local demo mode", async ({ page }) => {
+  const response = await page.goto("/dev/test-accounts");
+  if (process.env.LOCAL_DEMO_ACCOUNTS_ENABLED === "true") {
+    await expect(page.getByRole("heading", { name: "Test learner and staff profiles" })).toBeVisible();
+    await expect(page.getByText("student@n5.test")).toBeVisible();
+    await expect(page.getByText("N5learn26")).toBeVisible();
+    await expect(page.getByText("admin@n5.test")).toBeVisible();
+    await expect(page.getByText("N5admin26")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open staff sign in" })).toHaveAttribute("href", "/admin/sign-in");
+  } else {
+    expect(response?.status()).toBe(404);
+  }
 });

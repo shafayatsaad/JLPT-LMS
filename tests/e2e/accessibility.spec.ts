@@ -5,6 +5,7 @@ const routes = [
   { path: "/", name: "home page" },
   { path: "/levels/n5", name: "N5 guide" },
   { path: "/exams/n5/preview", name: "N5 interface preview" },
+  { path: "/exams/n5/preview/session", name: "N5 paper booklet and answer sheet" },
   { path: "/legal/privacy", name: "privacy draft" },
   { path: "/auth/login", name: "sign-in page" },
 ];

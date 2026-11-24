@@ -3,6 +3,7 @@ import { AuthForm } from "@/components/auth-form";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { SignOutButton } from "@/components/sign-out-button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -11,6 +12,7 @@ export const metadata = {
 };
 
 export default async function AdminSignInPage() {
+  const showLocalDemoAccounts = isLocalDemoEnvironment();
   const supabase = await createSupabaseServerClient();
   const { data: { user } = { user: null } } = supabase
     ? await supabase.auth.getUser()
@@ -63,6 +65,7 @@ export default async function AdminSignInPage() {
         <PaperPanel className="auth-panel">
           <AuthForm mode="login" defaultNext="/admin" />
           <p className="field-hint">If your account is not assigned a staff role, you will return to the learner area.</p>
+          {showLocalDemoAccounts ? <p className="auth-switch"><Link href="/dev/test-accounts">View local test profiles</Link></p> : null}
         </PaperPanel>
       </ProductSection>
     </ProductPage>

@@ -8,12 +8,17 @@ import { BlueprintAuthoringForm, BlueprintReviewQueue, type BlueprintReviewItem 
 import { ExamFormAssembly, ExamFormReviewQueue } from "@/components/admin/exam-form-workflow";
 import { UserRoleManager, type AdminUserRow } from "@/components/admin/user-role-manager";
 import { QuestionBatchImport } from "@/components/admin/question-batch-import";
+import { DemoSourcePacketManager, type DemoSourcePacketRow } from "@/components/admin/demo-source-packet-manager";
 import { AnnouncementWorkflow, type AdminAnnouncement } from "@/components/admin/announcement-workflow";
 import { AdminDashboardSummary, type AdminDashboardData } from "@/components/admin/admin-dashboard-summary";
 import { PaymentSheetSyncPanel, type PaymentSheetSyncStatus } from "@/components/admin/payment-sheet-sync-panel";
 import { ManualPaymentSettingsForm, PaymentPlanManager, PaymentReviewQueue, type AdminPaymentPlan, type AdminPaymentQueueRow } from "@/components/admin/payment-admin-workflows";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 import { getPaymentSheetReadiness } from "@/lib/google-sheets";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
+import { ExamBookletRenderer } from "@/components/exam-booklet-renderer";
+import { SignOutButton } from "@/components/sign-out-button";
+import previewStyles from "@/components/exam-preview-admin.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +26,13 @@ const routeItems = [
   { href: "/admin", title: "Overview", roles: ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"] },
   { href: "/admin/content", title: "Content dashboard", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/questions/new", title: "Authoring and import", roles: ["content_editor", "admin"] },
+  { href: "/admin/sources", title: "Past paper source library", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/questions", title: "Question bank", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/reviews", title: "Review queue", roles: ["reviewer", "admin"] },
   { href: "/admin/assets", title: "Listening and image assets", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/blueprints", title: "Blueprints", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/exam-forms", title: "Exam forms", roles: ["content_editor", "reviewer", "admin"] },
+  { href: "/admin/exam-preview", title: "Paper exam preview", roles: ["content_editor", "reviewer", "admin"] },
   { href: "/admin/payments", title: "Payment review", roles: ["payment_reviewer", "admin"] },
   { href: "/admin/plans", title: "Plans and pricing", roles: ["admin"] },
   { href: "/admin/reports", title: "Reports and exports", roles: ["payment_reviewer", "admin"] },
@@ -107,8 +114,37 @@ export default async function AdminPage({ params, searchParams }: {
   }
   await requireStaffMfa(supabase, route);
 
+  if (route === "/admin/sources") {
+    const result = await supabase.from("demo_source_packets")
+      .select("id,title,level,release_label,source_kind,pdf_path,pdf_file_name,pdf_bytes,audio_path,audio_file_name,audio_bytes,rights_status,rights_notes,created_at")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+    const packets: DemoSourcePacketRow[] = await Promise.all((result.data ?? []).map(async (row) => {
+      const [{ data: pdfData }, audioResult] = await Promise.all([
+        supabase.storage.from("jlpt-demo-source-materials").createSignedUrl(row.pdf_path, 3600),
+        row.audio_path ? supabase.storage.from("jlpt-demo-source-materials").createSignedUrl(row.audio_path, 3600) : Promise.resolve({ data: null }),
+      ]);
+      return { ...row, pdf_url: pdfData?.signedUrl ?? null, audio_url: audioResult.data?.signedUrl ?? null };
+    }));
+    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Past paper source library" description="Keep owner-provided PDF and audio references private and separate from publishable question content." className="product-page--admin">
+      <ProductSection title="Administration areas" className="product-section--tint"><PaperPanel className="admin-nav-panel"><nav className="admin-link-list" aria-label="Administration pages">{routeItems.filter((entry) => isAdmin || entry.roles.some((role) => roles.includes(role))).map((entry) => <Link className={entry.href === route ? "is-current" : ""} key={entry.href} href={entry.href}>{entry.title}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}</nav></PaperPanel></ProductSection>
+      <ProductSection title="Upload and inspect private demo material"><PaperPanel className="data-panel">{result.error ? <p className="inline-notice">The source library migration is not available yet: {result.error.message}</p> : null}<DemoSourcePacketManager packets={packets} canUpload={roles.includes("content_editor") || isAdmin} canArchive={isAdmin} /></PaperPanel></ProductSection>
+    </ProductPage>;
+  }
+
+  if (route === "/admin/exam-preview") {
+    return (
+      <main className={previewStyles.page}>
+        <Link className={previewStyles.back} href="/admin">← Return to staff workspace</Link>
+        <header className={previewStyles.heading}><div><p>Staff preview · N5-DEMO-01</p><h1>Paper exam preview</h1></div><span>Review the same monochrome question booklet and separate answer sheet shown in the learner sample.</span><SignOutButton className={previewStyles.signOut} /></header>
+        <div className={previewStyles.frame}><ExamBookletRenderer adminPreview /></div>
+      </main>
+    );
+  }
+
   if (route === "/admin/settings/integrations") {
     const readiness = getPaymentSheetReadiness();
+    const demoMode = isLocalDemoEnvironment();
     const { data: syncRows, error: syncError } = await supabase.rpc("get_admin_payment_sheet_sync_status");
     const privateImageStorageConfigured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
     const safeSyncRows = (syncRows ?? []) as PaymentSheetSyncStatus[];
@@ -117,8 +153,8 @@ export default async function AdminPage({ params, searchParams }: {
       <ProductPage eyebrow="Staff workspace · admin only" title="Integration settings" description="Review the payment reporting connection, sync queue, and remaining owner setup. Secret values are never displayed." className="product-page--admin">
         <ProductSection title="Google Sheets status" className="product-section--tint">
           <PaperPanel className="data-panel integration-panel">
-            <p className="integration-state"><span className={`status-chip${readiness.configured ? "" : " status-chip--muted"}`}>{readiness.configured ? "Enabled · required values present, connection unverified" : readiness.enabled ? "Enabled with incomplete configuration" : "Disabled by default"}</span></p>
-            <PaymentSheetSyncPanel readiness={readiness} rows={safeSyncRows} migrationAvailable={!syncError} />
+            <p className="integration-state"><span className={`status-chip${readiness.configured || demoMode ? "" : " status-chip--muted"}`}>{demoMode ? "Local simulation · Google not contacted" : readiness.configured ? "Enabled · required values present, connection unverified" : readiness.enabled ? "Enabled with incomplete configuration" : "Disabled by default"}</span></p>
+            <PaymentSheetSyncPanel readiness={readiness} rows={safeSyncRows} migrationAvailable={!syncError} demoMode={demoMode} />
             <h3>Private image uploads</h3>
             <div className="integration-checks">
               <div><span>Server storage credential present</span><strong>{privateImageStorageConfigured ? "Yes" : "No"}</strong></div>
@@ -284,7 +320,7 @@ export default async function AdminPage({ params, searchParams }: {
       <ProductSection title="Administration areas" className="product-section--tint">
         <PaperPanel className="admin-nav-panel"><nav className="admin-link-list" aria-label="Administration pages">{routeItems.filter((entry) => isAdmin || entry.roles.some((role) => roles.includes(role))).map((entry) => <Link className={entry.href === route ? "is-current" : ""} key={entry.href} href={entry.href}>{entry.title}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}</nav></PaperPanel>
       </ProductSection>
-      {route === "/admin/questions/new" ? <ProductSection title="Draft authoring reference" className="product-section--tint"><PaperPanel className="statement-panel"><p>Manual authoring and JSON batch import both create drafts with separate answer keys and provenance records. The downloadable original N5 example is a reference item, not approved exam content.</p><div className="product-cta-row"><a className="btn btn--secondary" href="/templates/jlpt-question-authoring-demo.json" download>Download JSON example</a><Link className="text-link" href="/admin/content">View question inventory <ArrowUpRight size={15} aria-hidden="true" /></Link></div><p className="section-note">The repository includes a field guide at <code>docs/question-authoring-template.md</code>.</p></PaperPanel></ProductSection> : null}
+      {route === "/admin/questions/new" ? <ProductSection title="Draft authoring reference" className="product-section--tint"><PaperPanel className="statement-panel"><p>Manual authoring and folder-based JSON import both create drafts with separate answer keys and provenance records. The downloadable original N5 example is a reference item, not approved exam content.</p><div className="product-cta-row"><a className="btn btn--secondary" href="/templates/jlpt-question-authoring-demo.json" download="manifest.json">Download manifest example</a><Link className="text-link" href="/admin/content">View question inventory <ArrowUpRight size={15} aria-hidden="true" /></Link></div><p className="section-note">Place the downloaded <code>manifest.json</code> beside the referenced media files, then select its containing folder in the importer below.</p></PaperPanel></ProductSection> : null}
       {route === "/admin/questions/new" ? <ProductSection title="Import question drafts"><PaperPanel className="data-panel"><QuestionBatchImport /></PaperPanel></ProductSection> : null}
       {route === "/admin/questions/new" ? <ProductSection title="Create a question draft"><PaperPanel className="data-panel"><QuestionAuthoringForm /></PaperPanel></ProductSection> : null}
       {!(["/admin/payments", "/admin/plans", "/admin/settings/payments"].includes(route)) ? <ProductSection title={route === "/admin" ? "Workspace summary" : sectionTitle}>
