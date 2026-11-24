@@ -3,19 +3,23 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, CircleHelp } from "lucide-react";
-import { N5_PREVIEW_STORAGE_KEY, n5PreviewQuestions, type PreviewAnswers } from "@/lib/n5-preview";
+import { N5_PREVIEW_STORAGE_KEY, n5PreviewQuestions, type PreviewAnswers, type PreviewQuestion } from "@/lib/n5-preview";
 import { useLocale } from "@/components/i18n/locale-provider";
+import type { MessageKey } from "@/lib/i18n";
 
 export function N5PreviewReview() {
   const { t } = useLocale();
   const [answers, setAnswers] = useState<PreviewAnswers>({});
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
-      if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
-    } catch { setAnswers({}); }
-    setLoaded(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = sessionStorage.getItem(N5_PREVIEW_STORAGE_KEY);
+        if (stored) setAnswers(JSON.parse(stored) as PreviewAnswers);
+      } catch { setAnswers({}); }
+      setLoaded(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!loaded) return <p className="result-loading" aria-live="polite">{t("preview.reviewLoading")}</p>;
@@ -34,7 +38,17 @@ export function N5PreviewReview() {
           {n5PreviewQuestions.map((question, index) => {
             const chosen = answers[question.id];
             const correct = chosen === question.correctOption;
-            const areaLabel = question.area.startsWith("Grammar") ? t("exam.item.sententialGrammarForm") : t("exam.item.kanjiReading");
+            const itemLabels: Record<PreviewQuestion["itemType"], MessageKey> = {
+              "kanji-reading": "exam.item.kanjiReading",
+              "word-usage": "exam.item.usage",
+              "grammar-form": "exam.item.sententialGrammarForm",
+              "reading-comprehension": "exam.item.shortPassages",
+            };
+            const sectionKeys: Record<string, MessageKey> = {
+              vocabulary: "exam.section.language_knowledge_vocabulary",
+              "grammar-reading": "exam.section.language_knowledge_grammar_reading",
+            };
+            const areaLabel = `${t(sectionKeys[question.sectionCode])} · ${t(itemLabels[question.itemType])}`;
             const selectedText = question.options.find((option) => option.id === chosen)?.text;
             const correctText = question.options.find((option) => option.id === question.correctOption)?.text;
             return (

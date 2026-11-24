@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { hashTrustedDeviceToken, isSameOriginRequest, TRUSTED_DEVICE_COOKIE } from "@/lib/auth-step-up";
 import { createSupabaseServerClient } from "@/lib/supabase/server";

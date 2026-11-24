@@ -49,11 +49,27 @@ export async function resolveStepUpAccess(supabase: ServerClient, deviceToken?: 
 
 export function isSameOriginRequest(request: Request) {
   const origin = request.headers.get("origin");
-  if (!origin) return false;
+  const expectedOrigin = new URL(request.url).origin;
+  if (origin) {
+    try {
+      const originValue = new URL(origin).origin;
+      if (originValue === expectedOrigin) return true;
+      if (request.headers.get("sec-fetch-site") !== "same-origin") return false;
+      const referer = request.headers.get("referer");
+      if (!referer) return false;
+      return new URL(referer).origin === originValue;
+    } catch {
+      return false;
+    }
+  }
+
+  // Some local browsers omit Origin on same-origin POSTs. Fetch Metadata plus
+  // a matching Referer provides a browser-controlled same-origin fallback.
+  if (request.headers.get("sec-fetch-site") !== "same-origin") return false;
+  const referer = request.headers.get("referer");
+  if (!referer) return false;
   try {
-    const originUrl = new URL(origin);
-    const requestUrl = new URL(request.url);
-    return originUrl.origin === requestUrl.origin;
+    return new URL(referer).origin === expectedOrigin;
   } catch {
     return false;
   }

@@ -98,7 +98,6 @@ export function once(el, fn, { threshold = 0.35, margin = '0px', rescue = 3000 }
 }
 
 export function split(el, unit = 'words') {
-  if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
   const inners = [];
   const wrap = (text, cls) => {
     const s = document.createElement('span');
@@ -133,7 +132,6 @@ export function split(el, unit = 'words') {
     });
   };
   walk(el);
-  el.querySelectorAll('.mo-w').forEach(w => w.setAttribute('aria-hidden', 'true'));
   return inners;
 }
 

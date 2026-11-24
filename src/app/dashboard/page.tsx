@@ -3,6 +3,7 @@ import { ArrowUpRight, Bookmark, BookOpen, Clock3, RotateCcw } from "lucide-reac
 import { ProductPage, ProductSection, PaperPanel } from "@/components/product-page";
 import { SignOutButton } from "@/components/sign-out-button";
 import { requireSignedInUser } from "@/lib/auth";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -10,6 +11,7 @@ export const metadata = { title: "Learner dashboard · JLPT practice" };
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const demoMode = isLocalDemoEnvironment();
   const { supabase, user } = await requireSignedInUser("/dashboard");
   if (!supabase || !user) {
     return <ProductPage eyebrow="Learner dashboard" eyebrowKey="dashboard.eyebrow" title="Your practice space" titleKey="dashboard.setupTitle" description="Connect the Supabase project to sign in and load saved learner data." descriptionKey="dashboard.setupDescription"><ProductSection title="Supabase setup required" titleKey="dashboard.setupRequired"><PaperPanel><p><LocalizedText messageKey="dashboard.setupMigrations" /></p><Link className="btn btn--primary" href="/auth/login"><LocalizedText messageKey="dashboard.continueSignIn" /></Link></PaperPanel></ProductSection></ProductPage>;
@@ -27,6 +29,18 @@ export default async function DashboardPage() {
 
   return (
     <ProductPage eyebrow="Learner dashboard" eyebrowKey="dashboard.eyebrow" title="Welcome back" titleKey={profile?.display_name ? "dashboard.greeting" : "dashboard.welcomeBack"} titleValues={profile?.display_name ? { name: profile.display_name } : undefined} description="Choose a level, see saved attempts, and return to questions you want to review." descriptionKey="dashboard.description" className="product-page--dashboard">
+      {demoMode ? <ProductSection title="Local test shortcuts" titleKey="demo.quickTitle" className="product-section--compact"><p className="demo-shortcuts__intro"><LocalizedText messageKey="demo.quickDescription" /></p><div className="demo-shortcuts-grid">
+        <Link href="/exams"><LocalizedText messageKey="exams.title" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/practice"><LocalizedText messageKey="practice.title" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/progress"><LocalizedText messageKey="progress.title" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/review/47000000-0000-4000-8000-000000000001"><LocalizedText messageKey="results.reviewAnswers" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/mistakes"><LocalizedText messageKey="account.mistakes" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/bookmarks"><LocalizedText messageKey="bookmarks.title" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/pricing"><LocalizedText messageKey="pricing.demoCheckout" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/support"><LocalizedText messageKey="account.support" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/notifications"><LocalizedText messageKey="notifications.inboxSection" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href="/account"><LocalizedText messageKey="settings.profileTitle" /><ArrowUpRight size={15} aria-hidden="true" /></Link>
+      </div></ProductSection> : null}
       {showWelcome ? <ProductSection title="A new practice space" titleKey="dashboard.welcomeEyebrow" className="product-section--tint"><PaperPanel className="welcome-card"><span className="paper-tab"><LocalizedText messageKey="dashboard.accountReady" /></span><h2><LocalizedText messageKey={profile?.display_name ? "dashboard.greeting" : "dashboard.welcomeToPlatform"} values={profile?.display_name ? { name: profile.display_name } : undefined} />.</h2><p><LocalizedText messageKey="dashboard.welcomeDescription" /></p><Link className="btn btn--secondary" href="/account"><LocalizedText messageKey="dashboard.setupProfile" /></Link></PaperPanel></ProductSection> : null}
       {activeAttempt ? <ProductSection title="Continue your exam" titleKey="dashboard.continueExam" className="product-section--tint"><PaperPanel className="welcome-card"><span className="paper-tab"><LocalizedText messageKey="dashboard.activeAttempt" /></span><h2>JLPT {activeAttempt.level}</h2><p><LocalizedText messageKey="dashboard.resumeDescription" /></p><Link className="btn btn--primary" href={`/attempts/${activeAttempt.id}`}><LocalizedText messageKey="dashboard.continueExam" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel></ProductSection> : null}
       <ProductSection title="Your next step" titleKey="dashboard.nextStep" className="product-section--tint">

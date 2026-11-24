@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, MessageCircle } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { LocalizedText } from "@/components/i18n/localized-text";
 
 export const metadata = {
   title: "Contact and support · JLPT practice",
@@ -9,17 +10,17 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <ProductPage eyebrow="Contact" title="Get help with your practice space" description="Support requests are handled through the signed-in learner inbox so replies stay connected to the right account." className="product-page--editorial">
-      <ProductSection title="Private learner support" className="product-section--tint">
+    <ProductPage eyebrow="Contact" eyebrowKey="contact.eyebrow" title="Get help with your practice space" titleKey="contact.title" description="Support requests are handled through the signed-in learner inbox so replies stay connected to the right account." descriptionKey="contact.description" className="product-page--editorial">
+      <ProductSection title="Private learner support" titleKey="contact.section.private" className="product-section--tint">
         <PaperPanel className="statement-panel contact-panel">
           <MessageCircle aria-hidden="true" />
-          <h2>Open or review a support request</h2>
-          <p>Sign in to describe an account, payment, exam, content or technical issue. Do not include passwords, one-time codes, wallet PINs or other credentials.</p>
-          <div className="product-cta-row"><Link className="btn btn--primary" href="/support">Open support center <ArrowUpRight size={15} aria-hidden="true" /></Link><Link className="text-link" href="/auth/login?next=%2Fsupport">Sign in first <ArrowUpRight size={15} aria-hidden="true" /></Link></div>
+          <h2><LocalizedText messageKey="contact.openTitle" /></h2>
+          <p><LocalizedText messageKey="contact.openDescription" /></p>
+          <div className="product-cta-row"><Link className="btn btn--primary" href="/support"><LocalizedText messageKey="contact.openSupport" /> <ArrowUpRight size={15} aria-hidden="true" /></Link><Link className="text-link" href="/auth/login?next=%2Fsupport"><LocalizedText messageKey="contact.signIn" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>
         </PaperPanel>
       </ProductSection>
-      <ProductSection title="Before writing">
-        <PaperPanel className="statement-panel"><p>For questions about access and current availability, see the <Link className="text-link" href="/faq">FAQ</Link>. Public email and business contact details will be added after the platform operator and support address are confirmed.</p></PaperPanel>
+      <ProductSection title="Before writing" titleKey="contact.section.before">
+        <PaperPanel className="statement-panel"><p><LocalizedText messageKey="contact.beforeIntro" /> <Link className="text-link" href="/faq"><LocalizedText messageKey="faq.title" /></Link>. <LocalizedText messageKey="contact.beforeEnd" /></p></PaperPanel>
       </ProductSection>
     </ProductPage>
   );

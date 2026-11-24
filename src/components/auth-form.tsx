@@ -44,6 +44,7 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [signupPhone, setSignupPhone] = useState("");
   const [targetLevel, setTargetLevel] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [signupPending, setSignupPending] = useState<SignupPending>(null);
@@ -63,12 +64,15 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
       "staff-access-required": "auth.notice.staff",
       "recovery-session-missing": "auth.notice.recovery",
     };
-    if (notice && messages[notice]) setError(t(messages[notice]));
-
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
-    if (hashParams.has("error") || hashParams.has("error_code")) {
-      setError(t("auth.notice.failed"));
-    }
+    const message = hashParams.has("error") || hashParams.has("error_code")
+      ? t("auth.notice.failed")
+      : notice && messages[notice]
+        ? t(messages[notice])
+        : "";
+    if (!message) return;
+    const timer = window.setTimeout(() => setError(message), 0);
+    return () => window.clearTimeout(timer);
   }, [phoneEnabled, t]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -120,7 +124,14 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
           return;
         }
 
-        const metadata = { display_name: displayName.trim(), target_level: targetLevel || null, ui_language: language };
+        const normalizedSignupPhone = signupPhone.trim().replace(/[\s().-]/g, "");
+        if (!/^\+[1-9]\d{7,14}$/.test(normalizedSignupPhone)) {
+          throw new Error("Enter a phone number in international format, for example +8801XXXXXXXXX.");
+        }
+        if (parsed.kind === "phone" && parsed.phone !== normalizedSignupPhone) {
+          throw new Error("For phone-based account creation, the sign-in and verification numbers must match.");
+        }
+        const metadata = { display_name: displayName.trim(), target_level: targetLevel || null, ui_language: language, phone_number: normalizedSignupPhone };
         const signup = parsed.kind === "email"
           ? await supabase.auth.signUp({
               email: parsed.email,
@@ -247,6 +258,11 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
           <label>
             {t("auth.field.name")} <span className="field-optional">{t("auth.field.optional")}</span>
             <input autoComplete="name" maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
+          </label>
+          <label>
+            Phone number <span className="field-required">Required · SMS verification</span>
+            <input required type="tel" autoComplete="tel" inputMode="tel" maxLength={24} placeholder="+8801XXXXXXXXX" value={signupPhone} onChange={(event) => setSignupPhone(event.target.value)} />
+            <span className="field-hint">Required for every account, including Google. We verify it after sign-in.</span>
           </label>
           <label>
             {t("auth.field.target")} <span className="field-optional">{t("auth.field.optional")}</span>

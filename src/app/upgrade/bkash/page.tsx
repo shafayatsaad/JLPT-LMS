@@ -3,17 +3,22 @@ import { LocalizedText } from "@/components/i18n/localized-text";
 import { BkashPaymentCheckout, type PaymentCheckoutOptions } from "@/components/bkash-payment-checkout";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { requireSignedInUser } from "@/lib/auth";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
 export const metadata = { title: "bKash Send Money · JLPT practice" };
 export const dynamic = "force-dynamic";
 
-export default async function BkashUpgradePage() {
-  const { supabase, user } = await requireSignedInUser("/upgrade/bkash");
+export default async function BkashUpgradePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const query = await searchParams;
+  const candidateNext = query.next ?? "/exams";
+  const nextPath = candidateNext.startsWith("/") && !candidateNext.startsWith("//") && !candidateNext.includes("\\") ? candidateNext : "/exams";
+  const demoMode = isLocalDemoEnvironment();
+  const { supabase, user } = await requireSignedInUser(`/upgrade/bkash?next=${encodeURIComponent(nextPath)}`);
   if (!supabase || !user) {
     return (
       <ProductPage eyebrow="Learner workspace · payment setup" title="bKash Send Money" description="Sign in before viewing payment options." eyebrowKey="paymentCheckout.eyebrow" titleKey="paymentCheckout.title" descriptionKey="paymentCheckout.description">
         <ProductSection title="Account access" titleKey="exams.accountAccess">
-          <PaperPanel><Link className="btn btn--primary" href="/auth/login?next=%2Fupgrade%2Fbkash"><LocalizedText messageKey="exams.signIn" /></Link></PaperPanel>
+          <PaperPanel><Link className="btn btn--primary" href={`/auth/login?next=${encodeURIComponent(`/upgrade/bkash?next=${nextPath}`)}`}><LocalizedText messageKey="exams.signIn" /></Link></PaperPanel>
         </ProductSection>
       </ProductPage>
     );
@@ -28,7 +33,7 @@ export default async function BkashUpgradePage() {
   return (
     <ProductPage eyebrow="Learner workspace · payment setup" title="bKash Send Money" description="Submit payment details only after following the verified account instructions shown on this page." eyebrowKey="paymentCheckout.eyebrow" titleKey="paymentCheckout.title" descriptionKey="paymentCheckout.description" className="product-page--dashboard">
       <ProductSection title="Payment options" titleKey="paymentCheckout.section" className="product-section--tint">
-        <PaperPanel className="data-panel"><BkashPaymentCheckout options={options} setupError={Boolean(error)} timeZone={profile?.preferred_timezone || "Asia/Dhaka"} /></PaperPanel>
+        <PaperPanel className="data-panel"><BkashPaymentCheckout options={options} setupError={Boolean(error)} timeZone={profile?.preferred_timezone || "Asia/Dhaka"} demoMode={demoMode} nextPath={nextPath} /></PaperPanel>
       </ProductSection>
     </ProductPage>
   );

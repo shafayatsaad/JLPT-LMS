@@ -15,8 +15,8 @@ function safeNext(value: string | string[] | undefined) {
 
 export default async function ContinueSignInPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
   const nextPath = safeNext((await searchParams).next);
-  return <ProductPage eyebrow="Account security" title="Checking this sign-in" description="We’re confirming that this session can continue to your JLPT practice account." className="product-page--auth">
-    <ProductSection title="Account verification" className="product-section--tint">
+  return <ProductPage eyebrow="Account security" eyebrowKey="auth.stepUp.eyebrow" title="Checking this sign-in" titleKey="auth.stepUp.checkingTitle" description="We’re confirming that this session can continue to your JLPT practice account." descriptionKey="auth.stepUp.checkingDescription" className="product-page--auth">
+    <ProductSection title="Account verification" titleKey="auth.stepUp.section" className="product-section--tint">
       <PaperPanel className="auth-panel"><StepUpContinue nextPath={nextPath} /></PaperPanel>
     </ProductSection>
   </ProductPage>;

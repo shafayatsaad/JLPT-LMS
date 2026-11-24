@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ActiveExamSession, type ExamAttemptPayload } from "@/components/active-exam-session";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";

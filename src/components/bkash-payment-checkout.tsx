@@ -92,7 +92,7 @@ function todayInTimeZone(timeZone: string) {
   }
 }
 
-export function BkashPaymentCheckout({ options, setupError, timeZone }: { options: PaymentCheckoutOptions | null; setupError: boolean; timeZone: string }) {
+export function BkashPaymentCheckout({ options, setupError, timeZone, demoMode = false, nextPath = "/exams" }: { options: PaymentCheckoutOptions | null; setupError: boolean; timeZone: string; demoMode?: boolean; nextPath?: string }) {
   const { language, t } = useLocale();
   const numberLocale = language === "bn" ? "bn-BD" : "en";
   const maximumPaymentDate = todayInTimeZone(timeZone);
@@ -214,6 +214,8 @@ export function BkashPaymentCheckout({ options, setupError, timeZone }: { option
         <p>{t("payment.maskedTransaction", { id: receipt.transactionMasked })}</p>
         <p>{t("payment.pendingMessage")}</p>
         {receipt.receiptAttached ? <p className="inline-notice">{t("payment.receiptAttached")}</p> : null}
+        <p className="field-hint">The payment is pending admin review. After approval, you can return to your requested exam.</p>
+        <Link className="btn btn--secondary" href={nextPath}>Return to requested page <ArrowUpRight size={15} aria-hidden="true" /></Link>
         <Link className="btn btn--primary" href="/payments">{t("payment.viewHistory")} <ArrowUpRight size={15} aria-hidden="true" /></Link>
       </div>
     );
@@ -222,8 +224,19 @@ export function BkashPaymentCheckout({ options, setupError, timeZone }: { option
   const instructions = language === "bn" ? options.instructions_bn : options.instructions_en;
   const displayPlanName = (plan: PaymentPlanOption) => language === "bn" ? plan.name_bn : plan.name;
 
+  function fillDemoDetails() {
+    setSenderName("Demo Student");
+    setSenderNumber("00000000000");
+    setTransactionId(`DEMO-${Date.now()}`);
+    setReferenceNumber("LOCAL-DEMO");
+    setPaymentDate(maximumPaymentDate);
+    setNote(t("payment.demoNote"));
+    setTermsConfirmed(true);
+  }
+
   return (
     <div className="payment-checkout">
+      {demoMode ? <aside className="local-payment-notice" role="note"><strong><LocalizedText messageKey="demo.bannerLabel" /></strong><p><LocalizedText messageKey="payment.demoWarning" /></p><div className="local-payment-notice__actions"><button className="btn btn--secondary" type="button" onClick={fillDemoDetails}><LocalizedText messageKey="payment.demoFillDetails" /></button></div></aside> : null}
       <div className="payment-checkout__instructions">
         <p><strong>{t("payment.recipient")}:</strong> {options.recipient_display_name} · {options.recipient_number}</p>
         <p><strong>{t("payment.accountType")}:</strong> {options.recipient_account_type}</p>

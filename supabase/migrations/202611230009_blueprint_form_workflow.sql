@@ -544,6 +544,7 @@ begin
         is distinct from row(old.storage_path, old.media_type, old.checksum_sha256, old.duration_seconds, old.created_at)
     then raise exception 'Asset review decisions cannot edit asset metadata';
   end if;
+  end if;
   return new;
 end;
 $$;

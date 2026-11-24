@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, BookOpenCheck, Clock3, RotateCcw } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { LocalizedText } from "@/components/i18n/localized-text";
 
 export const metadata = {
   title: "How JLPT practice works · JLPT practice",
@@ -8,28 +9,28 @@ export const metadata = {
 };
 
 const steps = [
-  { number: "01", title: "Choose a level", icon: BookOpenCheck, detail: "Review N1–N5 test sections and timings before choosing the level you are preparing for." },
-  { number: "02", title: "Take a published mock", icon: Clock3, detail: "When a reviewed exam form is published, the intended workflow uses timed sections and saves an authenticated attempt." },
-  { number: "03", title: "Review and revisit", icon: RotateCcw, detail: "After a supported attempt, compare answers with explanations and return to skills that need more practice." },
+  { number: "01", titleKey: "how.step.level.title" as const, detailKey: "how.step.level.description" as const, icon: BookOpenCheck },
+  { number: "02", titleKey: "how.step.exam.title" as const, detailKey: "how.step.exam.description" as const, icon: Clock3 },
+  { number: "03", titleKey: "how.step.review.title" as const, detailKey: "how.step.review.description" as const, icon: RotateCcw },
 ];
 
 export default function HowItWorksPage() {
   return (
-    <ProductPage eyebrow="Practice workflow" title="A clear path from paper to review" description="The product is designed around level choice, focused exam practice and answer review. Some parts remain in development." className="product-page--editorial">
-      <ProductSection title="The intended learner journey" className="product-section--tint">
+    <ProductPage eyebrow="Practice workflow" eyebrowKey="how.eyebrow" title="A clear path from paper to review" titleKey="how.title" description="The product is designed around level choice, focused exam practice and answer review. Some parts remain in development." descriptionKey="how.description" className="product-page--editorial">
+      <ProductSection title="The intended learner journey" titleKey="how.section.journey" className="product-section--tint">
         <div className="instruction-layout how-it-works-grid">
-          {steps.map(({ number, title, icon: Icon, detail }) => (
+          {steps.map(({ number, titleKey, icon: Icon, detailKey }) => (
             <PaperPanel className="instruction-card" key={number}>
               <span className="instruction-card__step">{number}</span>
               <Icon aria-hidden="true" />
-              <h3>{title}</h3>
-              <p>{detail}</p>
+              <h3><LocalizedText messageKey={titleKey} /></h3>
+              <p><LocalizedText messageKey={detailKey} /></p>
             </PaperPanel>
           ))}
         </div>
       </ProductSection>
-      <ProductSection title="What is available in this testing build">
-        <PaperPanel className="statement-panel"><p>You can view level formats, create an account with email or Google, manage basic profile preferences, and explore an N5 interface preview. That preview is not a saved, timed or scored exam attempt. Published mock exams and the server-authoritative exam loop are still being built.</p><div className="product-cta-row"><Link className="btn btn--primary" href="/#levels">Explore JLPT levels <ArrowUpRight size={15} aria-hidden="true" /></Link><Link className="text-link" href="/exams/n5/preview">Open the N5 interface preview <ArrowUpRight size={15} aria-hidden="true" /></Link></div></PaperPanel>
+      <ProductSection title="What is available in this testing build" titleKey="how.section.available">
+        <PaperPanel className="statement-panel"><p><LocalizedText messageKey="how.available.description" /></p><div className="product-cta-row"><Link className="btn btn--primary" href="/#levels"><LocalizedText messageKey="how.exploreLevels" /> <ArrowUpRight size={15} aria-hidden="true" /></Link><Link className="text-link" href="/exams/n5/preview"><LocalizedText messageKey="how.openPreview" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div></PaperPanel>
       </ProductSection>
     </ProductPage>
   );

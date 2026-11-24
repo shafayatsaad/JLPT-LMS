@@ -2,6 +2,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPaymentSheetReadiness, paymentSheetErrorCode, readPaymentSheetPaymentIds } from "@/lib/google-sheets";
 import { processPaymentSheetSyncBatch } from "@/lib/payment-sheet-sync-worker";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
+import { isSameOriginRequest } from "@/lib/auth-step-up";
 
 export const runtime = "nodejs";
 
@@ -10,7 +12,7 @@ function json(status: number, body: Record<string, unknown>) {
 }
 
 export async function POST(request: Request) {
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  if (!isSameOriginRequest(request)) {
     return json(403, { error: "Request origin rejected" });
   }
 
@@ -24,8 +26,9 @@ export async function POST(request: Request) {
   const { data: roleRows, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
   if (roleError || !roleRows?.some((row) => row.role === "admin")) return json(403, { error: "Administrator access is required" });
 
+  const simulated = isLocalDemoEnvironment();
   const readiness = getPaymentSheetReadiness();
-  if (!readiness.configured) return json(409, { error: "Integration configuration is incomplete or disabled" });
+  if (!simulated && !readiness.configured) return json(409, { error: "Integration configuration is incomplete or disabled" });
 
   let body: { action?: unknown };
   try {
@@ -47,10 +50,18 @@ export async function POST(request: Request) {
     const approvedIds = (data as { payment_submission_id: string }[]).map((row) => row.payment_submission_id);
     if (approvedIds.length > 20_000) return json(413, { error: "The approved-payment report exceeds 20,000 rows" });
     let sheetIds: string[];
-    try {
-      sheetIds = await readPaymentSheetPaymentIds();
-    } catch (error) {
-      return json(502, { error: "Could not read the spreadsheet", code: paymentSheetErrorCode(error) });
+    if (simulated) {
+      const { data: syncRows, error: syncError } = await supabase.rpc("get_admin_payment_sheet_sync_status");
+      if (syncError) return json(503, { error: "Could not load the local demo sync mirror" });
+      sheetIds = ((syncRows ?? []) as { payment_submission_id: string; sync_status: string }[])
+        .filter((row) => row.sync_status === "synced")
+        .map((row) => row.payment_submission_id);
+    } else {
+      try {
+        sheetIds = await readPaymentSheetPaymentIds();
+      } catch (error) {
+        return json(502, { error: "Could not read the spreadsheet", code: paymentSheetErrorCode(error) });
+      }
     }
     const sheetIdSet = new Set(sheetIds);
     const approvedSet = new Set(approvedIds);
@@ -64,6 +75,7 @@ export async function POST(request: Request) {
         duplicateSheetRows,
         missingRequestIds,
       },
+      simulated,
     });
   }
 
@@ -78,6 +90,6 @@ export async function POST(request: Request) {
   }
   const result = await processPaymentSheetSyncBatch();
   const status = result.state === "service_unavailable" ? 503 : 200;
-  return json(status, { ...result, retried });
+  return json(status, { ...result, retried, simulated });
 }
 

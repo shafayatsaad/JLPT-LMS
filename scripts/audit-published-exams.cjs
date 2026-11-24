@@ -89,9 +89,10 @@ async function main() {
   let parsedUrl;
   try {
     parsedUrl = new URL(projectUrl);
-    if (parsedUrl.protocol !== "https:") throw new Error("HTTPS is required");
+    const localHttp = parsedUrl.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(parsedUrl.hostname);
+    if (parsedUrl.protocol !== "https:" && !localHttp) throw new Error("HTTPS is required outside localhost");
   } catch {
-    console.error("NEXT_PUBLIC_SUPABASE_URL must be a valid HTTPS URL.");
+    console.error("NEXT_PUBLIC_SUPABASE_URL must be HTTPS, except for HTTP on localhost.");
     process.exitCode = 2;
     return;
   }

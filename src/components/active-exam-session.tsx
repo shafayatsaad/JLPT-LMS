@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Clock3, Flag, Headphones, Send, WifiOff } from "lucide-react";
+import { ArrowRight, Check, Clock3, Flag, Headphones, Send, WifiOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { LanguageSwitch } from "@/components/i18n/language-switch";
+import { SignOutButton } from "@/components/sign-out-button";
 import type { MessageKey } from "@/lib/i18n";
 
 type ExamOption = { id: string; content?: unknown; text?: unknown };
@@ -140,7 +141,6 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const pendingAnswers = useRef(new Map<string, { question: ExamQuestion; selectedOptionId: string | null }>());
   const timedOutKey = useRef("");
-  const activeQuestion = payload.questions[selectedIndex] ?? null;
   const activeSection = payload.active_section;
   const answeredCount = payload.questions.filter((question) => Boolean(question.selected_option_id)).length;
   const flaggedCount = payload.questions.filter((question) => question.is_flagged).length;
@@ -309,8 +309,12 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     for (const answer of pending) await saveAnswer(answer.question, answer.selectedOptionId);
   }
 
-  const currentMedia = useMemo(() => payload.assets.filter((asset) => asset.question_id === activeQuestion?.question_id), [payload.assets, activeQuestion?.question_id]);
   const unanswered = payload.questions.length - answeredCount;
+
+  function focusQuestion(index: number) {
+    setSelectedIndex(index);
+    window.requestAnimationFrame(() => document.getElementById(`exam-question-${payload.questions[index]?.form_item_id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
 
   return (
     <div className="exam-shell active-exam-shell">
@@ -319,7 +323,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
         <Link className="exam-topbar__brand" href="/dashboard"><span aria-hidden="true">JLPT</span><strong>{t("exam.workspace")}</strong></Link>
         <p>JLPT {payload.attempt.level} · {payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</p>
         <LanguageSwitch compact />
-        <Link className="exam-topbar__exit" href="/dashboard">{t("exam.exitDashboard")}</Link>
+        <div className="exam-topbar__account-actions"><Link className="exam-topbar__exit" href="/dashboard">{t("exam.exitDashboard")}</Link><SignOutButton className="exam-topbar__signout" /></div>
       </header>
       <main className="exam-main" id="exam-content" tabIndex={-1}>
         <div className="exam-workspace">
@@ -330,32 +334,37 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
           {!online ? <div className="exam-preview-banner exam-preview-banner--offline" role="status"><WifiOff size={15} aria-hidden="true" /> {t("exam.offline")}</div> : null}
           {payload.sections.length > 0 ? <div className="exam-progress" aria-label={t("exam.sections")}>{payload.sections.map((section) => <div className={`exam-progress__section ${section.status === "active" ? "is-active" : ""} ${section.status === "completed" ? "is-answered" : ""}`} key={section.section_code} aria-current={section.status === "active" ? "step" : undefined}><span className="exam-progress__index">{String(section.section_order).padStart(2, "0")}</span><span className="exam-progress__name">{label(section.section_code, t, payload.attempt.level)}</span><span className="exam-progress__time">{label(section.status, t)}</span></div>)}</div> : null}
 
-          {activeQuestion && activeSection ? <div className="exam-question-layout">
+          {payload.questions.length > 0 && activeSection ? <div className="exam-question-layout">
             <aside className="exam-question-rail" aria-label={t("exam.sectionQuestions")}>
               <p>{t("exam.sectionQuestionsHeading")}</p>
-              {payload.questions.map((question, index) => <button type="button" key={question.form_item_id} className={`exam-question-rail__item ${selectedIndex === index ? "is-active" : ""} ${question.selected_option_id ? "is-answered" : ""}`} onClick={() => setSelectedIndex(index)} aria-current={selectedIndex === index ? "step" : undefined}><span>{String(question.position).padStart(2, "0")}</span>{t("exam.question", { number: index + 1 })}{question.selected_option_id ? <Check size={14} aria-label={t("exam.answered")} /> : null}{question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}</button>)}
+              {payload.questions.map((question, index) => <button type="button" key={question.form_item_id} className={`exam-question-rail__item ${selectedIndex === index ? "is-active" : ""} ${question.selected_option_id ? "is-answered" : ""}`} onClick={() => focusQuestion(index)} aria-current={selectedIndex === index ? "step" : undefined}><span>{String(question.position).padStart(2, "0")}</span>{t("exam.question", { number: index + 1 })}{question.selected_option_id ? <Check size={14} aria-label={t("exam.answered")} /> : null}{question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}</button>)}
             </aside>
-            <section className="exam-question-panel" aria-live="polite">
-              <div className="exam-question-panel__meta"><span>{label(activeQuestion.item_type_code, t)}</span><span>{t("exam.questionPosition", { current: selectedIndex + 1, total: payload.questions.length })}</span></div>
-              {activeQuestion.stimulus ? <div className="exam-question-stimulus" lang="ja">{content(activeQuestion.stimulus)}</div> : null}
-              <div className="exam-question-rich-content" lang="ja">{content(activeQuestion.prompt)}</div>
-              {currentMedia.map((asset) => {
-                const url = mediaUrls[asset.storage_path];
-                if (!url) return null;
-                return asset.media_type.startsWith("audio/") ? <div className="exam-question-media" key={asset.storage_path}><span><Headphones size={15} aria-hidden="true" /> {t("exam.listeningAudio")}</span><audio controls preload="metadata" src={url}>{t("exam.audioUnsupported")}</audio></div> : asset.media_type.startsWith("image/") ? <img className="exam-question-asset-image" key={asset.storage_path} src={url} alt={t("exam.questionImage")} /> : null;
+            <section className="exam-question-panel exam-paper" aria-label={`${label(activeSection.section_code, t, payload.attempt.level)} question paper`}>
+              <header className="exam-paper__header"><div><p>Japanese-Language Proficiency Test · {payload.attempt.level}</p><strong>{label(activeSection.section_code, t, payload.attempt.level)}</strong></div><span>{payload.attempt.form_code} · {payload.attempt.version}</span></header>
+              <div className="exam-paper__candidate"><div><span>Candidate name</span><i /></div><div><span>Registration number</span><i /></div></div>
+              <div className="exam-paper__directions"><strong>Instructions</strong><p>Read each question and choose one answer. Questions in this timed section appear in order below; scroll the paper to continue. Your answers are saved as you select them.</p></div>
+              {payload.questions.map((question, index) => {
+                const questionMedia = payload.assets.filter((asset) => asset.question_id === question.question_id);
+                return <article className={`exam-paper__question ${selectedIndex === index ? "is-active" : ""}`} id={`exam-question-${question.form_item_id}`} key={question.form_item_id} onFocus={() => setSelectedIndex(index)}>
+                  <div className="exam-question-panel__meta"><span>{label(question.item_type_code, t)}</span><span>{t("exam.questionPosition", { current: index + 1, total: payload.questions.length })}</span></div>
+                  {question.stimulus ? <div className="exam-question-stimulus" lang="ja">{content(question.stimulus)}</div> : null}
+                  <div className="exam-question-rich-content" lang="ja">{content(question.prompt)}</div>
+                  {questionMedia.map((asset) => {
+                    const url = mediaUrls[asset.storage_path];
+                    if (!url) return null;
+                    return asset.media_type.startsWith("audio/") ? <div className="exam-question-media" key={asset.storage_path}><span><Headphones size={15} aria-hidden="true" /> {t("exam.listeningAudio")}</span><audio controls preload="metadata" src={url}>{t("exam.audioUnsupported")}</audio></div> : asset.media_type.startsWith("image/") ? <img className="exam-question-asset-image" key={asset.storage_path} src={url} alt={t("exam.questionImage")} /> : null;
+                  })}
+                  {mediaError ? <p className="exam-save-state" role="status">{t("exam.mediaUnavailable")}</p> : null}
+                  <fieldset className="exam-answer-list">
+                    <legend className="sr-only">{t("exam.question", { number: index + 1 })} · {t("exam.chooseAnswer")}</legend>
+                    {question.options.map((option) => <label className={`exam-answer-option ${question.selected_option_id === option.id ? "is-selected" : ""}`} key={option.id}><input type="radio" name={question.form_item_id} value={option.id} checked={question.selected_option_id === option.id} disabled={busy || remaining <= 0} onChange={() => void saveAnswer(question, option.id)} /><span className="exam-answer-option__letter">{option.id}</span><span lang="ja">{content(option.content ?? option.text)}</span></label>)}
+                  </fieldset>
+                  <button className={`exam-finish-link exam-paper__flag ${question.is_flagged ? "is-flagged" : ""}`} type="button" disabled={busy || remaining <= 0} onClick={() => void toggleFlag(question)}><Flag size={14} aria-hidden="true" /> {question.is_flagged ? t("exam.unflag") : t("exam.flagForReview")}</button>
+                </article>;
               })}
-              {mediaError ? <p className="exam-save-state" role="status">{t("exam.mediaUnavailable")}</p> : null}
-              <fieldset className="exam-answer-list">
-                <legend className="sr-only">{t("exam.chooseAnswer")}</legend>
-                {activeQuestion.options.map((option) => <label className={`exam-answer-option ${activeQuestion.selected_option_id === option.id ? "is-selected" : ""}`} key={option.id}><input type="radio" name={activeQuestion.form_item_id} value={option.id} checked={activeQuestion.selected_option_id === option.id} disabled={busy || remaining <= 0} onChange={() => void saveAnswer(activeQuestion, option.id)} /><span className="exam-answer-option__letter">{option.id}</span><span lang="ja">{content(option.content ?? option.text)}</span></label>)}
-              </fieldset>
-              <div className="exam-question-panel__footer active-exam-footer">
-                <button className="exam-control exam-control--quiet" type="button" disabled={selectedIndex === 0} onClick={() => setSelectedIndex((index) => Math.max(0, index - 1))}><ArrowLeft size={16} aria-hidden="true" /> {t("exam.previousQuestion")}</button>
-                <button className={`exam-control exam-control--quiet ${activeQuestion.is_flagged ? "is-flagged" : ""}`} type="button" disabled={busy || remaining <= 0} onClick={() => void toggleFlag(activeQuestion)}><Flag size={15} aria-hidden="true" />{activeQuestion.is_flagged ? t("exam.unflag") : t("exam.flagForReview")}</button>
-                {selectedIndex < payload.questions.length - 1 ? <button className="exam-control" type="button" onClick={() => setSelectedIndex((index) => Math.min(payload.questions.length - 1, index + 1))}>{t("exam.nextQuestion")} <ArrowRight size={16} aria-hidden="true" /></button> : activeSection ? <button className="exam-control" type="button" disabled={busy} onClick={() => void advanceSection()}>{busy ? t("exam.savingSection") : t("exam.finishSection")} <ArrowRight size={16} aria-hidden="true" /></button> : null}
-              </div>
               <p className="exam-save-state" aria-live="polite">{online ? t("exam.answerStatus", { status: t(`exam.${saveState}` as MessageKey) }) : t("exam.offlineHeld")}</p>
               {hasUnsavedAnswers ? <button className="exam-finish-link" type="button" disabled={!online || busy} onClick={() => void retryUnsavedAnswers()}>{t("exam.retrySave")}</button> : null}
+              <div className="exam-question-panel__footer active-exam-footer"><span>{t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</span><button className="exam-control" type="button" disabled={busy} onClick={() => void advanceSection()}>{busy ? t("exam.savingSection") : t("exam.finishSection")} <ArrowRight size={16} aria-hidden="true" /></button></div>
             </section>
           </div> : <section className="exam-finish-panel">
             <h2>{finished ? t("exam.reviewAttempt") : t("exam.attemptClosed")}</h2>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { useLocale } from "@/components/i18n/locale-provider";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolean; hasStaffAccess: boolean }) {
   const { t } = useLocale();
@@ -16,9 +17,14 @@ export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolea
         { href: "/auth/login", label: t("nav.login") },
         { href: "/auth/register", label: t("nav.signup") },
       ];
+  function closeMobileMenu() {
+    const toggle = document.querySelector<HTMLButtonElement>(".nav__toggle");
+    if (toggle?.getAttribute("aria-expanded") === "true") toggle.click();
+  }
   return <>
     <nav className="nav__links" aria-label={signedIn ? t("nav.ariaAccount") : t("nav.ariaSignIn")}>
       {links.map((link) => <div className="nav__item" key={link.href}><Link className="nav__link" href={link.href}>{link.label}</Link></div>)}
+      {signedIn ? <div className="nav__item nav__item--signout"><SignOutButton className="nav__link nav__signout" onSignedOut={closeMobileMenu} /></div> : null}
     </nav>
     <LanguageSwitch compact />
     <button className="nav__toggle" type="button" aria-expanded="false" aria-label={t("nav.ariaMenu")}>

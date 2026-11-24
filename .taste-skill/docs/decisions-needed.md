@@ -26,7 +26,7 @@ The V7.2 blueprint is the product source of truth. Its proposed defaults are usa
 - Receipt retention and access policy.
 - Content inventory, provenance/licenses, N1–N5 review schedule, Bangla coverage and human translation review.
 - Named staff accounts/roles, MFA/recovery plan, support contact, incident lead/backup, operator identity and approved legal copy.
-- **Implemented locally:** learner step-up uses authenticator-app TOTP after password or Google sign-in. Verified TOTP accounts are challenged on unrecognized sessions; the current proposed remembered-device default is 30 days. Still needed before production: owner approval of the duration, lost-authenticator recovery/fallback procedure, and any additional risk signals beyond device recognition. See the [Supabase MFA guide](https://supabase.com/docs/guides/auth/auth-mfa).
+- **Confirmed: use authenticator-app TOTP now.** Password and Google remain the normal first factor; verified TOTP accounts are challenged on unrecognized sessions. The app implementation and migration are ready locally, with a 30-day remembered-device default. Hosted activation still depends on safely reconciling the current migration ledger and configuring/testing Supabase's Custom Access Token Hook. Before production, settle the remembered-device duration and lost-authenticator recovery/fallback procedure; additional risk signals need a separate approved provider or policy. See the [Supabase MFA guide](https://supabase.com/docs/guides/auth/auth-mfa).
 - Verified email sender identity/provider and approved email-template copy before enabling outbound product or payment notifications.
 - Google Sheets destination/tab, authorized admin Google accounts, and permission to add a dedicated service account.
 
