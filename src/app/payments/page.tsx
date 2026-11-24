@@ -4,11 +4,13 @@ import { LocalizedText } from "@/components/i18n/localized-text";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { PaymentHistoryTable } from "@/components/payment-access-records";
 import { requireSignedInUser } from "@/lib/auth";
+import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
 export const metadata = { title: "Payment history · JLPT practice" };
 export const dynamic = "force-dynamic";
 
 export default async function PaymentHistoryPage() {
+  const demoMode = isLocalDemoEnvironment();
   const { supabase, user } = await requireSignedInUser("/payments");
   if (!supabase || !user) {
     return (
@@ -31,7 +33,7 @@ export default async function PaymentHistoryPage() {
       <ProductSection title="Your payment requests" titleKey="payments.section" className="product-section--tint">
         <PaperPanel className="data-panel">
           {error ? <p className="inline-notice"><LocalizedText messageKey="payments.unavailable" /></p> : payments?.length ? <PaymentHistoryTable payments={payments} timeZone={timeZone} /> : <div className="empty-state"><p><LocalizedText messageKey="payments.empty" /></p><Link className="text-link" href="/upgrade/bkash"><LocalizedText messageKey="payment.viewOptions" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>}
-          <p className="data-footnote"><LocalizedText messageKey="payments.placeholderWarning" /></p>
+          <p className="data-footnote"><LocalizedText messageKey={demoMode ? "payments.demoWarning" : "payments.placeholderWarning"} /></p>
         </PaperPanel>
       </ProductSection>
     </ProductPage>
