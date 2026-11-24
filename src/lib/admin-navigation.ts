@@ -75,7 +75,7 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
       { href: "/admin/privacy", title: "Privacy Requests", roles: admins },
       { href: "/admin/audit", title: "Audit Log", roles: admins },
       { href: "/admin/settings/integrations", title: "Integrations", roles: admins },
-      { href: "/admin/settings", title: "Settings Overview", roles: admins },
+      { href: "/admin/settings", title: "Platform Settings", roles: admins },
       { href: "/admin/settings/general", title: "General Settings", roles: admins },
       { href: "/admin/settings/security", title: "Security Settings", roles: admins },
       { href: "/admin/settings/email", title: "Email Settings", roles: admins },
@@ -87,3 +87,11 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
 ];
 
 export const ADMIN_NAVIGATION_ITEMS = ADMIN_NAVIGATION_GROUPS.flatMap((group) => group.items);
+
+export function getVisibleAdminNavigationGroups(roles: readonly string[]) {
+  const isAdmin = roles.includes("admin");
+  return ADMIN_NAVIGATION_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => isAdmin || item.roles.some((role) => roles.includes(role))),
+  })).filter((group) => group.items.length > 0);
+}

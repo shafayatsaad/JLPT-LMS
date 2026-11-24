@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuestionDraftEditor } from "@/components/admin/question-draft-editor";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +75,7 @@ export default async function AdminQuestionDetailPage({ params }: { params: Prom
   }
 
   return (
-    <ProductPage eyebrow="Staff workspace · question bank" title={`Question revision ${question?.revision ?? ""}`} description="Review the authored prompt and choices, provenance, status and permitted draft actions." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · question bank" title={`Question revision ${question?.revision ?? ""}`} description="Review the authored prompt and choices, provenance, status and permitted draft actions." className="product-page--admin" navigation={<AdminNavigation activePath={`/admin/questions/${questionId}`} currentTitle="Question revision details" roles={roleRows?.map((row) => row.role as string) ?? []} />}>
       <ProductSection title="Question preview" className="product-section--tint">
         <PaperPanel className="data-panel">
           <p><Link className="text-link" href="/admin/questions">← Back to question bank</Link></p>

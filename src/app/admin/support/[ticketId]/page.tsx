@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SupportReplyForm, SupportStatusForm } from "@/components/support-forms";
 import { SupportThread, type SupportMessage } from "@/components/support-thread";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const metadata = { title: "Support request · Staff · JLPT practice" };
@@ -35,7 +36,7 @@ export default async function AdminSupportTicketPage({ params }: { params: Promi
   const attachedMessageIds = new Set((attachments ?? []).map((attachment) => attachment.message_id));
 
   return (
-    <ProductPage eyebrow="Staff support" title={ticket?.subject ?? "Support request"} description="Reply to the learner and record status changes. Private staff notes remain separate from the learner conversation." className="product-page--dashboard">
+    <ProductPage eyebrow="Staff support" title={ticket?.subject ?? "Support request"} description="Reply to the learner and record status changes. Private staff notes remain separate from the learner conversation." className="product-page--dashboard" navigation={<AdminNavigation activePath={`/admin/support/${ticketId}`} currentTitle="Support request details" />}>
       <ProductSection title="Learner conversation" className="product-section--tint">
         <PaperPanel className="data-panel">
           {ticketError || messagesError ? <p className="inline-notice">The request could not be loaded. Confirm migration 005 is applied.</p> : ticket ? (

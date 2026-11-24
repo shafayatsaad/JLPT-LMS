@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ function dateTime(value: string) {
 }
 
 export async function generateMetadata() {
-  return { title: "Entitlement inventory · Administration" };
+  return { title: "Student access · Administration" };
 }
 
 export default async function AdminEntitlementsPage({ searchParams }: { searchParams: Promise<{ status?: string | string[]; q?: string | string[] }> }) {
@@ -38,7 +39,7 @@ export default async function AdminEntitlementsPage({ searchParams }: { searchPa
 
   const { supabase, user } = await requireSignedInUser("/admin/entitlements");
   if (!supabase || !user) {
-    return <ProductPage eyebrow="Staff workspace" title="Entitlement inventory" description="Connect Supabase and sign in with an administrator account to review access records."><ProductSection title="Supabase setup required"><PaperPanel><p>This view is restricted to administrators.</p></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="Staff workspace" title="Student access" description="Connect Supabase and sign in with an administrator account to review access records."><ProductSection title="Supabase setup required"><PaperPanel><p>This view is restricted to administrators.</p></PaperPanel></ProductSection></ProductPage>;
   }
 
   const { data: roleRows, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
@@ -54,7 +55,7 @@ export default async function AdminEntitlementsPage({ searchParams }: { searchPa
   const rows = (data ?? []) as EntitlementRow[];
 
   return (
-    <ProductPage eyebrow="Staff workspace · administrator only" title="Entitlement inventory" description="Review account access periods and their recorded source. Viewing this directory is audited; grant/revoke controls are not enabled." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · administrator only" title="Student access" description="Review account access periods and their recorded source. Viewing this directory is audited; grant/revoke controls are not enabled." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/entitlements" />}>
       <ProductSection title="Access records" className="product-section--tint">
         <PaperPanel className="data-panel">
           <p><Link className="text-link" href="/admin">← Back to administration</Link></p>

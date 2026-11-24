@@ -1,5 +1,6 @@
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { PrivacyDeletionQueue, type AdminAccountDeletionRequest } from "@/components/admin/privacy-deletion-queue";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function AdminPrivacyRequestsPage({ searchParams }: { searc
   const requests = Array.isArray(data) ? data as AdminAccountDeletionRequest[] : [];
 
   return (
-    <ProductPage eyebrow="Administrator workspace · AAL2 required" title="Account deletion requests" description="Review verified requests and record their status. This queue never performs account or data deletion." className="product-page--admin">
+    <ProductPage eyebrow="Administrator workspace · AAL2 required" title="Account deletion requests" description="Review verified requests and record their status. This queue never performs account or data deletion." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/privacy" />}>
       <ProductSection title="Privacy request queue" className="product-section--tint">
         <PaperPanel className="data-panel">
           <form className="admin-export-form" method="get">

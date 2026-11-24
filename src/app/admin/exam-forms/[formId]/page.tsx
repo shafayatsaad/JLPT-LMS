@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -61,7 +62,7 @@ export default async function AdminExamFormDetailPage({ params }: { params: Prom
     : { data: null };
 
   return (
-    <ProductPage eyebrow="Staff workspace · editor/reviewer" title={form?.form_code ?? "Exam form"} description="Inspect a form manifest and its selected question revisions. Published forms are frozen; changes require a new version and independent review." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · editor/reviewer" title={form?.form_code ?? "Exam form"} description="Inspect a form manifest and its selected question revisions. Published forms are frozen; changes require a new version and independent review." className="product-page--admin" navigation={<AdminNavigation activePath={`/admin/exam-forms/${formId}`} currentTitle="Exam form details" />}>
       <ProductSection title="Form manifest" className="product-section--tint">
         <PaperPanel className="data-panel">
           <p><Link className="text-link" href="/admin/exam-forms">← Back to exam forms</Link></p>

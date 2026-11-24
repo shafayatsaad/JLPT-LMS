@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function AdminAttemptMonitorPage({ searchParams }: { search
   const rows = Array.isArray(data) ? data as AttemptMonitorRow[] : [];
 
   return (
-    <ProductPage eyebrow="Staff workspace · reviewer/admin" title="Exam attempt monitor" description="Inspect attempt state, section progress and timing. Answers and scoring details are not exposed here; opening this monitor is audited." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · reviewer/admin" title="Exam attempt monitor" description="Inspect attempt state, section progress and timing. Answers and scoring details are not exposed here; opening this monitor is audited." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/attempts" />}>
       <ProductSection title="Learner attempts" className="product-section--tint">
         <PaperPanel className="data-panel">
           <p><Link className="text-link" href="/admin">← Back to administration</Link></p>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireStaff } from "@/lib/auth";
 
 export const metadata = { title: "Support queue · JLPT practice" };
@@ -19,7 +20,7 @@ export default async function AdminSupportQueuePage() {
     .limit(100);
 
   return (
-    <ProductPage eyebrow="Staff workspace" title="Learner support queue" description="Review learner requests and reply through the private support thread. Staff access is checked by role and row-level security." className="product-page--dashboard">
+    <ProductPage eyebrow="Staff workspace" title="Learner support queue" description="Review learner requests and reply through the private support thread. Staff access is checked by role and row-level security." className="product-page--dashboard" navigation={<AdminNavigation activePath="/admin/support" />}>
       <ProductSection title="Support requests" className="product-section--tint">
         <PaperPanel className="data-panel">
           {error ? <p className="inline-notice">The support queue is unavailable. Confirm migration 005 is applied and that this account has the support_agent or admin role.</p> : tickets?.length ? (
@@ -27,7 +28,6 @@ export default async function AdminSupportQueuePage() {
           ) : <div className="empty-state"><p>No support requests are waiting.</p></div>}
         </PaperPanel>
       </ProductSection>
-      <ProductSection title="Staff navigation" className="product-section--compact"><Link className="text-link" href="/admin">Back to staff overview</Link></ProductSection>
     </ProductPage>
   );
 }

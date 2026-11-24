@@ -108,7 +108,7 @@ export default async function AdminPage({ params, searchParams }: {
       <main className={previewStyles.page}>
         <AdminNavigation activePath={route} roles={roles} />
         <Link className={previewStyles.back} href="/admin">← Return to staff workspace</Link>
-        <header className={previewStyles.heading}><div><p>Staff preview · N5-DEMO-01</p><h1>Paper exam preview</h1></div><span>Review the same monochrome question booklet and separate answer sheet shown in the learner sample.</span><SignOutButton className={previewStyles.signOut} /></header>
+        <header className={previewStyles.heading}><div><p>Staff preview · N5-DEMO-01</p><h1>Exam Preview</h1></div><span>Review the same monochrome question booklet and separate answer sheet shown in the learner sample.</span><SignOutButton className={previewStyles.signOut} /></header>
         <div className={previewStyles.frame}><ExamBookletRenderer adminPreview /></div>
       </main>
     );
@@ -122,7 +122,7 @@ export default async function AdminPage({ params, searchParams }: {
     const safeSyncRows = (syncRows ?? []) as PaymentSheetSyncStatus[];
 
     return (
-      <ProductPage eyebrow="Staff workspace · admin only" title="Integration settings" description="Review the payment reporting connection, sync queue, and remaining owner setup. Secret values are never displayed." className="product-page--admin">
+      <ProductPage eyebrow="Staff workspace · admin only" title="Integrations" description="Review the payment reporting connection, sync queue, and remaining owner setup. Secret values are never displayed." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
         <ProductSection title="Google Sheets status" className="product-section--tint">
           <PaperPanel className="data-panel integration-panel">
             <p className="integration-state"><span className={`status-chip${readiness.configured || demoMode ? "" : " status-chip--muted"}`}>{demoMode ? "Local simulation · Google not contacted" : readiness.configured ? "Enabled · required values present, connection unverified" : readiness.enabled ? "Enabled with incomplete configuration" : "Disabled by default"}</span></p>

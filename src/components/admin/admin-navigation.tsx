@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ADMIN_NAVIGATION_GROUPS, type AdminNavigationItem } from "@/lib/admin-navigation";
+import { getVisibleAdminNavigationGroups, type AdminNavigationItem } from "@/lib/admin-navigation";
 
 function normalizePath(path: string) {
   return path.split(/[?#]/, 1)[0].replace(/\/$/, "") || "/";
@@ -34,11 +34,8 @@ export async function AdminNavigation({
   if (!staffRoles.length) return null;
 
   const path = normalizePath(activePath);
-  const isAdmin = staffRoles.includes("admin");
-  const groups = ADMIN_NAVIGATION_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => isAdmin || item.roles.some((role) => staffRoles.includes(role))),
-  })).filter((group) => group.items.length > 0);
+  const groups = getVisibleAdminNavigationGroups(staffRoles);
+  if (!groups.length) return null;
 
   const matches = groups.flatMap((group) => group.items.map((item) => ({ group, item })))
     .filter(({ item }) => isItemCurrent(path, item))
@@ -47,7 +44,7 @@ export async function AdminNavigation({
   const breadcrumbTitle = currentTitle ?? (active && path !== active.item.href ? "Details" : active?.item.title ?? "Administration");
 
   return (
-    <section className="admin-workspace-navigation" aria-label="Administration navigation">
+    <div className="admin-workspace-navigation" role="region" aria-label="Administration navigation">
       <div className="wrap admin-workspace-navigation__inner">
         <nav className="admin-workspace-navigation__breadcrumb" aria-label="Breadcrumb">
           <ol>
@@ -84,6 +81,6 @@ export async function AdminNavigation({
           })}
         </nav>
       </div>
-    </section>
+    </div>
   );
 }

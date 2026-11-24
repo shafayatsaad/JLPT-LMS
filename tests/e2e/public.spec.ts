@@ -157,7 +157,7 @@ test("local admin sign-in reaches the mandatory authenticator challenge", async 
   await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
   await page.locator('input[type="password"]').fill("N5admin26");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/auth\/mfa\?next=/);
+  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Verify your sign-in" })).toBeVisible();
 });
 

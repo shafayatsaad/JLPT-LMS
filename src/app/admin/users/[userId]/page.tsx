@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -127,7 +128,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
   const detail = data as unknown as UserDetail;
   const account = detail.account;
   return (
-    <ProductPage eyebrow="Staff workspace · administrator only" title={detail.profile?.display_name || account.email || account.phone || "Account details"} description="Read-only account, activity and access summaries. Opening this record is written to the admin audit history." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · administrator only" title={detail.profile?.display_name || account.email || account.phone || "Account details"} description="Read-only account, activity and access summaries. Opening this record is written to the admin audit history." className="product-page--admin" navigation={<AdminNavigation activePath={`/admin/users/${userId}`} currentTitle="Student and staff details" roles={roleRows?.map((row) => row.role as string) ?? []} />}>
       <ProductSection title="Account profile and verification" className="product-section--tint">
         <PaperPanel className="data-panel">
           <p><Link className="text-link" href="/admin/users">← Back to users and roles</Link></p>

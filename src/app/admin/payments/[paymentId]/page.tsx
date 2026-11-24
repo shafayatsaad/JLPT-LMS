@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { PaymentReviewQueue, type AdminPaymentQueueRow } from "@/components/admin/payment-admin-workflows";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 
@@ -35,7 +36,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: Promi
   if (!error) {
     const row = ((data ?? []) as AdminPaymentQueueRow[]).find((candidate) => candidate.id === paymentId);
     if (!row) notFound();
-    return <ProductPage eyebrow="Staff workspace · payment review" title="Payment request" description="Verify this transfer against the trusted bKash account record before making an audited decision." className="product-page--admin"><ProductSection title="Request and verification"><PaperPanel className="data-panel"><PaymentReviewQueue initialRows={[row]} initialPaymentId={paymentId} detailOnly /></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="Staff workspace · payment review" title="Payment request" description="Verify this transfer against the trusted bKash account record before making an audited decision." className="product-page--admin" navigation={<AdminNavigation activePath={`/admin/payments/${paymentId}`} currentTitle="Payment details" roles={roles} />}><ProductSection title="Request and verification"><PaperPanel className="data-panel"><PaymentReviewQueue initialRows={[row]} initialPaymentId={paymentId} detailOnly /></PaperPanel></ProductSection></ProductPage>;
   }
 
   return <ProductPage eyebrow="Staff workspace · payment review" title="Payment review unavailable" description="The payment review database workflow could not be loaded."><ProductSection title="Database setup required"><PaperPanel><p>Confirm that migration 022 is applied to this Supabase project and that the staff role is active.</p></PaperPanel></ProductSection></ProductPage>;

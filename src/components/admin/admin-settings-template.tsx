@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Bell, CreditCard, Globe2, Mail, ShieldCheck, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 
 const settingLinks = [
@@ -30,7 +31,7 @@ export async function AdminSettingsGuard({ nextPath, children }: { nextPath: str
 
 export function AdminSettingsOverview() {
   return (
-    <ProductPage eyebrow="Staff workspace · admin only" title="Platform settings" description="Review connected settings and owner decisions. Secret values are never shown in this workspace." className="product-page--admin">
+    <ProductPage eyebrow="Staff workspace · admin only" title="Platform settings" description="Review connected settings and owner decisions. Secret values are never shown in this workspace." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/settings" />}>
       <ProductSection title="Settings areas" className="product-section--tint">
         <div className="settings-list admin-settings-list">{settingLinks.map(({ href, title, description, status, icon: Icon }) => <PaperPanel className="settings-card" key={href}><Icon aria-hidden="true" /><div><h3>{title}</h3><p>{description}</p><span className="status-chip status-chip--muted">{status}</span></div><Link className="text-link" href={href}>Open settings <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel>)}</div>
       </ProductSection>
@@ -54,7 +55,7 @@ export type AdminSettingsDefinition = {
 export function AdminSettingsStatusPage({ setting }: { setting: AdminSettingsDefinition }) {
   return (
     <AdminSettingsGuard nextPath={`/admin/settings/${setting.slug}`}>
-      <ProductPage eyebrow="Staff workspace · admin only" title={setting.title} description={setting.description} className="product-page--admin">
+      <ProductPage eyebrow="Staff workspace · admin only" title={setting.title} description={setting.description} className="product-page--admin" navigation={<AdminNavigation activePath={`/admin/settings/${setting.slug}`} currentTitle={setting.title} />}>
         <ProductSection title="Current status" className="product-section--tint">
           <PaperPanel className="data-panel">
             <p><Link className="text-link" href="/admin/settings">← Back to platform settings</Link></p>
