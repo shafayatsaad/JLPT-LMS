@@ -82,7 +82,7 @@ export default async function AdminPage({ params, searchParams }: {
     return <ProductPage eyebrow="Staff workspace" title="Staff access is not assigned" description="This account does not have an administrator, editor, reviewer, or payment reviewer role."><ProductSection title="Ask an administrator"><PaperPanel><p>New accounts receive the student role only. A project owner must assign the first staff role from the Supabase SQL Editor.</p><Link className="text-link" href="/dashboard">Return to learner dashboard <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel></ProductSection></ProductPage>;
   }
   if (!allowed) {
-    return <ProductPage eyebrow="Staff workspace" title="This page needs a different staff role" description={`Current roles: ${roles.join(", " )}.`}><ProductSection title="Choose an available area"><PaperPanel><div className="admin-link-list">{routeItems.filter((entry) => isAdmin || entry.roles.some((role) => roles.includes(role))).map((entry) => <Link key={entry.href} href={entry.href}>{entry.title}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}</div></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="Staff workspace" title="This page needs a different staff role" description={`Current roles: ${roles.join(", " )}.`} navigation={<AdminNavigation activePath={route} roles={roles} />}><ProductSection title="Choose an available area"><PaperPanel><p>Open a section above to see the staff areas available to your role.</p></PaperPanel></ProductSection></ProductPage>;
   }
   await requireStaffMfa(supabase, route);
 
@@ -98,8 +98,7 @@ export default async function AdminPage({ params, searchParams }: {
       ]);
       return { ...row, pdf_url: pdfData?.signedUrl ?? null, audio_url: audioResult.data?.signedUrl ?? null };
     }));
-    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Past paper source library" description="Keep owner-provided PDF and audio references private and separate from publishable question content." className="product-page--admin">
-      <ProductSection title="Administration areas" className="product-section--tint"><PaperPanel className="admin-nav-panel"><nav className="admin-link-list" aria-label="Administration pages">{routeItems.filter((entry) => isAdmin || entry.roles.some((role) => roles.includes(role))).map((entry) => <Link className={entry.href === route ? "is-current" : ""} key={entry.href} href={entry.href}>{entry.title}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}</nav></PaperPanel></ProductSection>
+    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Source Library" description="Keep owner-provided PDF and audio references private and separate from publishable question content." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
       <ProductSection title="Upload and inspect private demo material"><PaperPanel className="data-panel">{result.error ? <p className="inline-notice">The source library migration is not available yet: {result.error.message}</p> : null}<DemoSourcePacketManager packets={packets} canUpload={roles.includes("content_editor") || isAdmin} canArchive={isAdmin} /></PaperPanel></ProductSection>
     </ProductPage>;
   }
@@ -107,6 +106,7 @@ export default async function AdminPage({ params, searchParams }: {
   if (route === "/admin/exam-preview") {
     return (
       <main className={previewStyles.page}>
+        <AdminNavigation activePath={route} roles={roles} />
         <Link className={previewStyles.back} href="/admin">← Return to staff workspace</Link>
         <header className={previewStyles.heading}><div><p>Staff preview · N5-DEMO-01</p><h1>Paper exam preview</h1></div><span>Review the same monochrome question booklet and separate answer sheet shown in the learner sample.</span><SignOutButton className={previewStyles.signOut} /></header>
         <div className={previewStyles.frame}><ExamBookletRenderer adminPreview /></div>
@@ -288,10 +288,7 @@ export default async function AdminPage({ params, searchParams }: {
   const reportFromDate = reportFromDateValue.toISOString().slice(0, 10);
 
   return (
-    <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title={sectionTitle} description={sectionDescription} className="product-page--admin">
-      <ProductSection title="Administration areas" className="product-section--tint">
-        <PaperPanel className="admin-nav-panel"><nav className="admin-link-list" aria-label="Administration pages">{routeItems.filter((entry) => isAdmin || entry.roles.some((role) => roles.includes(role))).map((entry) => <Link className={entry.href === route ? "is-current" : ""} key={entry.href} href={entry.href}>{entry.title}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}</nav></PaperPanel>
-      </ProductSection>
+    <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title={sectionTitle} description={sectionDescription} className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
       {route === "/admin/questions/new" ? <ProductSection title="Draft authoring reference" className="product-section--tint"><PaperPanel className="statement-panel"><p>Manual authoring and folder-based JSON import both create drafts with separate answer keys and provenance records. The downloadable original N5 example is a reference item, not approved exam content.</p><div className="product-cta-row"><a className="btn btn--secondary" href="/templates/jlpt-question-authoring-demo.json" download="manifest.json">Download manifest example</a><Link className="text-link" href="/admin/content">View question inventory <ArrowUpRight size={15} aria-hidden="true" /></Link></div><p className="section-note">Place the downloaded <code>manifest.json</code> beside the referenced media files, then select its containing folder in the importer below.</p></PaperPanel></ProductSection> : null}
       {route === "/admin/questions/new" ? <ProductSection title="Import question drafts"><PaperPanel className="data-panel"><QuestionBatchImport /></PaperPanel></ProductSection> : null}
       {route === "/admin/questions/new" ? <ProductSection title="Create a question draft"><PaperPanel className="data-panel"><QuestionAuthoringForm /></PaperPanel></ProductSection> : null}
