@@ -227,6 +227,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   const [error, setError] = useState<MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
   const [online, setOnline] = useState(true);
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [mediaError, setMediaError] = useState(false);
@@ -464,6 +465,12 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     router.refresh();
   }
 
+  function requestDashboardExit(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (payload.attempt.status !== "in_progress") return;
+    event.preventDefault();
+    setConfirmExit(true);
+  }
+
   async function beginPreparation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const supabase = createSupabaseBrowserClient();
@@ -505,12 +512,13 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     <div className="exam-shell active-exam-shell">
       <a className="skip-link" href="#exam-content">{t("common.skip")}</a>
       <header className="exam-topbar">
-        <Link className="exam-topbar__brand" href="/dashboard"><span aria-hidden="true">JLPT</span><strong>{t("exam.workspace")}</strong></Link>
+        <Link className="exam-topbar__brand" href="/dashboard" onClick={requestDashboardExit}><span aria-hidden="true">JLPT</span><strong>{t("exam.workspace")}</strong></Link>
         <p>JLPT {payload.attempt.level} · {payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</p>
         <LanguageSwitch compact />
-        <div className="exam-topbar__account-actions"><Link className="exam-topbar__exit" href="/dashboard">{t("exam.exitDashboard")}</Link><SignOutButton className="exam-topbar__signout" /></div>
+        <div className="exam-topbar__account-actions"><Link className="exam-topbar__exit" href="/dashboard" onClick={requestDashboardExit}>{t("exam.exitDashboard")}</Link><SignOutButton className="exam-topbar__signout" /></div>
       </header>
       <main className="exam-main" id="exam-content" tabIndex={-1}>
+        {confirmExit ? <section className="exam-exit-confirm" role="group" aria-labelledby="exam-exit-title"><h2 id="exam-exit-title">{t("exam.exitConfirmTitle")}</h2><p>{t("exam.exitConfirmBody")}</p><div><button className="exam-control" type="button" onClick={() => router.push("/dashboard")}>{t("exam.confirmExit")}</button><button className="exam-control exam-control--quiet" type="button" onClick={() => setConfirmExit(false)}>{t("exam.stayInExam")}</button></div></section> : null}
         <div className="exam-workspace">
           <div className="exam-workspace__head">
             <div><span className="exam-kicker">{candidateCover ? t("exam.candidateStep") : preparationActive ? t("exam.preparationStep") : activeSection ? t("exam.timedSection", { order: activeSection.section_order }) : t("exam.reviewSection")}</span><h1>{candidateCover ? t("exam.candidateTitle") : preparationActive ? t("exam.preparationTitle") : activeSection ? label(activeSection.section_code, t, payload.attempt.level) : t("exam.readySubmit")}</h1><p>{candidateCover ? t("exam.candidateLede") : preparationActive ? t("exam.preparationLede") : t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</p></div>
