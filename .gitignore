@@ -1,6 +1,7 @@
 node_modules/
 .next/
 /.next-production-demo/
+/.next-phase2-build/
 out/
 dist/
 .env

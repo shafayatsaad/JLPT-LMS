@@ -57,29 +57,35 @@ export async function AdminNavigation({
             </> : null}
           </ol>
         </nav>
-        <nav className="admin-workspace-navigation__groups" aria-label="Administration sections">
+        <nav className="admin-workspace-navigation__areas" aria-label="Staff areas">
           {groups.map((group) => {
-            const groupIsActive = group.id === active?.group.id;
+            const landing = group.items[0];
+            const areaIsActive = group.id === active?.group.id;
             return (
-              <details className={`admin-navigation-group${groupIsActive ? " is-current" : ""}`} key={group.id} open={groupIsActive}>
-                <summary>{group.title}</summary>
-                <ul>
-                  {group.items.map((item) => {
-                    const itemIsCurrent = isItemCurrent(path, item);
-                    const exactCurrent = path === item.href;
-                    return (
-                      <li key={item.href}>
-                        <Link className={itemIsCurrent ? "is-current" : ""} href={item.href} aria-current={exactCurrent ? "page" : itemIsCurrent ? "location" : undefined}>
-                          {item.title}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </details>
+              <Link
+                className={areaIsActive ? "is-current" : ""}
+                href={landing.href}
+                key={group.id}
+                aria-current={areaIsActive ? path === landing.href ? "page" : "location" : undefined}
+              >
+                {group.title}
+              </Link>
             );
           })}
         </nav>
+        {active && active.group.items.length > 1 ? (
+          <nav className="admin-workspace-navigation__subnav" aria-label={`${active.group.title} tools`}>
+            {active.group.items.slice(1).map((item) => {
+              const itemIsCurrent = item.href === active.item.href;
+              const exactCurrent = path === item.href;
+              return (
+                <Link className={itemIsCurrent ? "is-current" : ""} href={item.href} key={item.href} aria-current={exactCurrent ? "page" : itemIsCurrent ? "location" : undefined}>
+                  {item.title}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
       </div>
     </div>
   );

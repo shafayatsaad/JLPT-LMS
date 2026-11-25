@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { useLocale } from "@/components/i18n/locale-provider";
 
-export function SiteFooter({ showActionbar = false }: { showActionbar?: boolean }) {
+export function SiteFooter({ showActionbar = false, compact = false }: { showActionbar?: boolean; compact?: boolean }) {
   const { t } = useLocale();
   return (
     <>
-      <footer className="footer closing footer--dark ground-inverse origami-theme" id="closing" aria-labelledby="close-h">
+      <footer className={`footer closing footer--dark ground-inverse origami-theme${compact ? " footer--compact" : ""}`} id="closing" aria-labelledby="close-h">
         <div className="wrap">
-          <div className="closing__cta close--type">
+          {!compact ? <div className="closing__cta close--type">
             <div className="section-head">
               <h2 id="close-h">{t("footer.start")}</h2>
               <p>{t("footer.timed")}</p>
             </div>
             <Link className="btn btn--primary btn--xl" href="/levels/N5">{t("footer.choose")}</Link>
-          </div>
+          </div> : null}
           <div className="closing__links">
-            <div className="grid">
+            {!compact ? <div className="grid">
               <div className="span-6 footer__identity">
                 <Link className="nav__logo" href="/">
                   <span className="mark" data-mark="arc" aria-hidden="true" />
@@ -52,10 +52,11 @@ export function SiteFooter({ showActionbar = false }: { showActionbar?: boolean 
                   <li><a href="https://www.jlpt.jp/e/guideline/results.html" target="_blank" rel="noreferrer">{t("footer.official")}</a></li>
                 </ul>
               </div>
-            </div>
+            </div> : null}
             <div className="footer__legal">
               <span>© 2026 JLPT practice</span>
               <span>{t("footer.independent")}</span>
+              {compact ? <span><Link href="/legal/privacy">{t("footer.privacy")}</Link> · <Link href="/legal/terms">{t("footer.terms")}</Link></span> : null}
             </div>
           </div>
         </div>

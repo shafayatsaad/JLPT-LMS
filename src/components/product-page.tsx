@@ -55,7 +55,7 @@ export function ProductPage({
         </section>
         {children}
       </main>
-      <SiteFooter />
+      <SiteFooter compact />
     </>
   );
 }

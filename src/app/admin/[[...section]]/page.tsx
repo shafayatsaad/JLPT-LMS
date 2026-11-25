@@ -103,6 +103,39 @@ export default async function AdminPage({ params, searchParams }: {
     </ProductPage>;
   }
 
+  if (route === "/admin/content") {
+    const questionStatuses = ["draft", "needs_review", "approved", "eligible_for_exam", "rejected", "retired"] as const;
+    const [questionCounts, assetCounts] = await Promise.all([
+      Promise.all(questionStatuses.map(async (status) => {
+        const result = await supabase.from("questions").select("id", { count: "exact", head: true }).eq("status", status);
+        return { status, count: result.count, error: result.error };
+      })),
+      Promise.all(["draft", "needs_review", "approved"].map(async (status) => {
+        const result = await supabase.from("content_assets").select("id", { count: "exact", head: true }).eq("status", status);
+        return { status, count: result.count, error: result.error };
+      })),
+    ]);
+    const contentError = [...questionCounts, ...assetCounts].find((item) => item.error)?.error?.message;
+    const canEditContent = roles.includes("content_editor") || isAdmin;
+    const canReviewContent = roles.includes("reviewer") || isAdmin;
+    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Content workspace" description="Track original question revisions from draft through review and exam eligibility. Imports create drafts; they never publish content." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
+      <ProductSection title="Question pipeline" className="product-section--tint">
+        <PaperPanel className="data-panel">
+          {contentError ? <p className="inline-notice">Question or asset counts could not be loaded. Check the content workflow migrations and current staff role.</p> : null}
+          <div className="table-scroll"><table><thead><tr><th>Question status</th><th>Count</th><th>Open</th></tr></thead><tbody>{questionCounts.map(({ status, count }) => <tr key={status}><th scope="row">{status.replaceAll("_", " ")}</th><td>{count ?? "—"}</td><td><Link className="text-link" href={`/admin/questions?status=${status}`}>View questions <ArrowUpRight size={14} aria-hidden="true" /></Link></td></tr>)}</tbody></table></div>
+          <div className="product-cta-row"><Link className="btn btn--primary" href="/admin/questions">Open Question Bank</Link>{canEditContent ? <Link className="btn btn--secondary" href="/admin/questions/new#manual-question">Add a question</Link> : null}{canReviewContent ? <Link className="btn btn--secondary" href="/admin/reviews">Review pending questions</Link> : null}</div>
+          <p className="data-footnote">Question revisions and audit events preserve the review trail. There is no separate content-history page. Folder imports validate before confirmation and write drafts immediately; no background import-job queue is configured.</p>
+        </PaperPanel>
+      </ProductSection>
+      <ProductSection title="Media and source rights">
+        <div className="account-destination-list">
+          <PaperPanel className="data-panel"><h3>Media library</h3><p>Inspect image and audio assets submitted for independent review.</p>{assetCounts.some((item) => item.error) ? <p className="inline-notice">Media counts are unavailable.</p> : <ul className="record-list">{assetCounts.map(({ status, count }) => <li key={status}><span>{status.replaceAll("_", " ")}</span><strong>{count ?? "—"}</strong></li>)}</ul>}<Link className="text-link" href="/admin/assets">Open media review <ArrowUpRight size={14} aria-hidden="true" /></Link></PaperPanel>
+          <PaperPanel className="data-panel"><h3>Source library</h3><p>Keep supplied papers and audio separate from original or licensed question content.</p><Link className="text-link" href="/admin/sources">Open source library <ArrowUpRight size={14} aria-hidden="true" /></Link></PaperPanel>
+        </div>
+      </ProductSection>
+    </ProductPage>;
+  }
+
   if (route === "/admin/exam-preview") {
     return (
       <main className={previewStyles.page}>
@@ -167,8 +200,23 @@ export default async function AdminPage({ params, searchParams }: {
 
   if (route === "/admin") {
     const result = await supabase.rpc("get_admin_dashboard_summary");
-    dashboardSummary = result.data as AdminDashboardData | null;
     dataError = result.error?.message ?? "";
+    if (result.data && !result.error) {
+      const canEditContent = roles.includes("content_editor") || isAdmin;
+      const canReviewExams = roles.includes("reviewer") || isAdmin;
+      const [questionDrafts, examFormDrafts, examFormsReady] = await Promise.all([
+        canEditContent ? supabase.from("questions").select("id", { count: "exact", head: true }).eq("status", "draft") : Promise.resolve({ count: null, error: null }),
+        canEditContent ? supabase.from("exam_forms").select("id", { count: "exact", head: true }).eq("status", "draft") : Promise.resolve({ count: null, error: null }),
+        canReviewExams ? supabase.from("exam_forms").select("id", { count: "exact", head: true }).eq("status", "validated") : Promise.resolve({ count: null, error: null }),
+      ]);
+      dataError ||= [questionDrafts.error, examFormDrafts.error, examFormsReady.error].find(Boolean)?.message ?? "";
+      dashboardSummary = {
+        ...(result.data as AdminDashboardData),
+        question_drafts: questionDrafts.count ?? null,
+        exam_form_drafts: examFormDrafts.count ?? null,
+        exam_forms_ready_to_publish: examFormsReady.count ?? null,
+      };
+    }
     sectionDescription = `Operational counts and quick links for your staff roles: ${roles.join(", ")}. Restricted account, payment, review and support totals are returned only to their authorized roles.`;
   } else if (route === "/admin/content" || route === "/admin/questions/new") {
     const result = await supabase.from("questions").select("id,level,test_section_code,item_type_code,status,created_at").order("created_at", { ascending: false }).limit(30);
@@ -319,7 +367,7 @@ export default async function AdminPage({ params, searchParams }: {
         </PaperPanel>
       </ProductSection> : null}
       {route === "/admin/blueprints" ? <>
-        {roles.includes("content_editor") || isAdmin ? <ProductSection title="Create a blueprint draft"><PaperPanel className="data-panel"><BlueprintAuthoringForm /></PaperPanel></ProductSection> : null}
+        {roles.includes("content_editor") || isAdmin ? <ProductSection title="Create a blueprint draft"><PaperPanel className="data-panel"><div id="create-blueprint"><BlueprintAuthoringForm /></div></PaperPanel></ProductSection> : null}
         {roles.includes("reviewer") || isAdmin ? <ProductSection title="Blueprint review queue"><PaperPanel className="data-panel"><BlueprintReviewQueue rows={blueprintReviewRows} /></PaperPanel></ProductSection> : null}
         <ProductSection title="Blueprint inventory"><PaperPanel className="data-panel"><TableView rows={rows} columns={columns} /></PaperPanel></ProductSection>
       </> : null}

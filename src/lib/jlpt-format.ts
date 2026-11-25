@@ -125,6 +125,11 @@ export const jlptFormats: Record<JlptLevel, JlptLevelFormat> = {
 
 export const jlptLevels = Object.keys(jlptFormats) as JlptLevel[];
 
+/** Database item type identifiers use snake_case, while authored manifests may use readable kebab-case. */
+export function normalizeItemTypeCode(value: string) {
+  return value.trim().toLowerCase().replaceAll("-", "_");
+}
+
 export const officialItemTypes = [
   { area: "Vocabulary", code: "kanji-reading", label: "Kanji reading", levels: ["N1", "N2", "N3", "N4", "N5"] },
   { area: "Vocabulary", code: "orthography", label: "Orthography", levels: ["N2", "N3", "N4", "N5"] },

@@ -68,10 +68,17 @@ export default async function AdminQuestionDetailPage({ params }: { params: Prom
   const canEdit = question?.status === "draft" && (isAdmin || (role === "content_editor" && question.authored_by === user.id));
   let editData: { question: Question; answer_key: AnswerKey } | null = null;
   let editError = false;
+  let skillTags: string[] = [];
+  let skillTagsError = false;
   if (canEdit) {
     const result = await supabase.rpc("get_question_draft_for_edit", { p_question_id: questionId });
     if (result.error || !result.data || typeof result.data !== "object") editError = true;
     else editData = result.data as unknown as { question: Question; answer_key: AnswerKey };
+    const links = await supabase.from("question_tags").select("tag_id").eq("question_id", questionId);
+    const tagIds = links.data?.map((row) => row.tag_id) ?? [];
+    const tags = tagIds.length ? await supabase.from("tags").select("slug").in("id", tagIds).eq("tag_type", "skill") : { data: [], error: null };
+    skillTags = tags.data?.map((row) => row.slug) ?? [];
+    skillTagsError = Boolean(links.error || tags.error);
   }
 
   return (
@@ -92,7 +99,7 @@ export default async function AdminQuestionDetailPage({ params }: { params: Prom
             <div className="review-queue__provenance"><strong>Source: {question.source_type.replaceAll("_", " ")}</strong><p>Reference: {question.source_reference || "Original content"}</p><p>Rights notes: {question.rights_notes || "Authored as original platform content"}</p><p>Author account: <code>{question.authored_by}</code></p></div>
             {question.status === "needs_review" && (role === "reviewer" || isAdmin) ? <p><Link className="btn btn--primary" href="/admin/reviews">Open reviewer queue</Link></p> : null}
             {question.status !== "draft" ? <p className="section-note">This revision is no longer editable. Create a new revision if its published content needs a correction.</p> : null}
-            {canEdit ? editError || !editData ? <p className="inline-notice">Draft editing is unavailable. Confirm migration 028 and the author/admin permission.</p> : <><h2>Edit draft</h2><QuestionDraftEditor question={editData.question} answerKey={editData.answer_key} /></> : null}
+            {canEdit ? editError || !editData ? <p className="inline-notice">Draft editing is unavailable. Confirm migration 028 and the author/admin permission.</p> : <><h2>Edit draft</h2>{skillTagsError ? <p className="inline-notice">Skill tags could not be loaded. Save and submit are disabled to protect the existing tag list.</p> : null}<QuestionDraftEditor question={editData.question} answerKey={editData.answer_key} skillTags={skillTags} canAttachAssets={question.authored_by === user.id} tagsAvailable={!skillTagsError} /></> : null}
           </>}
         </PaperPanel>
       </ProductSection>

@@ -15,8 +15,8 @@ export default async function AdminQuestionAuthoringPage() {
   }
   return (
     <ProductPage eyebrow="Staff workspace · editor/admin" title="Create or import questions" description="Create original question drafts, document source rights and send revisions through independent review." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/questions/new" />}>
-      <ProductSection title="Create a question draft" className="product-section--tint"><PaperPanel className="data-panel"><p><Link className="text-link" href="/admin/questions">← Back to question bank</Link></p><QuestionAuthoringForm /></PaperPanel></ProductSection>
-      <ProductSection title="Import a small JSON batch"><PaperPanel className="data-panel"><QuestionBatchImport /></PaperPanel></ProductSection>
+      <ProductSection title="Create a question draft" className="product-section--tint"><PaperPanel className="data-panel"><p><Link className="text-link" href="/admin/questions">← Back to question bank</Link></p><div id="manual-question"><QuestionAuthoringForm /></div></PaperPanel></ProductSection>
+      <ProductSection title="Import a question package"><PaperPanel className="data-panel"><div id="import-questions"><QuestionBatchImport /></div></PaperPanel></ProductSection>
     </ProductPage>
   );
 }

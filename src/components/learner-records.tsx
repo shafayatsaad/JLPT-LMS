@@ -11,6 +11,7 @@ type PublishedExam = {
   form_code: string;
   version: number;
   published_at: string | null;
+  access_tier: string;
 };
 
 type AttemptRow = {
@@ -58,7 +59,7 @@ export function ExamLibraryCards({ forms, timeZone }: { forms: PublishedExam[]; 
         <article className="exam-library-card" key={form.id}>
           <span className="product-small-label">{t("exams.formLabel", { level: form.level, version: formatCount(form.version, language) })}</span>
           <h3>{form.form_code}</h3>
-          <p>{form.published_at ? t("exams.publishedDate", { date: formatDate(form.published_at, language, timeZone) }) : t("exams.publishedForm")}</p>
+          <ExamPublicationInfo accessTier={form.access_tier} publishedAt={form.published_at} timeZone={timeZone} />
           <Link className="text-link" href={`/exams/${form.id}`}>{t("exams.details")} <ArrowUpRight size={15} aria-hidden="true" /></Link>
         </article>
       ))}

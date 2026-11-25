@@ -125,7 +125,7 @@ export function ExamBookletRenderer({ adminPreview = false }: { adminPreview?: b
       <header className={styles.header}>
         <div className={styles.headerTitle}>
           <p>JLPT · N5 · {n5DemoManifest.formCode}</p>
-          <h1>{t("preview.samplePaper")}</h1>
+          {adminPreview ? <h2>{t("preview.samplePaper")}</h2> : <h1>{t("preview.samplePaper")}</h1>}
         </div>
         <div className={styles.timer} aria-label={activeSeconds === null ? t("preview.notStarted") : `${sectionTitle}: ${formatTime(activeSeconds)}`}>
           <strong><Clock3 size={15} aria-hidden="true" /> {activeSeconds === null ? "—:—" : formatTime(activeSeconds)}</strong>

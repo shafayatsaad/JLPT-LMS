@@ -49,10 +49,7 @@ export async function GET(request: NextRequest) {
   const errorPath = next === "/auth/update-password"
     ? "/auth/login?notice=verification-failed"
     : "/auth/login?notice=oauth-session-failed";
-  const callbackNext = !error && authData.user && (!authData.user.phone || !authData.user.phone_confirmed_at)
-    ? `/auth/phone?next=${encodeURIComponent(next)}`
-    : next;
-  const response = NextResponse.redirect(new URL(error ? errorPath : callbackNext, request.url));
+  const response = NextResponse.redirect(new URL(error ? errorPath : next, request.url));
 
   for (const { name, value, options } of pendingCookies) {
     response.cookies.set(name, value, options);

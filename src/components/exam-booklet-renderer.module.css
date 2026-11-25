@@ -25,7 +25,7 @@
 .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
 .headerTitle { min-width: 0; }
 .headerTitle p { margin: 0; color: var(--paper-muted); font-size: 11px; letter-spacing: .09em; text-transform: uppercase; }
-.headerTitle h1 { margin: 4px 0 0; font-family: Georgia, "Yu Mincho", "Noto Serif JP", serif; font-size: clamp(20px, 3vw, 28px); font-weight: 400; letter-spacing: -.025em; }
+.headerTitle :is(h1, h2) { margin: 4px 0 0; font-family: Georgia, "Yu Mincho", "Noto Serif JP", serif; font-size: clamp(20px, 3vw, 28px); font-weight: 400; letter-spacing: -.025em; }
 .timer { display: grid; min-width: 92px; justify-items: end; gap: 3px; font-variant-numeric: tabular-nums; }
 .timer strong { font-size: 20px; font-weight: 600; }
 .timer span { color: var(--paper-muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }

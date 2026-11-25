@@ -17,6 +17,7 @@ function keyFor(value: { test_section_code: string; score_category_code: string;
 export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; allowFree: boolean }) {
   const router = useRouter();
   const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
+  const [blueprintsLoading, setBlueprintsLoading] = useState(enabled);
   const [blueprintId, setBlueprintId] = useState("");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -35,11 +36,15 @@ export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; all
     let cancelled = false;
     async function loadBlueprints() {
       const supabase = createSupabaseBrowserClient();
-      if (!supabase) return;
+      if (!supabase) {
+        if (!cancelled) { setError("Supabase is not configured in this browser session."); setBlueprintsLoading(false); }
+        return;
+      }
       const { data, error: queryError } = await supabase.from("exam_blueprints").select("id,level,version").in("status", ["approved", "eligible_for_exam"]).order("level").order("version", { ascending: false }).limit(100);
       if (cancelled) return;
       if (queryError) setError(queryError.message);
       setBlueprints((data ?? []) as Blueprint[]);
+      setBlueprintsLoading(false);
     }
     void loadBlueprints();
     return () => { cancelled = true; };
@@ -55,16 +60,18 @@ export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; all
       setError("");
       const chosen = blueprints.find((row) => row.id === blueprintId);
       if (!chosen) return setLoading(false);
-      const [slotResult, questionResult] = await Promise.all([
+      const [slotResult, questionResult, formResult] = await Promise.all([
         supabase.from("blueprint_slots").select("slot_order,test_section_code,score_category_code,item_type_code,question_quota,section_duration_seconds,required_asset_types").eq("blueprint_id", blueprintId).order("slot_order"),
         supabase.from("questions").select("id,level,test_section_code,score_category_code,item_type_code,created_at").eq("level", chosen.level).in("status", ["approved", "eligible_for_exam"]).order("created_at").limit(1500),
+        supabase.from("exam_forms").select("version").eq("blueprint_id", blueprintId).order("version", { ascending: false }).limit(100),
       ]);
       if (cancelled) return;
       setLoading(false);
-      const queryError = slotResult.error ?? questionResult.error;
+      const queryError = slotResult.error ?? questionResult.error ?? formResult.error;
       if (queryError) setError(queryError.message);
       setSlots((slotResult.data ?? []) as Slot[]);
       setQuestions((questionResult.data ?? []) as Question[]);
+      setVersion(String(Math.max(0, ...((formResult.data ?? []) as { version: number }[]).map((form) => form.version)) + 1));
       setSelected([]);
     }
     void loadAssemblySource();
@@ -130,7 +137,8 @@ export function ExamFormAssembly({ enabled, allowFree }: { enabled: boolean; all
       setSelected([]);
       setError("");
     }}><option value="">Choose a blueprint</option>{blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.level} · version {blueprint.version}</option>)}</select></label>
-    {!blueprints.length ? <p className="section-note">No approved blueprint is available yet. Create a draft above and route it through independent review first.</p> : null}
+    {blueprintsLoading ? <p className="section-note" role="status">Loading approved blueprints…</p> : null}
+    {!blueprintsLoading && !error && !blueprints.length ? <p className="section-note">No approved blueprint is available yet. <Link href="/admin/blueprints#create-blueprint">Create a draft in Exam Blueprints</Link>, submit it for review, then ask a different reviewer to approve it.</p> : null}
     {slots.length ? <>
       <div className="table-scroll"><table><thead><tr><th>Section</th><th>Category</th><th>Item type</th><th>Required</th><th>Selected</th><th>Timing</th></tr></thead><tbody>{slots.map((slot) => <tr key={slot.slot_order}><td>{slot.test_section_code}</td><td>{slot.score_category_code}</td><td>{slot.item_type_code}</td><td>{slot.question_quota}</td><td>{selectedByKey[keyFor(slot)] ?? 0}</td><td>{Math.round(slot.section_duration_seconds / 60)} min</td></tr>)}</tbody></table></div>
       <div className="workflow-form__row">

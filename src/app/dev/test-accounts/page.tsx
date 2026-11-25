@@ -38,6 +38,14 @@ export default function LocalTestAccountsPage() {
           </nav>
         </PaperPanel>
       </ProductSection>
+      <ProductSection title="Independent reviewer profile">
+        <PaperPanel className="auth-panel">
+          <p><strong>Email:</strong> <code className="local-demo-credential">reviewer@n5.test</code></p>
+          <p><strong>Password:</strong> <code className="local-demo-credential">N5review26</code></p>
+          <p>This profile has student and reviewer roles. Enroll its own authenticator before reviewing questions, media, blueprints, or exam forms created by the administrator.</p>
+          <Link className="btn btn--primary" href="/admin/sign-in">Open reviewer sign in</Link>
+        </PaperPanel>
+      </ProductSection>
       <ProductSection title="Student demo workflows">
         <PaperPanel className="auth-panel">
           <p>Sign in as the learner to try the seeded mock, progress, saved questions and support. Submit the fake checkout once, then use the administrator profile to review and approve that request.</p>

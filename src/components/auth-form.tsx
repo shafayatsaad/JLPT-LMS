@@ -125,13 +125,16 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
         }
 
         const normalizedSignupPhone = signupPhone.trim().replace(/[\s().-]/g, "");
-        if (!/^\+[1-9]\d{7,14}$/.test(normalizedSignupPhone)) {
+        if (normalizedSignupPhone && !/^\+[1-9]\d{7,14}$/.test(normalizedSignupPhone)) {
           throw new Error("Enter a phone number in international format, for example +8801XXXXXXXXX.");
+        }
+        if (parsed.kind === "phone" && !normalizedSignupPhone) {
+          throw new Error("Enter a phone number for SMS verification.");
         }
         if (parsed.kind === "phone" && parsed.phone !== normalizedSignupPhone) {
           throw new Error("For phone-based account creation, the sign-in and verification numbers must match.");
         }
-        const metadata = { display_name: displayName.trim(), target_level: targetLevel || null, ui_language: language, phone_number: normalizedSignupPhone };
+        const metadata = { display_name: displayName.trim(), target_level: targetLevel || null, ui_language: language, ...(normalizedSignupPhone ? { phone_number: normalizedSignupPhone } : {}) };
         const signup = parsed.kind === "email"
           ? await supabase.auth.signUp({
               email: parsed.email,
@@ -250,6 +253,8 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
   const needsIdentifier = mode !== "update-password";
   const needsPassword = registering || mode === "login" || mode === "update-password";
   const allowGoogle = mode === "login" || registering;
+  const signupIdentifier = registering ? parseIdentifier(identifier) : null;
+  const phoneVerificationRequired = registering && phoneEnabled && signupIdentifier?.kind === "phone";
 
   return (
     <form className="auth-form" onSubmit={submit}>
@@ -259,11 +264,11 @@ export function AuthForm({ mode, defaultNext = "/dashboard" }: { mode: AuthMode;
             {t("auth.field.name")} <span className="field-optional">{t("auth.field.optional")}</span>
             <input autoComplete="name" maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
           </label>
-          <label>
-            Phone number <span className="field-required">Required · SMS verification</span>
-            <input required type="tel" autoComplete="tel" inputMode="tel" maxLength={24} placeholder="+8801XXXXXXXXX" value={signupPhone} onChange={(event) => setSignupPhone(event.target.value)} />
-            <span className="field-hint">Required for every account, including Google. We verify it after sign-in.</span>
-          </label>
+          {phoneEnabled ? <label>
+            {t("auth.field.phoneNumber")} <span className={phoneVerificationRequired ? "field-required" : "field-optional"}>{phoneVerificationRequired ? t("auth.field.requiredForPhone") : t("auth.field.optional")}</span>
+            <input required={phoneVerificationRequired} type="tel" autoComplete="tel" inputMode="tel" maxLength={24} placeholder="+8801XXXXXXXXX" value={signupPhone} onChange={(event) => setSignupPhone(event.target.value)} />
+            <span className="field-hint">{t("auth.field.phoneHint")}</span>
+          </label> : null}
           <label>
             {t("auth.field.target")} <span className="field-optional">{t("auth.field.optional")}</span>
             <select value={targetLevel} onChange={(event) => setTargetLevel(event.target.value)}>

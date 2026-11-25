@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { jlptFormats, type JlptLevel } from "@/lib/jlpt-format";
+import { jlptFormats, normalizeItemTypeCode, type JlptLevel } from "@/lib/jlpt-format";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type SlotDraft = {
@@ -113,7 +113,7 @@ export function BlueprintAuthoringForm() {
       slot_order: index + 1,
       test_section_code: slot.test_section_code.trim(),
       score_category_code: slot.score_category_code.trim(),
-      item_type_code: slot.item_type_code.trim(),
+      item_type_code: normalizeItemTypeCode(slot.item_type_code),
       question_quota: Number(slot.question_quota),
       section_duration_seconds: Number(slot.section_duration_seconds),
       required_asset_types: slot.required_asset_types.split(",").map((value) => value.trim().toLowerCase()).filter(Boolean),

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { EntitlementRecords } from "@/components/payment-access-records";
+import { PaymentHistoryTable } from "@/components/payment-access-records";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { requireSignedInUser } from "@/lib/auth";
 import { isLocalDemoEnvironment } from "@/lib/local-demo";
 
-export const metadata = { title: "Subscription and access · JLPT practice" };
+export const metadata = { title: "Plans & Payments · JLPT practice" };
 export const dynamic = "force-dynamic";
 
 export default async function SubscriptionPage() {
@@ -22,8 +23,9 @@ export default async function SubscriptionPage() {
     );
   }
 
-  const [{ data: entitlements, error }, { data: profile }] = await Promise.all([
+  const [{ data: entitlements, error }, { data: payments, error: paymentError }, { data: profile }] = await Promise.all([
     supabase.from("user_entitlements").select("status,starts_at,ends_at,plan_id").eq("user_id", user.id).order("ends_at", { ascending: false }).limit(20),
+    supabase.from("payment_submissions").select("id,provider,payment_method,amount,currency,status,submitted_at,plan_snapshot,cancellation_requested_at,cancelled_at,transaction_reference,receipt_uploaded_at").eq("user_id", user.id).order("submitted_at", { ascending: false }).limit(50),
     supabase.from("profiles").select("preferred_timezone").eq("user_id", user.id).maybeSingle(),
   ]);
   const timeZone = profile?.preferred_timezone || "UTC";
@@ -35,8 +37,11 @@ export default async function SubscriptionPage() {
           {error ? <p className="inline-notice"><LocalizedText messageKey="subscription.unavailable" /></p> : entitlements?.length ? <EntitlementRecords entitlements={entitlements} timeZone={timeZone} /> : <div className="empty-state"><p><LocalizedText messageKey="subscription.empty" /></p><Link className="text-link" href="/pricing"><LocalizedText messageKey="payments.viewPlans" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>}
         </PaperPanel>
       </ProductSection>
-      <ProductSection title="Payment activity" titleKey="subscription.activity" className="product-section--compact">
-        <PaperPanel className="statement-panel"><p><LocalizedText messageKey={demoMode ? "subscription.demoPurchase" : "subscription.purchasePending"} /></p><div className="product-cta-row"><Link className="text-link" href="/upgrade/bkash"><LocalizedText messageKey="payment.viewOptions" /> <ArrowUpRight size={15} aria-hidden="true" /></Link><Link className="text-link" href="/payments"><LocalizedText messageKey="subscription.viewPayments" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div></PaperPanel>
+      <ProductSection title="Payment history" titleKey="subscription.activity" className="product-section--compact">
+        <PaperPanel className="data-panel">
+          {paymentError ? <p className="inline-notice"><LocalizedText messageKey="payments.unavailable" /></p> : payments?.length ? <PaymentHistoryTable payments={payments} timeZone={timeZone} /> : <div className="empty-state"><p><LocalizedText messageKey="payments.empty" /></p><Link className="text-link" href="/upgrade/bkash"><LocalizedText messageKey="payment.viewOptions" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>}
+          <p className="data-footnote"><LocalizedText messageKey={demoMode ? "payments.demoWarning" : "payments.placeholderWarning"} /></p>
+        </PaperPanel>
       </ProductSection>
     </ProductPage>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { normalizeItemTypeCode } from "@/lib/jlpt-format";
 
 type ImportAsset = { file: string; purpose: "question_audio" | "question_image" | "stimulus_audio" | "stimulus_image"; media_type?: string };
 type ImportQuestion = {
@@ -75,7 +76,7 @@ function normalizeImport(input: unknown): ImportQuestion[] {
       level: level as ImportQuestion["level"],
       test_section_code: String(question.test_section_code ?? ""),
       score_category_code: String(question.score_category_code ?? ""),
-      item_type_code: String(question.item_type_code ?? ""),
+      item_type_code: normalizeItemTypeCode(String(question.item_type_code ?? "")),
       difficulty_estimate: difficulty,
       prompt,
       options: cleanOptions,
@@ -213,7 +214,7 @@ export function QuestionBatchImport() {
     {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
     {message ? <p className="form-message form-message--success" role="status">{message}</p> : null}
     <label>Question folder<input ref={folderInput} type="file" multiple accept="application/json,.json,audio/*,image/jpeg,image/png,image/webp" onChange={(event) => void loadFiles(event)} /></label>
-    <p className="field-hint">Use the downloadable JSON example as a starting point. Every asset entry names a file relative to the folder and a purpose such as <code>question_audio</code> or <code>stimulus_image</code>.</p>
+    <p className="field-hint">Use <a href="/templates/jlpt-question-authoring-demo.json" download>the downloadable JSON example</a> as a starting point. Every asset entry names a file relative to the folder and a purpose such as <code>question_audio</code> or <code>stimulus_image</code>.</p>
     {questions.length ? <div className="question-batch-import__preview"><div><strong>{fileName}</strong><span>{questions.length} question drafts · {details}</span></div><ul>{questions.slice(0, 5).map((question, index) => <li key={`${question.content_key}-${index}`}>{question.level} · {question.test_section_code} · {question.item_type_code} · {question.tags.join(", ")} · {question.assets.length} media</li>)}</ul>{questions.length > 5 ? <small>and {questions.length - 5} more</small> : null}<button className="btn btn--primary" type="button" disabled={busy} onClick={() => void importDrafts()}>{busy ? "Importing and submitting…" : `Import ${questions.length} question${questions.length === 1 ? "" : "s"} with media`}</button></div> : null}
   </div>;
 }

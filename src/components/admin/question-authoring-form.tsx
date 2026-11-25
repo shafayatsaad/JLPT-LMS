@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { jlptFormats, officialItemTypes, type JlptLevel } from "@/lib/jlpt-format";
+import { jlptFormats, normalizeItemTypeCode, officialItemTypes, type JlptLevel } from "@/lib/jlpt-format";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { QuestionAssetUploader } from "@/components/admin/question-asset-uploader";
 
@@ -105,7 +105,7 @@ export function QuestionAuthoringForm() {
         p_level: level,
         p_test_section_code: sectionCode,
         p_score_category_code: categoryCode,
-        p_item_type_code: itemTypeCode,
+        p_item_type_code: normalizeItemTypeCode(itemTypeCode),
         p_prompt: [{ type: "text", text: prompt.trim() }],
         p_options: options.map((text, index) => ({
           id: optionIds[index],

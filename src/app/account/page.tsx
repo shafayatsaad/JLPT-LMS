@@ -1,51 +1,32 @@
 import Link from "next/link";
+import { ArrowUpRight, LockKeyhole, WalletCards } from "lucide-react";
 import { ProductPage, ProductSection, PaperPanel } from "@/components/product-page";
 import { ProfileForm } from "@/components/profile-form";
 import { requireSignedInUser } from "@/lib/auth";
 import { LocalizedText } from "@/components/i18n/localized-text";
 
-export const metadata = { title: "Account and subscription · JLPT practice" };
+export const metadata = { title: "Profile · JLPT practice" };
 export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
   const { supabase, user } = await requireSignedInUser("/account");
   if (!supabase || !user) {
-    return <ProductPage eyebrow="Account" title="Account settings" description="Connect Supabase before using learner account settings." titleKey="settings.title" descriptionKey="account.setupRequired"><ProductSection title="Supabase setup required" titleKey="dashboard.setupRequired"><PaperPanel><p><LocalizedText messageKey="account.databaseSetup" /></p><Link className="btn btn--primary" href="/auth/login"><LocalizedText messageKey="settings.signIn" /></Link></PaperPanel></ProductSection></ProductPage>;
+    return <ProductPage eyebrow="Account" title="Your profile" description="Connect Supabase before using learner profile settings." titleKey="settings.title" descriptionKey="account.setupRequired"><ProductSection title="Supabase setup required" titleKey="dashboard.setupRequired"><PaperPanel><p><LocalizedText messageKey="account.databaseSetup" /></p><Link className="btn btn--primary" href="/auth/login"><LocalizedText messageKey="settings.signIn" /></Link></PaperPanel></ProductSection></ProductPage>;
   }
-  const [{ data: profile, error: profileError }, { data: entitlements, error: entitlementError }, { data: payments, error: paymentError }] = await Promise.all([
-    supabase.from("profiles").select("display_name,target_level,explanation_language,ui_language,preferred_timezone,reduced_motion").eq("user_id", user.id).maybeSingle(),
-    supabase.from("user_entitlements").select("status,starts_at,ends_at,plan_id").eq("user_id", user.id).order("ends_at", { ascending: false }).limit(5),
-    supabase.from("payment_submissions").select("status,amount,currency,submitted_at").eq("user_id", user.id).order("submitted_at", { ascending: false }).limit(5),
-  ]);
+
+  const { data: profile, error: profileError } = await supabase.from("profiles").select("display_name,target_level,explanation_language,ui_language,preferred_timezone,reduced_motion").eq("user_id", user.id).maybeSingle();
 
   return (
-    <ProductPage eyebrow="Account and subscription" eyebrowKey="account.eyebrow" title="Your account" titleKey="account.title" description="Update study preferences and review any saved access records." descriptionKey="account.description" className="product-page--dashboard">
-      <ProductSection title="Profile and subscription" titleKey="account.profileAndAccess" className="product-section--tint">
-        <div className="account-settings-grid">
-          <PaperPanel className="auth-panel account-settings-profile">
-            <h3><LocalizedText messageKey="settings.profileTitle" /></h3>
-            {profileError ? <p className="inline-notice"><LocalizedText messageKey="account.profileUnavailable" /></p> : <ProfileForm userId={user.id} displayName={profile?.display_name ?? ""} targetLevel={profile?.target_level ?? ""} language={profile?.explanation_language ?? "en"} uiLanguage={profile?.ui_language === "bn" ? "bn" : "en"} preferredTimezone={profile?.preferred_timezone ?? "Asia/Dhaka"} reducedMotion={profile?.reduced_motion ?? false} />}
-            <div className="security-row"><span><strong><LocalizedText messageKey="account.signInIdentity" /></strong><br />{user.email ?? "—"}<br /><small>Verified phone: {user.phone} · {user.phone_confirmed_at ? "verified" : "not verified"}</small></span><Link className="text-link" href="/auth/forgot-password"><LocalizedText messageKey="account.resetPassword" /></Link></div>
-          </PaperPanel>
-          <div className="account-settings-access">
-            <h3><LocalizedText messageKey="account.subscriptionStatus" /></h3>
-            <div className="dashboard-grid dashboard-grid--two">
-              <PaperPanel className="data-panel"><h3><LocalizedText messageKey="account.access" /></h3>{entitlementError ? <p className="inline-notice"><LocalizedText messageKey="account.paymentUnavailable" /></p> : entitlements?.length ? <ul className="record-list">{entitlements.map((item, index) => <li key={`${item.plan_id}-${index}`}><span>{item.status}</span><span>{new Date(item.ends_at).toLocaleDateString(profile?.ui_language === "bn" ? "bn-BD" : "en", { year: "numeric", month: "short", day: "numeric", timeZone: profile?.preferred_timezone ?? "Asia/Dhaka" })}</span></li>)}</ul> : <p><LocalizedText messageKey="account.noActivePlan" /></p>}</PaperPanel>
-              <PaperPanel className="data-panel"><h3><LocalizedText messageKey="account.paymentReview" /></h3>{paymentError ? <p className="inline-notice"><LocalizedText messageKey="account.paymentUnavailable" /></p> : payments?.length ? <ul className="record-list">{payments.map((item, index) => <li key={`${item.submitted_at}-${index}`}><span>{item.status}</span><span>{item.currency} {item.amount}</span></li>)}</ul> : <p><LocalizedText messageKey="account.noPayments" /></p>}<Link className="text-link" href="/pricing"><LocalizedText messageKey="account.accessInformation" /></Link></PaperPanel>
-            </div>
-          </div>
-        </div>
+    <ProductPage eyebrow="Learner profile" eyebrowKey="settings.eyebrow" title="Your profile" titleKey="account.profilePageTitle" description="Update your study level, languages, time zone, and accessibility preferences." descriptionKey="account.profileDescription" className="product-page--dashboard">
+      <ProductSection title="Study preferences" titleKey="settings.profileTitle" className="product-section--tint">
+        <PaperPanel className="data-panel account-profile-panel">
+          {profileError ? <p className="inline-notice" role="alert"><LocalizedText messageKey="account.profileUnavailable" /></p> : <ProfileForm userId={user.id} displayName={profile?.display_name ?? ""} targetLevel={profile?.target_level ?? ""} language={profile?.explanation_language ?? "en"} uiLanguage={profile?.ui_language === "bn" ? "bn" : "en"} preferredTimezone={profile?.preferred_timezone ?? "Asia/Dhaka"} reducedMotion={profile?.reduced_motion ?? false} />}
+        </PaperPanel>
       </ProductSection>
-      <ProductSection title="Learner tools" titleKey="account.learnerTools" className="product-section--compact">
-        <div className="admin-link-list">
-          <Link href="/notifications"><LocalizedText messageKey="account.notifications" /></Link>
-          <Link href="/settings/notifications"><LocalizedText messageKey="notifications.preferencesTitle" /></Link>
-          <Link href="/support"><LocalizedText messageKey="account.support" /></Link>
-          <Link href="/mistakes"><LocalizedText messageKey="account.mistakes" /></Link>
-          <Link href="/exams"><LocalizedText messageKey="account.examLibrary" /></Link>
-          <Link href="/progress"><LocalizedText messageKey="account.progress" /></Link>
-          <Link href="/payments"><LocalizedText messageKey="account.paymentHistory" /></Link>
-          <Link href="/settings"><LocalizedText messageKey="account.settings" /></Link>
+      <ProductSection title="Account access" titleKey="settings.securityTitle" className="product-section--compact">
+        <div className="account-destination-list">
+            <PaperPanel className="account-destination"><LockKeyhole aria-hidden="true" /><div><h3><LocalizedText messageKey="settings.securityTitle" /></h3><p><span>{user.email ?? user.phone ?? "—"}</span><br /><small><LocalizedText messageKey={user.phone_confirmed_at ? "account.phoneVerified" : user.phone ? "account.phoneNotVerified" : "account.phoneNotProvided"} /></small></p></div><Link className="text-link" href="/settings/security"><LocalizedText messageKey="common.open" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel>
+          <PaperPanel className="account-destination"><WalletCards aria-hidden="true" /><div><h3><LocalizedText messageKey="account.plansAndPayments" /></h3><p><LocalizedText messageKey="account.plansAndPaymentsDescription" /></p></div><Link className="text-link" href="/subscription"><LocalizedText messageKey="account.plansAndPayments" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel>
         </div>
       </ProductSection>
     </ProductPage>

@@ -1,6 +1,6 @@
 # Local test profiles
 
-The local demo creates one learner and one administrator in the local Supabase stack. It does not create accounts in the hosted project or Vercel.
+The local demo creates test learner, reviewer and administrator profiles in the local Supabase stack. It does not create accounts in the hosted project or Vercel.
 
 ## Start the demo
 
@@ -19,12 +19,13 @@ For a production-mode launch simulation, use `npm run demo:local:production:resu
 |---|---|---|---|
 | Learner | `student@n5.test` | `N5learn26` | Student · N5 target |
 | Administrator | `admin@n5.test` | `N5admin26` | Student · Admin · N5 target |
+| Reviewer | `reviewer@n5.test` | `N5review26` | Student · Reviewer · N5 target |
 
-The current Docker database already has a verified authenticator factor on the seeded admin profile; use the authenticator previously enrolled for `admin@n5.test`. If you intentionally reset the local database, set up a new factor at `/admin/mfa` before opening staff pages.
+The current Docker database already has a verified authenticator factor on the seeded admin profile; use the authenticator previously enrolled for `admin@n5.test`. The reviewer must enroll a separate authenticator at `/admin/mfa` before opening staff pages. If you intentionally reset the local database, set up new factors for staff accounts before using staff pages.
 
 Temporary admin identities used to exercise append-only audit workflows may remain as banned, staff-less local users so audit rows retain their actor references. Do not use those accounts to sign in.
 
-The student and admin seed accounts have verified local test phones `+15550000001` and `+15550000002`. New local phone verification uses `123456` with `+15550000003` or `+15550000004`.
+The student, admin and reviewer seed accounts have verified local test phones `+15550000001`, `+15550000002` and `+15550000005`. New local phone verification uses `123456` with `+15550000003` or `+15550000004`.
 
 ## Included demo flows
 
@@ -37,6 +38,8 @@ The student and admin seed accounts have verified local test phones `+1555000000
 - `/admin/sources` accepts one paper folder at a time (one PDF and optional audio) and stores it in a private source bucket. Four source packets are already loaded: July 2013 N5, 2010–2011 N5, December 2013 N4, and the N5G layout reference. Keep the December 2013 packet marked N4 and rights unconfirmed.
 - `/admin/questions/new` accepts a folder with `manifest.json` plus the image/audio files named by each question's `assets` array. PDFs belong in the private source library; extract and review individual questions before creating publishable question records.
 - The question and media review queues contain one clearly labeled, synthetic local import example with a generated Sakura image and test audio. It was uploaded through the folder importer, remains unpublished, and is not official JLPT content.
+- Use the reviewer profile to approve or return questions and media authored by the administrator, and to validate/publish an administrator-created draft exam. Authors cannot review their own content or exam form.
+- Playwright's admin workflow test creates synthetic `N5-PHASE2-*` published forms and `[PHASE 2 QA/IMPORT]` question rows in the local database. They are test artifacts, not complete exams or launch inventory. Published snapshots are immutable and remain visible in the local demo until an intentional local database reset.
 
 Use `/dev/test-accounts` for credentials and direct workflow links. Resetting the local database restores this sample state; it does not change hosted Supabase or Vercel data.
 

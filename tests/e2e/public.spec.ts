@@ -1,4 +1,94 @@
 import { expect, test } from "@playwright/test";
+import { createHmac, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+function localTotpFromSecret(secret: string) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const normalized = secret.replace(/=+$/, "").toUpperCase();
+  let bits = "";
+  for (const character of normalized) {
+    const value = alphabet.indexOf(character);
+    if (value < 0) throw new Error("The local demo TOTP secret is not valid base32.");
+    bits += value.toString(2).padStart(5, "0");
+  }
+  const key = Buffer.from(bits.match(/.{8}/g)?.map((byte) => parseInt(byte, 2)) ?? []);
+  const counter = Math.floor(Date.now() / 30_000);
+  const message = Buffer.alloc(8);
+  message.writeBigUInt64BE(BigInt(counter));
+  const digest = createHmac("sha1", key).update(message).digest();
+  const offset = digest[digest.length - 1] & 0x0f;
+  const value = (digest.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
+  return value.toString().padStart(6, "0");
+}
+
+function currentLocalTotp(email = "admin@n5.test") {
+  if (!new Set(["admin@n5.test", "reviewer@n5.test"]).has(email)) throw new Error("Only seeded staff profiles can be used for the local TOTP test.");
+  const sql = `select secret from auth.mfa_factors where user_id = (select id from auth.users where email = '${email}') and factor_type = 'totp' and status = 'verified' order by created_at desc limit 1`;
+  const secret = execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+  if (!secret) throw new Error(`The local demo profile ${email} needs a verified TOTP factor.`);
+  return localTotpFromSecret(secret);
+}
+
+function localQuestionStatus(contentKey: string) {
+  const sql = `select status::text from public.questions where content_key = '${contentKey}' order by revision desc limit 1`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function localAssetStatuses(contentKey: string) {
+  const sql = `select string_agg(a.status::text, ',' order by a.id) from public.questions q join public.question_assets qa on qa.question_id = q.id join public.content_assets a on a.id = qa.asset_id where q.content_key = '${contentKey}'`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function localExamFormStatus(formId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(formId)) throw new Error("Invalid local exam form ID.");
+  const sql = `select status::text || '|' || is_frozen::text from public.exam_forms where id = '${formId}'`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function publishedExamFormRejectsMutation(formId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(formId)) throw new Error("Invalid local exam form ID.");
+  const sql = `begin; update public.exam_forms set form_code = form_code || '-MUTATION-TEST' where id = '${formId}'; rollback;`;
+  try {
+    execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-c", sql], { encoding: "utf8" });
+    return false;
+  } catch (error) {
+    const result = error as { stdout?: Buffer | string; stderr?: Buffer | string };
+    return `${result.stdout?.toString() ?? ""}\n${result.stderr?.toString() ?? ""}`.includes("Published or frozen exam forms are immutable");
+  }
+}
+
+function demoWaveFile() {
+  const samples = 800;
+  const sampleRate = 8_000;
+  const buffer = Buffer.alloc(44 + samples);
+  buffer.write("RIFF", 0); buffer.writeUInt32LE(36 + samples, 4); buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22); buffer.writeUInt32LE(sampleRate, 24); buffer.writeUInt32LE(sampleRate, 28);
+  buffer.writeUInt16LE(1, 32); buffer.writeUInt16LE(8, 34); buffer.write("data", 36); buffer.writeUInt32LE(samples, 40);
+  buffer.fill(128, 44);
+  return buffer;
+}
+
+function nextLocalExamFormVersion() {
+  const sql = "select coalesce(max(version), 0) + 1 from public.exam_forms where blueprint_id = '43000000-0000-4000-8000-000000000001'";
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+async function prepareFullPageScreenshot(page: import("@playwright/test").Page) {
+  await page.evaluate(async () => {
+    const height = document.documentElement.scrollHeight;
+    const step = Math.max(360, Math.round(window.innerHeight * 0.78));
+    for (let top = 0; top < height; top += step) {
+      window.scrollTo(0, top);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(1000);
+}
 
 test("home uses one full-frame Sakura video with a static poster fallback", async ({ page }) => {
   await page.goto("/");
@@ -131,11 +221,13 @@ test("N5 preview remains a demo and the account form offers Google", async ({ pa
   await expect(page.locator('input[autocomplete="one-time-code"]')).toHaveCount(0);
 });
 
-test("account creation requires a phone number even when Google is offered", async ({ page }) => {
+test("Google and email account creation do not require a phone number", async ({ page }) => {
   await page.goto("/auth/register");
-  await expect(page.locator('input[type="tel"][autocomplete="tel"]')).toHaveAttribute("required", "");
+  const phoneInput = page.locator('input[type="tel"][autocomplete="tel"]');
+  if (await phoneInput.count()) await expect(phoneInput).not.toHaveAttribute("required", "");
   await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
-  await expect(page.getByText(/every account, including Google/i)).toBeVisible();
+  await expect(page.getByText(/email and Google do not require a phone number/i)).toBeVisible();
+  await expect(page.getByText(/required for every account, including Google/i)).toHaveCount(0);
 });
 
 test("local learner can sign in, reach the dashboard, and sign out", async ({ page }) => {
@@ -145,7 +237,55 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await page.locator('input[type="password"]').fill("N5learn26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  const dashboardSignOut = page.locator(".account-strip__actions").getByRole("button", { name: /sign out/i });
+  await expect(page.getByRole("heading", { level: 1, name: "Welcome, Demo Student" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Continue", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Start a mock exam" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Practice" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent results" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Review mistakes", exact: true })).toBeVisible();
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-student-dashboard-desktop.png", fullPage: true });
+  const learnerNav = page.getByRole("navigation", { name: "Account navigation" });
+  for (const label of ["Dashboard", "Mock exams", "Practice", "Results", "Profile"]) await expect(learnerNav.getByRole("link", { name: label })).toBeVisible();
+  await learnerNav.getByRole("link", { name: "Profile" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Your profile" })).toBeVisible();
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-student-account-desktop.png", fullPage: true });
+  await expect(page.getByRole("link", { name: /Plans & Payments/ })).toBeVisible();
+  await expect(page.getByText("Subscription and payment status")).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-student-account-mobile.png", fullPage: true });
+  await page.goto("/dashboard");
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const demoBanner = page.locator(".local-demo-banner");
+  const [headerBounds, bannerBounds] = await Promise.all([page.locator("header.nav").boundingBox(), demoBanner.boundingBox()]);
+  expect(headerBounds).not.toBeNull();
+  expect(bannerBounds).not.toBeNull();
+  if (headerBounds && bannerBounds) expect(bannerBounds.y).toBeGreaterThanOrEqual(headerBounds.y + headerBounds.height);
+  await expect(demoBanner).toContainText("Test accounts and sample data only. Payments are simulated; no money is sent.");
+  const mobileSectionHeights = await page.locator(".product-page > .product-section").evaluateAll((sections) => sections.map((section) => section.getBoundingClientRect().height));
+  expect(Math.max(...mobileSectionHeights)).toBeLessThan(844);
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-student-dashboard-mobile.png", fullPage: true });
+  await page.getByRole("link", { name: /Browse mock exams/ }).first().click();
+  await expect(page.getByRole("heading", { name: "Exam library" })).toBeVisible();
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-exam-library-mobile.png", fullPage: true });
+  await page.goto("/payments");
+  await expect(page).toHaveURL(/\/subscription$/);
+  await expect(page.getByRole("heading", { name: "Plans & Payments" })).toBeVisible();
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { level: 1, name: "This page needs a different staff role" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Administration sections" })).toHaveCount(0);
+  await page.goto("/subscription");
+  await expect(page.locator("html")).toHaveAttribute("data-ready", "1");
+  const mobileMenu = page.getByRole("button", { name: "Open navigation menu" });
+  await mobileMenu.click();
+  const closeMenu = page.getByRole("button", { name: "Close navigation menu" });
+  await expect(closeMenu).toHaveAttribute("aria-expanded", "true");
+  const dashboardSignOut = page.getByRole("button", { name: /sign out/i });
   await expect(dashboardSignOut).toBeVisible();
   await dashboardSignOut.click();
   await expect(page).toHaveURL("/");
@@ -159,6 +299,249 @@ test("local admin sign-in reaches the mandatory authenticator challenge", async 
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Verify your sign-in" })).toBeVisible();
+});
+
+test("local administrator opens staff workspace and learner view remains separate", async ({ page }) => {
+  test.setTimeout(180_000);
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase administrator and Docker.");
+  await page.goto("/admin/sign-in");
+  await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
+  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+  await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
+  await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
+  const sections = page.getByRole("navigation", { name: "Staff areas" });
+  await expect(sections.getByRole("link")).toHaveText(["Dashboard", "Content", "Exams", "Users", "Payments", "System"]);
+  await expect(page.getByRole("navigation", { name: "Content tools" })).toHaveCount(0);
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-dashboard-desktop.png", fullPage: true });
+  for (const [path, fileName] of [
+    ["/admin/content", "phase2-admin-content-desktop.png"],
+    ["/admin/questions?status=eligible_for_exam", "phase2-admin-question-bank-desktop.png"],
+    ["/admin/questions/new", "phase2-admin-question-import-desktop.png"],
+    ["/admin/reviews", "phase2-admin-review-queue-desktop.png"],
+    ["/admin/assets", "phase2-admin-media-review-desktop.png"],
+    ["/admin/blueprints", "phase2-admin-blueprints-desktop.png"],
+    ["/admin/exam-forms", "phase2-admin-exam-builder-desktop.png"],
+    ["/admin/exam-preview", "phase2-admin-exam-preview-desktop.png"],
+    ["/admin/users", "phase2-admin-users-desktop.png"],
+    ["/admin/support", "phase2-admin-support-desktop.png"],
+    ["/admin/payments", "phase2-admin-payments-desktop.png"],
+    ["/admin/plans", "phase2-admin-plans-desktop.png"],
+    ["/admin/entitlements", "phase2-admin-entitlements-desktop.png"],
+    ["/admin/reports", "phase2-admin-reports-desktop.png"],
+    ["/admin/attempts", "phase2-admin-attempts-desktop.png"],
+    ["/admin/announcements", "phase2-admin-announcements-desktop.png"],
+    ["/admin/privacy", "phase2-admin-privacy-desktop.png"],
+    ["/admin/audit", "phase2-admin-audit-desktop.png"],
+    ["/admin/settings/integrations", "phase2-admin-integrations-desktop.png"],
+    ["/admin/settings", "phase2-admin-settings-desktop.png"],
+  ]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+    if (path === "/admin/exam-preview") {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(page.getByRole("heading", { level: 2, name: "N5 practice booklet · sample" })).toBeVisible();
+    }
+    if (path === "/admin/exam-forms") {
+      const blueprintSelect = page.getByLabel("Approved blueprint");
+      await expect(blueprintSelect).toContainText("N5 · version 1");
+      await blueprintSelect.selectOption({ label: "N5 · version 1" });
+      await expect.poll(() => page.locator(".workflow-question input[type=checkbox]").count()).toBeGreaterThanOrEqual(6);
+    }
+    await prepareFullPageScreenshot(page);
+    await page.screenshot({ path: `test-results/${fileName}`, fullPage: true });
+  }
+  await page.goto("/admin/exam-forms");
+  const blueprintSelect = page.getByLabel("Approved blueprint");
+  await expect(blueprintSelect).toContainText("N5 · version 1");
+  await blueprintSelect.selectOption({ label: "N5 · version 1" });
+  const eligibleQuestionInputs = page.locator(".workflow-question input[type=checkbox]");
+  await expect.poll(() => eligibleQuestionInputs.count()).toBeGreaterThanOrEqual(6);
+  const expectedFormVersion = nextLocalExamFormVersion();
+  await expect(page.getByRole("spinbutton", { name: "Version" })).toHaveValue(expectedFormVersion);
+  for (let index = 0; index < 6; index++) await eligibleQuestionInputs.nth(index).check();
+  const testFormCode = `N5-PHASE2-${randomUUID().slice(0, 8)}`.toUpperCase();
+  await page.getByLabel("Form code").fill(testFormCode);
+  const createFormButton = page.getByRole("button", { name: "Create draft form · 6 questions" });
+  await expect(createFormButton).toBeEnabled();
+  await createFormButton.click();
+  await expect(page.getByRole("status")).toContainText(`Draft form ${testFormCode} created`);
+  await page.reload();
+  const createdForm = page.locator(".workflow-form-card").filter({ hasText: testFormCode });
+  await expect(createdForm).toContainText("draft");
+  await expect(createdForm.getByRole("button", { name: "Validate form" })).toBeDisabled();
+  const formDetailsHref = await createdForm.getByRole("link", { name: "Inspect form manifest" }).getAttribute("href");
+  const createdFormId = formDetailsHref?.split("/").at(-1) ?? "";
+  expect(createdFormId).toMatch(/^[0-9a-f-]{36}$/i);
+  await page.goto("/admin/questions");
+  const firstQuestionRevision = page.getByRole("link", { name: /Revision \d+/ }).first();
+  if (await firstQuestionRevision.count()) {
+    await firstQuestionRevision.click();
+    await expect(page.getByRole("heading", { level: 1, name: /Question revision/ })).toBeVisible();
+    if (await page.locator(".question-draft-editor").count()) {
+      await prepareFullPageScreenshot(page);
+      await page.screenshot({ path: "test-results/phase2-admin-question-editor-desktop.png", fullPage: true });
+    }
+  }
+
+  await page.goto("/admin/questions/new#manual-question");
+  await page.getByLabel("Question prompt").fill("【PHASE 2 QA】「春」の読み方を選んでください。");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Draft saved");
+  const questionId = (await page.locator(".question-authoring-form__id code").innerText()).trim();
+  await page.goto(`/admin/questions/${questionId}`);
+  await expect(page.locator(".question-draft-editor")).toBeVisible();
+  await expect(page.getByLabel("Question type code")).toHaveValue("kanji_reading");
+  const editableText = page.locator(".question-draft-editor .question-content-editor__block textarea").first();
+  const choiceIds = page.locator(".question-choice-editor__heading input");
+  await choiceIds.nth(1).fill("A");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(page.locator(".form-message--error")).toContainText("unique ID");
+  await choiceIds.nth(1).fill("B");
+  const savedPrompt = "【PHASE 2 QA】編集後の問題文を保存して確認します。";
+  await editableText.fill(savedPrompt);
+  await page.getByLabel("Skill tags").fill("vocabulary, phase2-demo");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Draft saved");
+  await page.reload();
+  const persistedText = page.locator(".question-draft-editor .question-content-editor__block textarea").first();
+  await expect(persistedText).toHaveValue(savedPrompt);
+  await expect(page.getByLabel("Skill tags")).toHaveValue("vocabulary, phase2-demo");
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-question-editor-desktop.png", fullPage: true });
+  await persistedText.fill(`${savedPrompt} unsaved`);
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.getByRole("button", { name: "Discard edits" }).click();
+  await expect(page.locator(".question-draft-editor .question-content-editor__block textarea").first()).toHaveValue(savedPrompt);
+
+  await page.goto("/admin/questions/new#import-questions");
+  const packageInput = page.locator(".question-batch-import input[type=file]");
+  await expect(packageInput).toHaveAttribute("webkitdirectory", "");
+  const invalidImportDirectory = mkdtempSync(join(tmpdir(), "jlpt-phase2-invalid-import-"));
+  writeFileSync(join(invalidImportDirectory, "manifest.json"), JSON.stringify({ questions: [{}] }));
+  await packageInput.setInputFiles(invalidImportDirectory);
+  await expect(page.locator(".form-message--error")).toContainText("Item 1 needs question.prompt, question.options and answer_key");
+  rmSync(invalidImportDirectory, { recursive: true, force: true });
+  const imageBytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=", "base64");
+  const importPrompt = `【PHASE 2 IMPORT ${randomUUID().slice(0, 6)}】画像と音声のあるデモ問題。`;
+  const importContentKey = randomUUID();
+  const packageJson = {
+    source_type: "original",
+    assets: [{ file: "tree.png", purpose: "question_image" }, { file: "prompt.wav", purpose: "question_audio" }],
+    question: {
+      content_key: importContentKey, revision: 1, level: "N5", test_section_code: "vocabulary",
+      score_category_code: "language-knowledge-reading", item_type_code: "kanji-reading", tags: ["vocabulary", "phase2-demo"],
+      difficulty_estimate: 1, prompt: [{ type: "text", text: importPrompt }],
+      options: ["はる", "なつ", "あき", "ふゆ"].map((text, index) => ({ id: String.fromCharCode(65 + index), content: [{ type: "text", text }] })),
+    },
+    answer_key: { correct_option_id: "A", explanation: { en: "春 is read はる." }, distractor_rationales: {} },
+  };
+  const importDirectory = mkdtempSync(join(tmpdir(), "jlpt-phase2-import-"));
+  writeFileSync(join(importDirectory, "manifest.json"), JSON.stringify([packageJson]));
+  writeFileSync(join(importDirectory, "tree.png"), imageBytes);
+  writeFileSync(join(importDirectory, "prompt.wav"), demoWaveFile());
+  await packageInput.setInputFiles(importDirectory);
+  await expect(page.getByText(/1 question drafts · 2 referenced media files/)).toBeVisible();
+  await expect(page.locator(".question-batch-import__preview")).toContainText("kanji_reading");
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-import-preview-desktop.png", fullPage: true });
+  await page.getByRole("button", { name: "Import 1 question with media" }).click();
+  await expect(page.getByRole("status")).toContainText("1 question and 2 media assets uploaded and submitted");
+  rmSync(importDirectory, { recursive: true, force: true });
+
+  await page.goto("/admin/assets");
+  const importedAssets = page.locator(".asset-review-queue__item").filter({ hasText: importPrompt });
+  await expect(importedAssets).toHaveCount(2);
+  await expect(importedAssets.locator(".asset-review-queue__preview img")).toBeVisible();
+  await expect(importedAssets.locator(".asset-review-queue__preview audio")).toBeVisible();
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-media-review-with-samples-desktop.png", fullPage: true });
+  await importedAssets.getByRole("button", { name: "Approve asset" }).first().click();
+  await expect(page.locator(".form-message--error")).toContainText("Authors cannot review their own assets");
+
+  await page.goto("/admin/reviews");
+  const importedQuestion = page.locator(".review-queue__item").filter({ hasText: importPrompt });
+  await expect(importedQuestion).toBeVisible();
+  await importedQuestion.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(page.locator(".form-message--error")).toContainText("Authors cannot review their own questions");
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL("/", { timeout: 10_000 });
+  await page.goto("/admin/sign-in");
+  await page.locator('input[autocomplete="username"]').fill("reviewer@n5.test");
+  await page.locator('input[type="password"]').fill("N5review26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/(?:admin(?:\/mfa)?(?:\?.*)?|auth\/mfa\?next=.*)$/, { timeout: 15_000 });
+  if (page.url().includes("/auth/mfa")) {
+    await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp("reviewer@n5.test"));
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin(?:\?.*)?$/, { timeout: 15_000 });
+  }
+  await page.goto("/admin/mfa?next=%2Fadmin%2Freviews");
+  if (!page.url().includes("/admin/reviews")) {
+    await expect(page.getByText("Checking authenticator setup…")).toHaveCount(0);
+    const reviewerSetup = page.getByRole("button", { name: "Set up authenticator" });
+    let reviewerCode: string;
+    if (await reviewerSetup.count()) {
+      await reviewerSetup.click();
+      const secret = (await page.locator(".admin-mfa-challenge__secret").innerText()).trim();
+      reviewerCode = localTotpFromSecret(secret);
+    } else {
+      reviewerCode = currentLocalTotp("reviewer@n5.test");
+    }
+    await page.locator("#admin-mfa-code").fill(reviewerCode);
+    await page.getByRole("button", { name: "Verify and continue" }).click();
+  }
+  await expect(page).toHaveURL(/\/admin\/reviews$/, { timeout: 15_000 });
+
+  const reviewerQuestion = page.locator(".review-queue__item").filter({ hasText: importPrompt });
+  await expect(reviewerQuestion).toBeVisible();
+  await reviewerQuestion.locator("textarea").fill("Independent QA confirmed the original prompt, answer key, and provenance.");
+  await reviewerQuestion.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(reviewerQuestion).toHaveCount(0);
+  expect(localQuestionStatus(importContentKey)).toBe("approved");
+
+  await page.goto("/admin/assets");
+  const reviewerAssets = page.locator(".asset-review-queue__item").filter({ hasText: importPrompt });
+  await expect(reviewerAssets).toHaveCount(2);
+  await reviewerAssets.first().locator("textarea").fill("Independent QA confirmed the private image/audio preview and attachment.");
+  await reviewerAssets.first().getByRole("button", { name: "Approve asset" }).click();
+  await expect(reviewerAssets).toHaveCount(1);
+  await reviewerAssets.first().getByRole("button", { name: "Approve asset" }).click();
+  await expect(reviewerAssets).toHaveCount(0);
+  expect(localAssetStatuses(importContentKey)).toBe("approved,approved");
+
+  await page.goto("/admin/exam-forms");
+  const reviewerForm = page.locator(".workflow-form-card").filter({ hasText: testFormCode });
+  await expect(reviewerForm).toContainText("draft");
+  await reviewerForm.locator("textarea").fill("Independent QA validated the approved blueprint, exact question quota, and frozen manifest.");
+  await reviewerForm.getByRole("button", { name: "Validate form" }).click();
+  await expect(reviewerForm).toContainText("validated");
+  expect(localExamFormStatus(createdFormId)).toBe("validated|false");
+  await reviewerForm.getByRole("button", { name: "Publish frozen form" }).click();
+  await expect(reviewerForm).toContainText("published · frozen");
+  await page.reload();
+  await expect(page.locator(".workflow-form-card").filter({ hasText: testFormCode })).toContainText("published · frozen");
+  expect(localExamFormStatus(createdFormId)).toBe("published|true");
+  expect(publishedExamFormRejectsMutation(createdFormId)).toBe(true);
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-exam-builder-published-desktop.png", fullPage: true });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/admin/questions");
+  await prepareFullPageScreenshot(page);
+  await page.screenshot({ path: "test-results/phase2-admin-question-bank-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 10_000 });
+  await page.getByRole("link", { name: "Learner view" }).click();
+  await expect(page).toHaveURL(/\/dashboard\?view=learner$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Welcome, Demo Reviewer" })).toBeVisible();
 });
 
 test("N5 sample separates the printed question booklet from its mapped bubble sheet", async ({ page }) => {
@@ -216,6 +599,8 @@ test("test profile details are exposed only in explicit local demo mode", async 
     await expect(page.getByText("N5learn26")).toBeVisible();
     await expect(page.getByText("admin@n5.test")).toBeVisible();
     await expect(page.getByText("N5admin26")).toBeVisible();
+    await expect(page.getByText("reviewer@n5.test")).toBeVisible();
+    await expect(page.getByText("N5review26")).toBeVisible();
     await expect(page.getByRole("link", { name: "Open staff sign in" })).toHaveAttribute("href", "/admin/sign-in");
   } else {
     expect(response?.status()).toBe(404);

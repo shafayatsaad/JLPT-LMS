@@ -2,22 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getVisibleAdminNavigationGroups } from "../../src/lib/admin-navigation.ts";
 
-test("admin navigation exposes six groups and every existing navigation destination", () => {
+test("admin navigation uses the six proposed areas without duplicate destinations", () => {
   const groups = getVisibleAdminNavigationGroups(["admin"]);
+  const items = groups.flatMap((group) => group.items);
 
-  assert.deepEqual(groups.map((group) => group.title), [
-    "Overview",
-    "Content",
-    "Exams",
-    "Review",
-    "Users & Payments",
-    "Reports & Settings",
-  ]);
-  assert.equal(groups.flatMap((group) => group.items).length, 28);
-  assert.equal(new Set(groups.flatMap((group) => group.items.map((item) => item.href))).size, 28);
+  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Content", "Exams", "Users", "Payments", "System"]);
+  assert.equal(items.length, 23);
+  assert.equal(new Set(items.map((item) => item.href)).size, items.length);
 });
 
-test("content editor navigation keeps the existing content and exam workflows", () => {
+test("content editor navigation keeps the authoring and exam workflows", () => {
   const groups = getVisibleAdminNavigationGroups(["content_editor"]);
   const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
 
@@ -28,13 +22,13 @@ test("content editor navigation keeps the existing content and exam workflows", 
     "/admin/questions/new",
     "/admin/sources",
     "/admin/assets",
-    "/admin/blueprints",
     "/admin/exam-forms",
+    "/admin/blueprints",
     "/admin/exam-preview",
   ]);
 });
 
-test("reviewer navigation only includes destinations authorized to reviewers", () => {
+test("reviewer navigation contains content review but no user, payment, or settings controls", () => {
   const groups = getVisibleAdminNavigationGroups(["reviewer"]);
   const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
 
@@ -44,10 +38,10 @@ test("reviewer navigation only includes destinations authorized to reviewers", (
     "/admin/questions",
     "/admin/sources",
     "/admin/assets",
-    "/admin/blueprints",
-    "/admin/exam-forms",
-    "/admin/exam-preview",
     "/admin/reviews",
+    "/admin/exam-forms",
+    "/admin/blueprints",
+    "/admin/exam-preview",
     "/admin/attempts",
   ]);
   assert.ok(!hrefs.includes("/admin/users"));
@@ -55,18 +49,14 @@ test("reviewer navigation only includes destinations authorized to reviewers", (
   assert.ok(!hrefs.includes("/admin/settings"));
 });
 
-test("payment reviewer only sees dashboard, payment review, and reporting tools", () => {
+test("payment reviewer only sees their queues and reports", () => {
   const groups = getVisibleAdminNavigationGroups(["payment_reviewer"]);
-  const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
-
-  assert.deepEqual(hrefs, ["/admin", "/admin/payments", "/admin/reports"]);
+  assert.deepEqual(groups.flatMap((group) => group.items.map((item) => item.href)), ["/admin", "/admin/payments", "/admin/reports"]);
 });
 
-test("support agent cannot see content, user management, or settings destinations", () => {
+test("support agent can open support without gaining other staff destinations", () => {
   const groups = getVisibleAdminNavigationGroups(["support_agent"]);
-  const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
-
-  assert.deepEqual(hrefs, ["/admin", "/admin/support"]);
+  assert.deepEqual(groups.flatMap((group) => group.items.map((item) => item.href)), ["/admin", "/admin/support"]);
 });
 
 test("learner roles receive no staff navigation", () => {
