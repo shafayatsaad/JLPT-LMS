@@ -21,8 +21,8 @@ const admins = ["admin"] as const;
 
 export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
   {
-    id: "dashboard",
-    title: "Dashboard",
+    id: "overview",
+    title: "Overview",
     items: [
       { href: "/admin", title: "Operational overview", roles: allStaff },
     ],
@@ -67,18 +67,12 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
     ],
   },
   {
-    id: "reports",
-    title: "Reports",
+    id: "reports-settings",
+    title: "Reports & Settings",
     items: [
       { href: "/admin/reports", title: "Reports & Exports", roles: paymentStaff },
       { href: "/admin/attempts", title: "Exam Attempts", roles: reviewers },
       { href: "/admin/audit", title: "Audit Log", roles: admins },
-    ],
-  },
-  {
-    id: "settings",
-    title: "Settings",
-    items: [
       { href: "/admin/settings", title: "Platform Settings", roles: admins },
       { href: "/admin/staff", title: "Staff and Roles", roles: admins },
       { href: "/admin/announcements", title: "Announcements", roles: admins },
