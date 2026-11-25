@@ -1,0 +1,13 @@
+node_modules
+.next
+.next-*
+.env
+.env.*
+.local-demo
+.git
+.taste-skill
+coverage
+playwright-report
+test-results
+tmp
+*.tsbuildinfo
