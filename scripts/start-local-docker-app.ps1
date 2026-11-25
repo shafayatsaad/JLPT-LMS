@@ -23,11 +23,18 @@ try {
   }
 
   Write-Host "Starting the existing Docker-local Supabase stack without resetting its database..."
+  $savedPreference = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
   & $supabaseCli start *> $null
-  if ($LASTEXITCODE -ne 0) { throw "Supabase could not start. Check Docker Desktop." }
+  $supabaseStartExitCode = $LASTEXITCODE
+  $ErrorActionPreference = $savedPreference
+  if ($supabaseStartExitCode -ne 0) { throw "Supabase could not start. Check Docker Desktop." }
 
+  $ErrorActionPreference = "Continue"
   $statusLines = & $supabaseCli status --output env 2>$null
-  if ($LASTEXITCODE -ne 0) { throw "Could not read local Supabase connection values." }
+  $statusExitCode = $LASTEXITCODE
+  $ErrorActionPreference = $savedPreference
+  if ($statusExitCode -ne 0) { throw "Could not read local Supabase connection values." }
   $localConfig = @{}
   foreach ($line in $statusLines) {
     if ($line -match '^(?<key>[A-Z0-9_]+)="?(?<value>.*?)"?$') {
