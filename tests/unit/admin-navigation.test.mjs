@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getVisibleAdminNavigationGroups } from "../../src/lib/admin-navigation.ts";
 
-test("admin navigation uses the seven proposed areas without duplicate destinations", () => {
+test("admin navigation uses the six requested areas without duplicate destinations", () => {
   const groups = getVisibleAdminNavigationGroups(["admin"]);
   const items = groups.flatMap((group) => group.items);
 
-  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Content", "Exams", "Students", "Payments", "Reports", "Settings"]);
+  assert.deepEqual(groups.map((group) => group.title), ["Overview", "Content", "Exams", "Students", "Payments", "Reports & Settings"]);
   assert.equal(items.length, 26);
   assert.equal(new Set(items.map((item) => item.href)).size, items.length);
 });
