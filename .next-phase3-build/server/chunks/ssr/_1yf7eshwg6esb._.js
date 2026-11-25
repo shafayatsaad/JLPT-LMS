@@ -1,0 +1,3 @@
+module.exports=[52562,a=>{"use strict";var b=a.i(64831);let c={name:"check",size:24,node:[["path",{d:"M20 6 9 17l-5-5",key:"1gmf2c"}]]};c.node;let d=(0,b.f)(c);a.s(["f",0,d],52562)},60864,a=>{"use strict";var b=a.i(87924),c=a.i(71902);a.s(["LocalizedText",0,function({messageKey:a,values:d}){let{t:e}=(0,c.useLocale)();return(0,b.jsx)(b.Fragment,{children:e(a,d)})}])}];
+
+//# sourceMappingURL=_1yf7eshwg6esb._.js.map

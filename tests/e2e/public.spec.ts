@@ -48,6 +48,12 @@ function localExamFormStatus(formId: string) {
   return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
 }
 
+function expireLocalExamPreparation(attemptId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(attemptId)) throw new Error("Invalid local exam attempt ID.");
+  const sql = `with changed as (update public.exam_attempts set preparation_deadline_at = now() - interval '1 second' where id = '${attemptId}' and preparation_required and preparation_started_at is not null returning id) select id from changed`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
 function publishedExamFormRejectsMutation(formId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(formId)) throw new Error("Invalid local exam form ID.");
   const sql = `begin; update public.exam_forms set form_code = form_code || '-MUTATION-TEST' where id = '${formId}'; rollback;`;
@@ -247,6 +253,12 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await page.screenshot({ path: "test-results/phase2-student-dashboard-desktop.png", fullPage: true });
   const learnerNav = page.getByRole("navigation", { name: "Account navigation" });
   for (const label of ["Dashboard", "Mock exams", "Practice", "Results", "Profile"]) await expect(learnerNav.getByRole("link", { name: label })).toBeVisible();
+  await expect(learnerNav.getByRole("link", { name: "Leaderboard" })).toBeVisible();
+  await learnerNav.getByRole("link", { name: "Leaderboard" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Leaderboard" })).toBeVisible();
+  await expect(page.locator(".leaderboard-notes")).toBeVisible();
+  await expect(page.getByLabel("JLPT level")).toHaveValue("N5");
+  await page.goto("/dashboard");
   await learnerNav.getByRole("link", { name: "Profile" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Your profile" })).toBeVisible();
   await prepareFullPageScreenshot(page);
@@ -315,7 +327,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
   const sections = page.getByRole("navigation", { name: "Staff areas" });
-  await expect(sections.getByRole("link")).toHaveText(["Dashboard", "Content", "Exams", "Users", "Payments", "System"]);
+  await expect(sections.getByRole("link")).toHaveText(["Dashboard", "Content", "Exams", "Students", "Payments", "Reports", "Settings"]);
   await expect(page.getByRole("navigation", { name: "Content tools" })).toHaveCount(0);
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-dashboard-desktop.png", fullPage: true });
@@ -542,6 +554,72 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.getByRole("link", { name: "Learner view" }).click();
   await expect(page).toHaveURL(/\/dashboard\?view=learner$/);
   await expect(page.getByRole("heading", { level: 1, name: "Welcome, Demo Reviewer" })).toBeVisible();
+
+  await page.getByRole("button", { name: /sign out/i }).click();
+  await expect(page).toHaveURL("/");
+  await page.goto("/auth/login");
+  await page.locator('input[autocomplete="username"]').fill("student@n5.test");
+  await page.locator('input[type="password"]').fill("N5learn26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto(`/exams/${createdFormId}`);
+  await expect(page.getByRole("heading", { level: 1, name: testFormCode })).toBeVisible();
+  await page.getByRole("button", { name: "Start mock exam" }).click();
+  await expect(page).toHaveURL(/\/attempts\/[0-9a-f-]{36}$/i);
+  const attemptId = page.url().split("/").at(-1) ?? "";
+  await expect(page.getByRole("heading", { level: 1, name: "Candidate information" })).toBeVisible();
+  await expect(page.locator(".exam-paper__question")).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Answer sheet" })).toHaveCount(0);
+  await expect(page.getByLabel("Candidate name")).toHaveValue("Demo Student");
+  await page.screenshot({ path: "test-results/phase3-exam-candidate-cover-desktop.png", fullPage: true });
+  await page.getByLabel("Candidate name").fill("QA Candidate");
+  await page.getByLabel("Candidate number").fill("QA-001");
+  await page.getByRole("button", { name: "Start five-minute preparation" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Preparation period" })).toBeVisible();
+  await expect(page.locator(".exam-paper__question")).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "Answer sheet" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Preparation period" })).toBeVisible();
+  expect(expireLocalExamPreparation(attemptId)).toBe(attemptId);
+  await page.reload();
+  await expect.poll(() => page.locator(".exam-paper__question").count()).toBeGreaterThan(0);
+  const activeQuestionCount = await page.locator(".exam-paper__question").count();
+  expect(activeQuestionCount).toBeGreaterThan(0);
+  await expect(page.getByRole("complementary", { name: "Answer sheet" })).toBeVisible();
+  await expect(page.locator(".exam-answer-sheet__row")).toHaveCount(activeQuestionCount);
+  await page.screenshot({ path: "test-results/phase3-exam-paper-desktop.png", fullPage: true });
+  await page.route("**/rest/v1/rpc/save_exam_answer", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ code: "QA_OFFLINE", message: "Simulated temporary write failure" }) }));
+  await page.locator(".exam-answer-option input[type=radio]").first().check();
+  await expect(page.locator(".exam-save-state")).toContainText("Not saved");
+  await page.reload();
+  await expect(page.locator(".exam-answer-option input[type=radio]:checked")).toHaveCount(1);
+  await expect(page.locator(".exam-save-state")).toContainText("Not saved");
+  await page.unroute("**/rest/v1/rpc/save_exam_answer");
+  await page.getByRole("button", { name: "Retry saving unsaved answers" }).click();
+  await expect(page.locator(".exam-save-state")).toContainText("Saved");
+  await page.reload();
+  await expect(page.locator(".exam-answer-option input[type=radio]:checked")).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileDocumentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(mobileDocumentWidth).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: "test-results/phase3-exam-paper-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole("button", { name: "Finish section" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: /Grammar.*Reading/ })).toBeVisible();
+  await expect(page.locator(".exam-paper__question")).toHaveCount(3);
+  await page.getByRole("button", { name: "Finish section" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Listening" })).toBeVisible();
+  const listeningAudio = page.locator(".exam-audio-engine");
+  await expect(listeningAudio).toHaveCount(1);
+  await expect(listeningAudio).toHaveAttribute("preload", "auto");
+  expect(await listeningAudio.evaluate((element) => (element as HTMLAudioElement).controls)).toBe(false);
+  const playAudioButton = page.getByRole("button", { name: "Play listening audio" });
+  await expect(playAudioButton).toBeVisible();
+  await playAudioButton.click();
+  await expect.poll(() => playAudioButton.innerText()).toMatch(/Audio is playing|Audio completed/);
+  await page.getByRole("button", { name: "Submit the full attempt early" }).click();
+  await page.getByRole("button", { name: "Confirm submission" }).click();
+  await expect(page).toHaveURL(new RegExp(`/results/${attemptId}$`), { timeout: 15_000 });
 });
 
 test("N5 sample separates the printed question booklet from its mapped bubble sheet", async ({ page }) => {

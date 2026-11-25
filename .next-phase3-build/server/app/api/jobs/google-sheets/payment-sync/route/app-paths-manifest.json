@@ -1,0 +1,3 @@
+{
+  "/api/jobs/google-sheets/payment-sync/route": "app/api/jobs/google-sheets/payment-sync/route.js"
+}

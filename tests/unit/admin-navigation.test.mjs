@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getVisibleAdminNavigationGroups } from "../../src/lib/admin-navigation.ts";
 
-test("admin navigation uses the six proposed areas without duplicate destinations", () => {
+test("admin navigation uses the seven proposed areas without duplicate destinations", () => {
   const groups = getVisibleAdminNavigationGroups(["admin"]);
   const items = groups.flatMap((group) => group.items);
 
-  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Content", "Exams", "Users", "Payments", "System"]);
-  assert.equal(items.length, 23);
+  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Content", "Exams", "Students", "Payments", "Reports", "Settings"]);
+  assert.equal(items.length, 26);
   assert.equal(new Set(items.map((item) => item.href)).size, items.length);
 });
 
@@ -28,7 +28,7 @@ test("content editor navigation keeps the authoring and exam workflows", () => {
   ]);
 });
 
-test("reviewer navigation contains content review but no user, payment, or settings controls", () => {
+test("reviewer navigation contains content review and exam attempts but no user, payment, or settings controls", () => {
   const groups = getVisibleAdminNavigationGroups(["reviewer"]);
   const hrefs = groups.flatMap((group) => group.items.map((item) => item.href));
 

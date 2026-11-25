@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Clock3, Flag, Headphones, Send, WifiOff } from "lucide-react";
+import { ArrowRight, Check, Clock3, Flag, Headphones, Play, Send, WifiOff } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { LanguageSwitch } from "@/components/i18n/language-switch";
@@ -23,6 +23,7 @@ type ExamQuestion = {
   selected_option_id: string | null;
   is_flagged: boolean;
 };
+type StoredPendingAnswer = { form_item_id: string; selected_option_id: string | null };
 type AttemptSection = {
   section_code: string;
   section_order: number;
@@ -39,6 +40,11 @@ export type ExamAttemptPayload = {
     deadline_at: string;
     form_code: string;
     version: string;
+    preparation_required: boolean;
+    preparation_started_at: string | null;
+    preparation_deadline_at: string | null;
+    candidate_name: string | null;
+    candidate_number: string | null;
   };
   active_section: {
     section_code: string;
@@ -48,8 +54,95 @@ export type ExamAttemptPayload = {
   } | null;
   sections: AttemptSection[];
   questions: ExamQuestion[];
-  assets: Array<{ question_id: string; purpose: string; media_type: string; storage_path: string; duration_seconds: number | null }>;
+  assets: Array<{ question_id: string; purpose: string; media_type: string; storage_path: string; duration_seconds: number | null; play_count: number; recovery_used: boolean; playback_completed_at: string | null }>;
 };
+
+function ListeningAudioPlayer({ asset, src, attemptId, t }: {
+  asset: ExamAttemptPayload["assets"][number];
+  src: string;
+  attemptId: string;
+  t: (key: MessageKey, values?: Record<string, string | number>) => string;
+}) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const playbackStarted = useRef(false);
+  const [status, setStatus] = useState<"ready" | "claiming" | "playing" | "played" | "recovery">(() =>
+    asset.playback_completed_at ? "played" : asset.play_count > 0 ? "recovery" : "ready",
+  );
+  const [message, setMessage] = useState<MessageKey | null>(null);
+
+  async function play(recovery: boolean) {
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase || !audioRef.current) {
+      setMessage("exam.errorConfig");
+      return;
+    }
+    setMessage(null);
+    setStatus("claiming");
+    const { data, error: claimError } = await supabase.rpc("claim_exam_audio_playback", {
+      p_attempt_id: attemptId,
+      p_storage_path: asset.storage_path,
+      p_recovery: recovery,
+    });
+    if (claimError || data !== true) {
+      setStatus("played");
+      setMessage("exam.audioRecoveryUnavailable");
+      return;
+    }
+    playbackStarted.current = true;
+    try {
+      await audioRef.current.play();
+      setStatus("playing");
+    } catch {
+      setStatus("recovery");
+      setMessage("exam.audioFailure");
+    }
+  }
+
+  async function complete() {
+    setStatus("played");
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) return;
+    const args = { p_attempt_id: attemptId, p_storage_path: asset.storage_path };
+    const firstSave = await supabase.rpc("complete_exam_audio_playback", args);
+    if (firstSave.error) await supabase.rpc("complete_exam_audio_playback", args);
+  }
+
+  function failed() {
+    if (!playbackStarted.current) return;
+    playbackStarted.current = false;
+    setStatus("recovery");
+    setMessage("exam.audioFailure");
+  }
+
+  const recovery = status === "recovery" && asset.play_count < 2 && !asset.recovery_used && !asset.playback_completed_at;
+  const disabled = status === "claiming" || status === "playing" || status === "played" || (!recovery && status !== "ready");
+  return <div className="exam-question-media exam-question-media--listening">
+    <span><Headphones size={15} aria-hidden="true" /> {t("exam.listeningAudio")}</span>
+    <button className="exam-audio-start" type="button" disabled={disabled} onClick={() => void play(recovery)}>
+      <Play size={14} aria-hidden="true" /> {status === "ready" ? t("exam.playListening") : status === "claiming" ? t("exam.audioChecking") : recovery ? t("exam.retryListening") : status === "playing" ? t("exam.audioPlaying") : t("exam.audioPlayed")}
+    </button>
+    {message ? <p role="status">{t(message)}</p> : null}
+    <audio ref={audioRef} className="exam-audio-engine" aria-hidden="true" preload="auto" src={src} onEnded={() => void complete()} onError={failed} />
+  </div>;
+}
+
+function ExamAnswerSheet({ questions, t, onSelect, disabled }: {
+  questions: ExamQuestion[];
+  t: (key: MessageKey, values?: Record<string, string | number>) => string;
+  onSelect: (question: ExamQuestion, optionId: string, index: number) => void;
+  disabled: boolean;
+}) {
+  return <aside className="exam-answer-sheet" aria-label={t("exam.answerSheet")}>
+    <p>{t("exam.answerSheet")}</p>
+    <div className="exam-answer-sheet__rows">{questions.map((question, index) => <div className="exam-answer-sheet__row" key={question.form_item_id}>
+      <span className="exam-answer-sheet__number">{String(question.position).padStart(2, "0")}</span>
+      <div className="exam-answer-sheet__bubbles" role="group" aria-label={t("exam.question", { number: question.position })}>
+        {question.options.map((option) => <button className={question.selected_option_id === option.id ? "is-selected" : ""} type="button" key={option.id} disabled={disabled} aria-pressed={question.selected_option_id === option.id} aria-label={`${t("exam.question", { number: question.position })} · ${t("exam.selectAnswerOption", { option: option.id })}`} onClick={() => onSelect(question, option.id, index)}><span>{option.id}</span></button>)}
+      </div>
+      {question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}
+    </div>)}</div>
+  </aside>;
+}
 
 function content(value: unknown): React.ReactNode {
   if (typeof value === "string" || typeof value === "number") return String(value);
@@ -138,13 +231,76 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [mediaError, setMediaError] = useState(false);
   const [hasUnsavedAnswers, setHasUnsavedAnswers] = useState(false);
+  const [candidateName, setCandidateName] = useState(initialPayload.attempt.candidate_name ?? "");
+  const [candidateNumber, setCandidateNumber] = useState(initialPayload.attempt.candidate_number ?? "");
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const pendingAnswers = useRef(new Map<string, { question: ExamQuestion; selectedOptionId: string | null }>());
+  const pendingStorageKey = `jlpt-exam-pending-answers:${initialPayload.attempt.id}`;
   const timedOutKey = useRef("");
   const activeSection = payload.active_section;
+  const candidateCover = payload.attempt.preparation_required && !payload.attempt.preparation_started_at;
+  const preparationActive = payload.attempt.preparation_required && Boolean(payload.attempt.preparation_started_at) && !activeSection;
   const answeredCount = payload.questions.filter((question) => Boolean(question.selected_option_id)).length;
   const flaggedCount = payload.questions.filter((question) => question.is_flagged).length;
-  const finished = !activeSection && payload.attempt.status === "in_progress";
+  const finished = !activeSection && !candidateCover && !preparationActive && payload.attempt.status === "in_progress";
+
+  function persistPendingAnswers() {
+    try {
+      if (!pendingAnswers.current.size) {
+        window.sessionStorage.removeItem(pendingStorageKey);
+        return;
+      }
+      const stored: StoredPendingAnswer[] = Array.from(pendingAnswers.current.values(), ({ question, selectedOptionId }) => ({
+        form_item_id: question.form_item_id,
+        selected_option_id: selectedOptionId,
+      }));
+      window.sessionStorage.setItem(pendingStorageKey, JSON.stringify(stored));
+    } catch {
+      // Storage may be unavailable in private browsing; server writes still run.
+    }
+  }
+
+  function mergePendingAnswers(next: ExamAttemptPayload) {
+    if (!pendingAnswers.current.size) return next;
+    return {
+      ...next,
+      questions: next.questions.map((question) => {
+        const pending = pendingAnswers.current.get(question.form_item_id);
+        return pending ? { ...question, selected_option_id: pending.selectedOptionId } : question;
+      }),
+    };
+  }
+
+  useEffect(() => {
+    const restoreTimer = window.setTimeout(() => {
+      try {
+        const raw = window.sessionStorage.getItem(pendingStorageKey);
+        if (!raw) return;
+        const stored = JSON.parse(raw) as StoredPendingAnswer[];
+        if (!Array.isArray(stored)) throw new Error("Invalid pending answer data");
+        const questions = new Map(initialPayload.questions.map((question) => [question.form_item_id, question]));
+        const restored = new Map<string, { question: ExamQuestion; selectedOptionId: string | null }>();
+        for (const answer of stored) {
+          if (!answer || typeof answer.form_item_id !== "string") continue;
+          const question = questions.get(answer.form_item_id);
+          if (!question) continue;
+          if (answer.selected_option_id !== null && !question.options.some((option) => option.id === answer.selected_option_id)) continue;
+          restored.set(question.form_item_id, { question, selectedOptionId: answer.selected_option_id });
+        }
+        if (!restored.size) {
+          window.sessionStorage.removeItem(pendingStorageKey);
+          return;
+        }
+        pendingAnswers.current = restored;
+        setPayload((current) => mergePendingAnswers(current));
+        setHasUnsavedAnswers(true);
+        setSaveState("notSaved");
+      } catch {
+        try { window.sessionStorage.removeItem(pendingStorageKey); } catch { /* Storage remains optional. */ }
+      }
+    }, 0);
+    return () => window.clearTimeout(restoreTimer);
+  }, [initialPayload, pendingStorageKey]);
 
   useEffect(() => {
     function setOnlineStatus() { setOnline(navigator.onLine); }
@@ -169,15 +325,17 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
       return;
     }
     const next = data as ExamAttemptPayload;
-    setPayload(next);
+    setPayload(mergePendingAnswers(next));
+    setCandidateName(next.attempt.candidate_name ?? "");
+    setCandidateNumber(next.attempt.candidate_number ?? "");
     setSelectedIndex(0);
     if (["submitted", "expired"].includes(next.attempt.status)) router.replace(`/results/${next.attempt.id}`);
   }
 
   useEffect(() => {
-    const deadline = activeSection?.deadline_at;
+    const deadline = activeSection?.deadline_at ?? (preparationActive ? payload.attempt.preparation_deadline_at : null);
     if (!deadline) return;
-    const attemptKey = `${payload.attempt.id}:${activeSection.section_code}:${deadline}`;
+    const attemptKey = `${payload.attempt.id}:${activeSection?.section_code ?? "preparation"}:${deadline}`;
     const update = () => {
       const seconds = secondsUntil(deadline);
       setRemaining(seconds);
@@ -192,7 +350,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     // reloadAttempt is intentionally rebound to the current payload after the
     // deadline; including it would restart the interval after each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSection?.section_code, activeSection?.deadline_at, payload.attempt.id]);
+  }, [activeSection?.section_code, activeSection?.deadline_at, payload.attempt.preparation_deadline_at, preparationActive, payload.attempt.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -223,6 +381,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     if (!supabase) return setError("exam.errorConfig");
     setPayload((current) => ({ ...current, questions: current.questions.map((item) => item.form_item_id === question.form_item_id ? { ...item, selected_option_id: selectedOptionId } : item) }));
     pendingAnswers.current.set(question.form_item_id, { question, selectedOptionId });
+    persistPendingAnswers();
     setHasUnsavedAnswers(true);
     setSaveState("saving");
     setError(null);
@@ -236,6 +395,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
       if (saveError) throw saveError;
       const pending = pendingAnswers.current.get(question.form_item_id);
       if (pending?.selectedOptionId === selectedOptionId) pendingAnswers.current.delete(question.form_item_id);
+      persistPendingAnswers();
     });
     saveQueue.current = write;
     try {
@@ -304,6 +464,26 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
     router.refresh();
   }
 
+  async function beginPreparation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const supabase = createSupabaseBrowserClient();
+    if (!supabase) { setError("exam.errorConfig"); return; }
+    if (!candidateName.trim()) { setError("exam.candidateNameRequired"); return; }
+    setBusy(true);
+    setError(null);
+    const { error: preparationError } = await supabase.rpc("begin_exam_preparation", {
+      p_attempt_id: payload.attempt.id,
+      p_candidate_name: candidateName.trim(),
+      p_candidate_number: candidateNumber.trim() || null,
+    });
+    setBusy(false);
+    if (preparationError) {
+      setError("exam.errorPrep");
+      return;
+    }
+    await reloadAttempt();
+  }
+
   async function retryUnsavedAnswers() {
     const pending = Array.from(pendingAnswers.current.values());
     for (const answer of pending) await saveAnswer(answer.question, answer.selectedOptionId);
@@ -314,6 +494,11 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   function focusQuestion(index: number) {
     setSelectedIndex(index);
     window.requestAnimationFrame(() => document.getElementById(`exam-question-${payload.questions[index]?.form_item_id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  function selectFromAnswerSheet(question: ExamQuestion, optionId: string, index: number) {
+    focusQuestion(index);
+    void saveAnswer(question, optionId);
   }
 
   return (
@@ -328,31 +513,46 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
       <main className="exam-main" id="exam-content" tabIndex={-1}>
         <div className="exam-workspace">
           <div className="exam-workspace__head">
-            <div><span className="exam-kicker">{activeSection ? t("exam.timedSection", { order: activeSection.section_order }) : t("exam.reviewSection")}</span><h1>{activeSection ? label(activeSection.section_code, t, payload.attempt.level) : t("exam.readySubmit")}</h1><p>{t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</p></div>
-            {activeSection ? <div className="exam-clock" role="timer" aria-live="off" aria-label={t("exam.remaining", { time: formatTime(remaining) })}><Clock3 size={17} aria-hidden="true" /><span>{formatTime(remaining)}</span><small>{t("exam.sectionTime")}</small></div> : null}
+            <div><span className="exam-kicker">{candidateCover ? t("exam.candidateStep") : preparationActive ? t("exam.preparationStep") : activeSection ? t("exam.timedSection", { order: activeSection.section_order }) : t("exam.reviewSection")}</span><h1>{candidateCover ? t("exam.candidateTitle") : preparationActive ? t("exam.preparationTitle") : activeSection ? label(activeSection.section_code, t, payload.attempt.level) : t("exam.readySubmit")}</h1><p>{candidateCover ? t("exam.candidateLede") : preparationActive ? t("exam.preparationLede") : t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</p></div>
+            {activeSection || preparationActive ? <div className="exam-clock" role="timer" aria-live="off" aria-label={t("exam.remaining", { time: formatTime(remaining) })}><Clock3 size={17} aria-hidden="true" /><span>{formatTime(remaining)}</span><small>{activeSection ? t("exam.sectionTime") : t("exam.preparationTime")}</small></div> : null}
           </div>
           {!online ? <div className="exam-preview-banner exam-preview-banner--offline" role="status"><WifiOff size={15} aria-hidden="true" /> {t("exam.offline")}</div> : null}
-          {payload.sections.length > 0 ? <div className="exam-progress" aria-label={t("exam.sections")}>{payload.sections.map((section) => <div className={`exam-progress__section ${section.status === "active" ? "is-active" : ""} ${section.status === "completed" ? "is-answered" : ""}`} key={section.section_code} aria-current={section.status === "active" ? "step" : undefined}><span className="exam-progress__index">{String(section.section_order).padStart(2, "0")}</span><span className="exam-progress__name">{label(section.section_code, t, payload.attempt.level)}</span><span className="exam-progress__time">{label(section.status, t)}</span></div>)}</div> : null}
+          {!candidateCover && !preparationActive && payload.sections.length > 0 ? <div className="exam-progress" aria-label={t("exam.sections")}>{payload.sections.map((section) => <div className={`exam-progress__section ${section.status === "active" ? "is-active" : ""} ${section.status === "completed" ? "is-answered" : ""}`} key={section.section_code} aria-current={section.status === "active" ? "step" : undefined}><span className="exam-progress__index">{String(section.section_order).padStart(2, "0")}</span><span className="exam-progress__name">{label(section.section_code, t, payload.attempt.level)}</span><span className="exam-progress__time">{label(section.status, t)}</span></div>)}</div> : null}
 
-          {payload.questions.length > 0 && activeSection ? <div className="exam-question-layout">
+          {candidateCover ? <form className="exam-cover-paper" onSubmit={(event) => void beginPreparation(event)}>
+            <header className="exam-paper__header"><div><p>{t("exam.candidateCover")}</p><strong>Japanese-Language Proficiency Test · {payload.attempt.level}</strong></div><span>{payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</span></header>
+            <div className="exam-cover-title"><span>{t("exam.candidateStep")}</span><h2>{t("exam.candidateTitle")}</h2><p>{t("exam.candidateLede")}</p></div>
+            <div className="exam-cover-fields">
+              <label>{t("exam.candidateName")}<input autoComplete="name" required maxLength={120} value={candidateName} onChange={(event) => setCandidateName(event.target.value)} /></label>
+              <label>{t("exam.candidateNumber")} <span>{t("exam.optional")}</span><input maxLength={60} value={candidateNumber} onChange={(event) => setCandidateNumber(event.target.value)} /></label>
+            </div>
+            <dl className="exam-cover-facts"><div><dt>{t("exam.level")}</dt><dd>{payload.attempt.level}</dd></div><div><dt>{t("exam.form")}</dt><dd>{payload.attempt.form_code} · {payload.attempt.version}</dd></div></dl>
+            <div className="exam-paper__directions"><strong>{t("exam.instructions")}</strong><p>{t("exam.candidateInstructions")}</p></div>
+            <button className="exam-control" type="submit" disabled={busy}>{busy ? t("exam.preparationStarting") : t("exam.beginPreparation")} <ArrowRight size={16} aria-hidden="true" /></button>
+          </form> : preparationActive ? <section className="exam-preparation-panel">
+            <div className="exam-paper__header"><div><p>{t("exam.candidateCover")}</p><strong>Japanese-Language Proficiency Test · {payload.attempt.level}</strong></div><span>{payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</span></div>
+            <h2>{t("exam.preparationTitle")}</h2><p>{t("exam.preparationInstructions")}</p>
+            <dl className="exam-cover-facts"><div><dt>{t("exam.candidateName")}</dt><dd>{payload.attempt.candidate_name}</dd></div>{payload.attempt.candidate_number ? <div><dt>{t("exam.candidateNumber")}</dt><dd>{payload.attempt.candidate_number}</dd></div> : null}</dl>
+            <p className="exam-preparation-notice">{t("exam.preparationNotice")}</p>
+          </section> : payload.questions.length > 0 && activeSection ? <div className="exam-question-layout">
             <aside className="exam-question-rail" aria-label={t("exam.sectionQuestions")}>
               <p>{t("exam.sectionQuestionsHeading")}</p>
-              {payload.questions.map((question, index) => <button type="button" key={question.form_item_id} className={`exam-question-rail__item ${selectedIndex === index ? "is-active" : ""} ${question.selected_option_id ? "is-answered" : ""}`} onClick={() => focusQuestion(index)} aria-current={selectedIndex === index ? "step" : undefined}><span>{String(question.position).padStart(2, "0")}</span>{t("exam.question", { number: index + 1 })}{question.selected_option_id ? <Check size={14} aria-label={t("exam.answered")} /> : null}{question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}</button>)}
+              {payload.questions.map((question, index) => <button type="button" key={question.form_item_id} className={`exam-question-rail__item ${selectedIndex === index ? "is-active" : ""} ${question.selected_option_id ? "is-answered" : ""}`} onClick={() => focusQuestion(index)} aria-current={selectedIndex === index ? "step" : undefined}><span>{String(question.position).padStart(2, "0")}</span>{t("exam.question", { number: question.position })}{question.selected_option_id ? <Check size={14} aria-label={t("exam.answered")} /> : null}{question.is_flagged ? <Flag size={13} aria-label={t("exam.flagged")} /> : null}</button>)}
             </aside>
             <section className="exam-question-panel exam-paper" aria-label={`${label(activeSection.section_code, t, payload.attempt.level)} question paper`}>
               <header className="exam-paper__header"><div><p>Japanese-Language Proficiency Test · {payload.attempt.level}</p><strong>{label(activeSection.section_code, t, payload.attempt.level)}</strong></div><span>{payload.attempt.form_code} · {payload.attempt.version}</span></header>
-              <div className="exam-paper__candidate"><div><span>Candidate name</span><i /></div><div><span>Registration number</span><i /></div></div>
-              <div className="exam-paper__directions"><strong>Instructions</strong><p>Read each question and choose one answer. Questions in this timed section appear in order below; scroll the paper to continue. Your answers are saved as you select them.</p></div>
+              <div className="exam-paper__candidate"><div><span>{t("exam.candidateName")}</span><strong>{payload.attempt.candidate_name || "—"}</strong></div>{payload.attempt.candidate_number ? <div><span>{t("exam.candidateNumber")}</span><strong>{payload.attempt.candidate_number}</strong></div> : null}</div>
+              <div className="exam-paper__directions"><strong>{t("exam.instructions")}</strong><p>{t("exam.paperInstructions")}</p></div>
               {payload.questions.map((question, index) => {
                 const questionMedia = payload.assets.filter((asset) => asset.question_id === question.question_id);
                 return <article className={`exam-paper__question ${selectedIndex === index ? "is-active" : ""}`} id={`exam-question-${question.form_item_id}`} key={question.form_item_id} onFocus={() => setSelectedIndex(index)}>
-                  <div className="exam-question-panel__meta"><span>{label(question.item_type_code, t)}</span><span>{t("exam.questionPosition", { current: index + 1, total: payload.questions.length })}</span></div>
+                  <div className="exam-question-panel__meta"><span>{label(question.item_type_code, t)}</span><span>{t("exam.questionPosition", { current: question.position, total: payload.questions.length })}</span></div>
                   {question.stimulus ? <div className="exam-question-stimulus" lang="ja">{content(question.stimulus)}</div> : null}
                   <div className="exam-question-rich-content" lang="ja">{content(question.prompt)}</div>
                   {questionMedia.map((asset) => {
                     const url = mediaUrls[asset.storage_path];
                     if (!url) return null;
-                    return asset.media_type.startsWith("audio/") ? <div className="exam-question-media" key={asset.storage_path}><span><Headphones size={15} aria-hidden="true" /> {t("exam.listeningAudio")}</span><audio controls preload="metadata" src={url}>{t("exam.audioUnsupported")}</audio></div> : asset.media_type.startsWith("image/") ? <img className="exam-question-asset-image" key={asset.storage_path} src={url} alt={t("exam.questionImage")} /> : null;
+                    return asset.media_type.startsWith("audio/") ? <ListeningAudioPlayer asset={asset} attemptId={payload.attempt.id} key={asset.storage_path} src={url} t={t} /> : asset.media_type.startsWith("image/") ? <img className="exam-question-asset-image" key={asset.storage_path} src={url} alt={t("exam.questionImage")} /> : null;
                   })}
                   {mediaError ? <p className="exam-save-state" role="status">{t("exam.mediaUnavailable")}</p> : null}
                   <fieldset className="exam-answer-list">
@@ -366,6 +566,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
               {hasUnsavedAnswers ? <button className="exam-finish-link" type="button" disabled={!online || busy} onClick={() => void retryUnsavedAnswers()}>{t("exam.retrySave")}</button> : null}
               <div className="exam-question-panel__footer active-exam-footer"><span>{t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</span><button className="exam-control" type="button" disabled={busy} onClick={() => void advanceSection()}>{busy ? t("exam.savingSection") : t("exam.finishSection")} <ArrowRight size={16} aria-hidden="true" /></button></div>
             </section>
+            <ExamAnswerSheet questions={payload.questions} t={t} onSelect={selectFromAnswerSheet} disabled={busy || remaining <= 0} />
           </div> : <section className="exam-finish-panel">
             <h2>{finished ? t("exam.reviewAttempt") : t("exam.attemptClosed")}</h2>
             {finished ? <><p>{t("exam.finishSummary", { answered: answeredCount, unanswered, flagged: flaggedCount })}</p>{confirmSubmit ? <div className="exam-submit-confirm" role="group" aria-label={t("exam.confirmGroup")}><p>{t("exam.submitWarning")}</p><button className="exam-control" type="button" disabled={busy} onClick={() => void submitAttempt()}>{busy ? t("exam.submitting") : t("exam.confirmSubmission")} <Send size={15} aria-hidden="true" /></button><button className="exam-control exam-control--quiet" type="button" disabled={busy} onClick={() => setConfirmSubmit(false)}>{t("exam.continueReviewing")}</button></div> : <button className="exam-control" type="button" onClick={() => setConfirmSubmit(true)}>{t("exam.reviewSubmit")} <Send size={15} aria-hidden="true" /></button>}</> : <p>{t("exam.loadingStatus")}</p>}

@@ -19,7 +19,7 @@ from (values
   ('question_families'), ('questions'), ('question_answer_keys'), ('tags'), ('question_tags'),
   ('passage_groups'), ('content_group_items'), ('content_assets'), ('question_assets'), ('question_reviews'),
   ('exam_blueprints'), ('blueprint_slots'), ('exam_forms'), ('exam_form_items'),
-  ('exam_attempts'), ('attempt_sections'), ('attempt_answers'), ('exam_results'), ('user_question_stats'),
+  ('exam_attempts'), ('attempt_sections'), ('attempt_answers'), ('attempt_media_playbacks'), ('exam_results'), ('user_question_stats'),
   ('practice_sessions'), ('practice_session_items'), ('user_question_reviews'),
   ('plans'), ('manual_payment_settings'), ('payment_submissions'), ('user_entitlements'), ('payment_audit_events'),
   ('admin_audit_events'), ('announcements'), ('admin_exports'),

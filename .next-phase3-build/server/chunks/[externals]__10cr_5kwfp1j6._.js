@@ -1,0 +1,3 @@
+module.exports=[2157,(e,r,o)=>{r.exports=e.x("node:fs",()=>require("node:fs"))},50227,(e,r,o)=>{r.exports=e.x("node:path",()=>require("node:path"))},59639,(e,r,o)=>{r.exports=e.x("node:process",()=>require("node:process"))},18352,(e,r,o)=>{r.exports=e.x("node:stream/web",()=>require("node:stream/web"))},37702,(e,r,o)=>{r.exports=e.x("worker_threads",()=>require("worker_threads"))}];
+
+//# sourceMappingURL=%5Bexternals%5D__10cr_5kwfp1j6._.js.map

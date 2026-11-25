@@ -1,0 +1,49 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/exams/layout,_N_T_/exams/n5/layout,_N_T_/exams/n5/preview/layout,_N_T_/exams/n5/preview/session/layout,_N_T_/exams/n5/preview/session/page,_N_T_/exams/n5/preview/session"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/exams/n5/preview/session/__PAGE__"
+  ],
+  "prefetchHints": {
+    "hints": 64,
+    "slots": {
+      "children": {
+        "hints": 96,
+        "slots": {
+          "children": {
+            "hints": 96,
+            "slots": {
+              "children": {
+                "hints": 96,
+                "slots": {
+                  "children": {
+                    "hints": 96,
+                    "slots": {
+                      "children": {
+                        "hints": 160,
+                        "slots": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/9249f391c07d0b8a0a6363cbd5fae9ba41a12d4cc4dc5ca2b7b070da0aa03e82/$/exams/n5/preview/session",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/exams/n5/preview/session/page"
+    },
+    "isFallback": false
+  }
+}

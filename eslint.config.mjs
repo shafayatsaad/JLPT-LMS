@@ -8,6 +8,7 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     ".next-production-demo/**",
+    ".next-*/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

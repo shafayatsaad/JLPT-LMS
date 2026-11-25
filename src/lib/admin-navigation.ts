@@ -49,8 +49,8 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
     ],
   },
   {
-    id: "users",
-    title: "Users",
+    id: "students",
+    title: "Students",
     items: [
       { href: "/admin/users", title: "Students and Staff", roles: admins },
       { href: "/admin/support", title: "Support Requests", roles: supportStaff },
@@ -67,16 +67,25 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
     ],
   },
   {
-    id: "system",
-    title: "System",
+    id: "reports",
+    title: "Reports",
     items: [
       { href: "/admin/reports", title: "Reports & Exports", roles: paymentStaff },
       { href: "/admin/attempts", title: "Exam Attempts", roles: reviewers },
+      { href: "/admin/audit", title: "Audit Log", roles: admins },
+    ],
+  },
+  {
+    id: "settings",
+    title: "Settings",
+    items: [
+      { href: "/admin/settings", title: "Platform Settings", roles: admins },
+      { href: "/admin/staff", title: "Staff and Roles", roles: admins },
       { href: "/admin/announcements", title: "Announcements", roles: admins },
       { href: "/admin/privacy", title: "Privacy Requests", roles: admins },
-      { href: "/admin/audit", title: "Audit Log", roles: admins },
       { href: "/admin/settings/integrations", title: "Integrations", roles: admins },
-      { href: "/admin/settings", title: "Platform Settings", roles: admins },
+      { href: "/admin/settings/security", title: "Security", roles: admins },
+      { href: "/admin/settings/notifications", title: "Notifications", roles: admins },
     ],
   },
 ];

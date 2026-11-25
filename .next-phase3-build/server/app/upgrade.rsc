@@ -1,0 +1,39 @@
+1:"$Sreact.fragment"
+2:"/_next/static/chunks/1s7pj-27s29_p.js"
+3:"/_next/static/chunks/40mmq5q0idjfq.js"
+4:I[79520,["$2","$3"],""]
+5:I[10382,["$2","$3"],"LocaleProvider"]
+6:"DisplayPreferenceSync"
+7:I[1713,["$2","$3"],"$6"]
+8:I[39756,["$2","$3"],"default"]
+9:I[37457,["$2","$3"],"default"]
+a:"OrigamiScrollReveal"
+b:I[71280,["$2","$3"],"$a"]
+10:I[97367,["$2","$3"],"OutletBoundary"]
+11:"$Sreact.suspense"
+13:"ViewportBoundary"
+14:I[97367,["$2","$3"],"$13"]
+16:"MetadataBoundary"
+17:I[97367,["$2","$3"],"$16"]
+19:I[68027,["$2","$3"],"default",1]
+:HL["https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=Shippori+Mincho:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap","style"]
+:HL["/hero/origami-sakura-tree.webp","image",{"type":"image/webp"}]
+:HL["/assets/system.css","style"]
+:HL["/assets/ui/cards.css","style"]
+:HL["/assets/motion/motion.css","style"]
+:HL["/assets/backgrounds/backgrounds.css","style"]
+:HL["/assets/layout/layout.css","style"]
+:HL["/assets/icons/icon.css","style"]
+:HL["/assets/ui/base.css","style"]
+:HL["/assets/ui/window/fragment.css","style"]
+:HL["/css/site.css","style"]
+d:X
+e:[["children",{"s":"__PAGE__","h":512,"d":{"r":["$","$1","c",{"children":["$Lf",null,["$","$L10",null,{"children":["$","$11",null,{"name":"Next.MetadataOutlet","children":"$@12"}]}]]}],"p":false,"v":null}}]]
+c:[["children",{"s":"upgrade","h":512,"d":{"r":["$","$1","c",{"children":[null,["$","$L8",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L9",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],"p":false,"v":"$d"},"c":"$Qe"}]]
+0:{"P":null,"c":["","upgrade"],"q":"","i":false,"t":{"t":{"s":"","h":528,"d":{"r":["$","$1","c",{"children":[[["$","script","script-0",{"src":"/_next/static/chunks/1s7pj-27s29_p.js","async":true,"nonce":"$undefined"}],["$","script","script-1",{"src":"/_next/static/chunks/40mmq5q0idjfq.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"en","data-type":"software","data-radius":"soft","data-ground":"sand","data-buttons":"solid","data-motion":true,"suppressHydrationWarning":true,"children":[["$","head",null,{"children":[["$","meta",null,{"name":"page-type","content":"software"}],["$","meta",null,{"name":"site-kind","content":"software"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","link",null,{"href":"https://fonts.googleapis.com/css2?family=Outfit:wght@400..700&family=Shippori+Mincho:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap","rel":"stylesheet"}],["$","link",null,{"rel":"preload","as":"image","href":"/hero/origami-sakura-tree.webp","type":"image/webp"}],["$","link",null,{"rel":"stylesheet","href":"/assets/system.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/ui/cards.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/motion/motion.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/backgrounds/backgrounds.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/layout/layout.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/icons/icon.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/ui/base.css"}],["$","link",null,{"rel":"stylesheet","href":"/assets/ui/window/fragment.css"}],["$","link",null,{"rel":"stylesheet","href":"/css/site.css"}]]}],["$","body",null,{"children":[["$","$L4",null,{"id":"motion-first-paint","strategy":"beforeInteractive","children":"document.documentElement.classList.add(\"m-enter\");window.setTimeout(()=>document.documentElement.classList.add(\"m-enter-done\"),700);"}],["$","$L5",null,{"children":[["$","$L7",null,{}],["$","$L8",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L9",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]]}],["$","$Lb",null,{}],["$","$L4",null,{"src":"/assets/system.js","type":"module","strategy":"afterInteractive"}],["$","$L4",null,{"src":"/assets/layout/layout.js","type":"module","strategy":"afterInteractive"}],["$","$L4",null,{"src":"/js/moment-route-sync.js","type":"module","strategy":"afterInteractive"}],["$","$L4",null,{"src":"/assets/motion/motion.js","type":"module","strategy":"afterInteractive"}]]}]]}]]}],"p":false,"v":null},"c":"$Qc"},"h":{"r":["$","$1","h",{"children":[null,["$","$L14",null,{"children":"$L15"}],["$","$L17",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$11",null,{"name":"Next.Metadata","children":"$L18"}]}],null]}],null]}],"p":false,"v":null}},"m":"$undefined","G":["$19",[]],"S":true,"r":"$undefined","s":"$undefined","a":"$undefined","l":"$undefined","p":"$undefined","d":"$undefined","b":"gvrI9yDdTicw4x7W8OtHK"}
+f:E{"digest":"NEXT_REDIRECT;replace;/pricing;307;"}
+d:C
+15:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#FBFAF7"}]]
+1a:I[27201,["$2","$3"],"IconMark"]
+12:null
+18:[["$","title","0",{"children":"JLPT Mock Exams for N1–N5"}],["$","meta","1",{"name":"description","content":"Prepare for JLPT N1–N5 with timed mock exams, answer explanations, and focused practice from reviewed questions."}],["$","meta","2",{"property":"og:title","content":"JLPT Mock Exams for N1–N5"}],["$","meta","3",{"property":"og:description","content":"Timed JLPT practice with answer explanations and mistake review."}],["$","meta","4",{"property":"og:image","content":"http://localhost:3000/share.jpg"}],["$","meta","5",{"property":"og:image:width","content":"1200"}],["$","meta","6",{"property":"og:image:height","content":"630"}],["$","meta","7",{"property":"og:image:alt","content":"Origami Sakura tree on a warm paper background"}],["$","meta","8",{"property":"og:type","content":"website"}],["$","meta","9",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","10",{"name":"twitter:title","content":"JLPT Mock Exams for N1–N5"}],["$","meta","11",{"name":"twitter:description","content":"Timed JLPT practice with answer explanations and mistake review."}],["$","meta","12",{"name":"twitter:image","content":"http://localhost:3000/share.jpg"}],["$","link","13",{"rel":"icon","href":"/icon.svg","type":"image/svg+xml"}],["$","link","14",{"rel":"icon","href":"/favicon.ico","sizes":"any"}],["$","link","15",{"rel":"apple-touch-icon","href":"/apple-touch-icon.png"}],["$","$L1a","16",{}]]

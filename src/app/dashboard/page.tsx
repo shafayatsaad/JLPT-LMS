@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, BookOpen, RotateCcw } from "lucide-react";
+import { ArrowUpRight, BookOpen, RotateCcw, Trophy } from "lucide-react";
 import { ProductPage, ProductSection, PaperPanel } from "@/components/product-page";
 import { requireSignedInUser } from "@/lib/auth";
 import { LocalizedText } from "@/components/i18n/localized-text";
@@ -43,6 +43,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       p_limit: 1,
     }),
   ]);
+  const leaderboardLevel = levels.includes(profile?.target_level as (typeof levels)[number]) ? profile!.target_level! : "N5";
+  const { data: leaderboardData, error: leaderboardError } = await supabase.rpc("get_student_leaderboard", {
+    p_level: leaderboardLevel,
+    p_period: "all_time",
+    p_limit: 3,
+  });
+  const leaderboardRows = (leaderboardData ?? []) as Array<{ rank: number; learner_alias: string; score_percent: number; is_current_user: boolean }>;
   const activeAttempt = attempts?.find((attempt) => attempt.status === "in_progress");
   const completedAttempts = (attempts ?? []).filter((attempt) => ["submitted", "expired"].includes(attempt.status)).slice(0, 3);
   const language = profile?.ui_language === "bn" ? "bn-BD" : "en";
@@ -96,6 +103,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       <ProductSection title="Mistake review" titleKey="dashboard.reviewMistakes" className="product-section--compact">
         <PaperPanel className="student-dashboard-review"><div><span className="panel-icon"><RotateCcw aria-hidden="true" /></span><p>{mistakesError ? <LocalizedText messageKey="dashboard.mistakesUnavailable" /> : mistakes?.length ? <LocalizedText messageKey="dashboard.mistakesAvailable" /> : <LocalizedText messageKey="dashboard.mistakesEmpty" />}</p></div><Link className="btn btn--secondary" href="/mistakes"><LocalizedText messageKey="dashboard.openMistakes" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></PaperPanel>
+      </ProductSection>
+
+      <ProductSection title="Leaderboard" titleKey="dashboard.leaderboard" className="product-section--compact">
+        <PaperPanel className="data-panel student-dashboard-leaderboard">
+          {leaderboardError ? <p className="inline-notice"><LocalizedText messageKey="dashboard.leaderboardError" /></p> : leaderboardRows.length ? <ol>{leaderboardRows.map((row) => <li key={row.rank}><span><strong>#{row.rank}</strong> {row.learner_alias}{row.is_current_user ? <span className="leaderboard-you"> · <LocalizedText messageKey="leaderboard.you" /></span> : null}</span><strong>{Number(row.score_percent).toFixed(1)}%</strong></li>)}</ol> : <div className="empty-state"><p><LocalizedText messageKey="dashboard.leaderboardEmpty" /></p><Link className="text-link" href="/exams"><LocalizedText messageKey="dashboard.openExams" /> <ArrowUpRight size={14} aria-hidden="true" /></Link></div>}
+          <Link className="btn btn--secondary" href="/leaderboard"><Trophy size={15} aria-hidden="true" /> <LocalizedText messageKey="dashboard.leaderboardView" /> <ArrowUpRight size={14} aria-hidden="true" /></Link>
+        </PaperPanel>
       </ProductSection>
     </ProductPage>
   );

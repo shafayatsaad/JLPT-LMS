@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { Bell } from "lucide-react";
 import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -24,6 +25,7 @@ export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolea
           { href: "/exams", label: t("nav.mockExams") },
           { href: "/practice", label: t("nav.practice") },
           { href: "/progress", label: t("nav.results") },
+          { href: "/leaderboard", label: t("nav.leaderboard") },
           { href: "/account", label: t("nav.profile") },
         ]
     : [
@@ -65,6 +67,7 @@ export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolea
   return <>
     <nav className="nav__links" aria-label={signedIn ? t("nav.ariaAccount") : t("nav.ariaSignIn")}>
       {links.map((link) => <div className="nav__item" key={link.href}><Link className="nav__link" href={link.href} aria-current={isCurrent(link.href) ? "page" : undefined} onClick={closeMobileMenu}>{link.label}</Link></div>)}
+      {signedIn ? <div className="nav__item nav__item--notification"><Link className="nav__link nav__notification-link" href="/notifications" aria-label={t("nav.notifications")} aria-current={isCurrent("/notifications") ? "page" : undefined} onClick={closeMobileMenu}><Bell size={18} aria-hidden="true" /><span className="sr-only">{t("nav.notifications")}</span></Link></div> : null}
       {signedIn ? <div className="nav__item nav__item--signout"><SignOutButton className="nav__link nav__signout" onSignedOut={closeMobileMenu} /></div> : null}
     </nav>
     <LanguageSwitch compact />

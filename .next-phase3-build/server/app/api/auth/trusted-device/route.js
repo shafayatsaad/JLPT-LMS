@@ -1,0 +1,10 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/auth/trusted-device/route.js")
+R.c("server/chunks/[externals]__05on1pvtwzh3g._.js")
+R.c("server/chunks/_1iz06k_f36yf2._.js")
+R.c("server/chunks/_09zrjv39lr-4a._.js")
+R.c("server/chunks/[root-of-the-server]__0banx8fitr4nk._.js")
+R.c("server/chunks/node_modules_1ybvdkdo81kio._.js")
+R.c("server/chunks/node_modules_next_1zdbrneapig6o._.js")
+R.c("server/chunks/_next-internal_server_app_api_auth_trusted-device_route_actions_010_fy311at2v.js")
+R.m(77806)
+module.exports=R.m(77806).exports

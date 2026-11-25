@@ -23,6 +23,7 @@ const expectedTables = [
   "exam_attempts",
   "attempt_sections",
   "attempt_answers",
+  "attempt_media_playbacks",
   "exam_results",
   "user_question_stats",
   "practice_sessions",
