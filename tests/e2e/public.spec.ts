@@ -333,7 +333,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
   const sections = page.getByRole("navigation", { name: "Staff areas" });
-  await expect(sections.getByRole("link")).toHaveText(["Dashboard", "Content", "Exams", "Students", "Payments", "Reports", "Settings"]);
+  await expect(sections.getByRole("link")).toHaveText(["Overview", "Content", "Exams", "Students", "Payments", "Reports & Settings"]);
   await expect(page.getByRole("navigation", { name: "Content tools" })).toHaveCount(0);
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-dashboard-desktop.png", fullPage: true });
@@ -563,6 +563,7 @@ test("local administrator opens staff workspace and learner view remains separat
       await expect(slotQuestion).toBeVisible();
       await slotQuestion.locator('input[type="checkbox"]').check();
     }
+    await authorPage.getByLabel("Access tier").selectOption("free");
     const uploadedListeningQuestionId = localQuestionId(importContentKey);
     expect(uploadedListeningQuestionId).toMatch(/^[0-9a-f-]{36}$/i);
     const uploadedListeningQuestion = authorPage.locator(".workflow-question").filter({ hasText: uploadedListeningQuestionId.slice(0, 12) });
@@ -623,6 +624,10 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.locator('input[type="password"]').fill("N5learn26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto(`/exams/${createdFormId}`);
+  await page.getByRole("button", { name: "Start mock exam" }).click();
+  await expect(page.getByRole("alert")).toContainText("active Premium entitlement");
+  await expect(page.getByRole("link", { name: /Choose a plan and unlock this mock/ })).toHaveAttribute("href", `/pricing?next=${encodeURIComponent(`/exams/${createdFormId}`)}`);
   await page.goto(`/exams/${audioFormId}`);
   await expect(page.getByRole("heading", { level: 1, name: audioFormCode })).toBeVisible();
   await page.getByRole("button", { name: "Start mock exam" }).click();
