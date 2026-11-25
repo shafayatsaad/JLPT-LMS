@@ -37,6 +37,12 @@ function localQuestionStatus(contentKey: string) {
   return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
 }
 
+function localQuestionId(contentKey: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(contentKey)) throw new Error("Invalid local content key.");
+  const sql = `select id from public.questions where content_key = '${contentKey}' order by revision desc limit 1`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
 function localAssetStatuses(contentKey: string) {
   const sql = `select string_agg(a.status::text, ',' order by a.id) from public.questions q join public.question_assets qa on qa.question_id = q.id join public.content_assets a on a.id = qa.asset_id where q.content_key = '${contentKey}'`;
   return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
@@ -378,6 +384,8 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page.getByRole("spinbutton", { name: "Version" })).toHaveValue(expectedFormVersion);
   for (let index = 0; index < 6; index++) await eligibleQuestionInputs.nth(index).check();
   const testFormCode = `N5-PHASE2-${randomUUID().slice(0, 8)}`.toUpperCase();
+  let audioFormCode = "";
+  let audioFormId = "";
   await page.getByLabel("Form code").fill(testFormCode);
   const createFormButton = page.getByRole("button", { name: "Create draft form · 6 questions" });
   await expect(createFormButton).toBeEnabled();
@@ -446,8 +454,8 @@ test("local administrator opens staff workspace and learner view remains separat
     source_type: "original",
     assets: [{ file: "tree.png", purpose: "question_image" }, { file: "prompt.wav", purpose: "question_audio" }],
     question: {
-      content_key: importContentKey, revision: 1, level: "N5", test_section_code: "vocabulary",
-      score_category_code: "language-knowledge-reading", item_type_code: "kanji-reading", tags: ["vocabulary", "phase2-demo"],
+      content_key: importContentKey, revision: 1, level: "N5", test_section_code: "listening",
+      score_category_code: "listening", item_type_code: "quick-response", tags: ["listening", "phase3-demo"],
       difficulty_estimate: 1, prompt: [{ type: "text", text: importPrompt }],
       options: ["はる", "なつ", "あき", "ふゆ"].map((text, index) => ({ id: String.fromCharCode(65 + index), content: [{ type: "text", text }] })),
     },
@@ -459,7 +467,7 @@ test("local administrator opens staff workspace and learner view remains separat
   writeFileSync(join(importDirectory, "prompt.wav"), demoWaveFile());
   await packageInput.setInputFiles(importDirectory);
   await expect(page.getByText(/1 question drafts · 2 referenced media files/)).toBeVisible();
-  await expect(page.locator(".question-batch-import__preview")).toContainText("kanji_reading");
+  await expect(page.locator(".question-batch-import__preview")).toContainText("quick_response");
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-import-preview-desktop.png", fullPage: true });
   await page.getByRole("button", { name: "Import 1 question with media" }).click();
@@ -528,6 +536,52 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(reviewerAssets).toHaveCount(0);
   expect(localAssetStatuses(importContentKey)).toBe("approved,approved");
 
+  const browser = page.context().browser();
+  if (!browser) throw new Error("The local staff workflow needs a Chromium browser context.");
+  const authorContext = await browser.newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const authorPage = await authorContext.newPage();
+    await authorPage.goto("/admin/sign-in");
+    await authorPage.locator('input[autocomplete="username"]').fill("admin@n5.test");
+    await authorPage.locator('input[type="password"]').fill("N5admin26");
+    await authorPage.getByRole("button", { name: /sign in/i }).click();
+    await expect(authorPage).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+    await authorPage.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
+    await authorPage.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(authorPage).toHaveURL(/\/admin$/, { timeout: 15_000 });
+    await authorPage.goto("/admin/exam-forms");
+    await authorPage.getByLabel("Approved blueprint").selectOption({ label: "N5 · version 1" });
+    const requiredQuestionSlots = [
+      "vocabulary · kanji_reading",
+      "vocabulary · orthography",
+      "grammar-reading · sentential_grammar_form",
+      "grammar-reading · sentence_composition",
+      "grammar-reading · text_grammar",
+    ];
+    for (const slotLabel of requiredQuestionSlots) {
+      const slotQuestion = authorPage.locator(".workflow-question").filter({ hasText: slotLabel }).first();
+      await expect(slotQuestion).toBeVisible();
+      await slotQuestion.locator('input[type="checkbox"]').check();
+    }
+    const uploadedListeningQuestionId = localQuestionId(importContentKey);
+    expect(uploadedListeningQuestionId).toMatch(/^[0-9a-f-]{36}$/i);
+    const uploadedListeningQuestion = authorPage.locator(".workflow-question").filter({ hasText: uploadedListeningQuestionId.slice(0, 12) });
+    await expect(uploadedListeningQuestion).toBeVisible();
+    await uploadedListeningQuestion.locator('input[type="checkbox"]').check();
+    audioFormCode = `N5-PHASE3-${randomUUID().slice(0, 8)}`.toUpperCase();
+    await authorPage.getByLabel("Form code").fill(audioFormCode);
+    await authorPage.getByRole("button", { name: "Create draft form · 6 questions" }).click();
+    await expect(authorPage.getByRole("status")).toContainText(`Draft form ${audioFormCode} created`);
+    await authorPage.reload();
+    const audioForm = authorPage.locator(".workflow-form-card").filter({ hasText: audioFormCode });
+    await expect(audioForm).toContainText("draft");
+    const audioFormHref = await audioForm.getByRole("link", { name: "Inspect form manifest" }).getAttribute("href");
+    audioFormId = audioFormHref?.split("/").at(-1) ?? "";
+    expect(audioFormId).toMatch(/^[0-9a-f-]{36}$/i);
+  } finally {
+    await authorContext.close();
+  }
+
   await page.goto("/admin/exam-forms");
   const reviewerForm = page.locator(".workflow-form-card").filter({ hasText: testFormCode });
   await expect(reviewerForm).toContainText("draft");
@@ -543,6 +597,13 @@ test("local administrator opens staff workspace and learner view remains separat
   expect(publishedExamFormRejectsMutation(createdFormId)).toBe(true);
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-exam-builder-published-desktop.png", fullPage: true });
+  const reviewerAudioForm = page.locator(".workflow-form-card").filter({ hasText: audioFormCode });
+  await expect(reviewerAudioForm).toContainText("draft");
+  await reviewerAudioForm.locator("textarea").fill("QA form with an independently reviewed audio asset attached to the listening item.");
+  await reviewerAudioForm.getByRole("button", { name: "Validate form" }).click();
+  await expect(reviewerAudioForm).toContainText("validated");
+  await reviewerAudioForm.getByRole("button", { name: "Publish frozen form" }).click();
+  await expect(reviewerAudioForm).toContainText("published · frozen");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/admin/questions");
@@ -562,8 +623,8 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.locator('input[type="password"]').fill("N5learn26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await page.goto(`/exams/${createdFormId}`);
-  await expect(page.getByRole("heading", { level: 1, name: testFormCode })).toBeVisible();
+  await page.goto(`/exams/${audioFormId}`);
+  await expect(page.getByRole("heading", { level: 1, name: audioFormCode })).toBeVisible();
   await page.getByRole("button", { name: "Start mock exam" }).click();
   await expect(page).toHaveURL(/\/attempts\/[0-9a-f-]{36}$/i);
   const attemptId = page.url().split("/").at(-1) ?? "";
@@ -572,6 +633,10 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page.getByRole("complementary", { name: "Answer sheet" })).toHaveCount(0);
   await expect(page.getByLabel("Candidate name")).toHaveValue("Demo Student");
   await page.screenshot({ path: "test-results/phase3-exam-candidate-cover-desktop.png", fullPage: true });
+  await page.getByRole("link", { name: "Exit to dashboard" }).click();
+  await expect(page.getByRole("heading", { name: "Leave this attempt?" })).toBeVisible();
+  await page.getByRole("button", { name: "Stay in exam" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Candidate information" })).toBeVisible();
   await page.getByLabel("Candidate name").fill("QA Candidate");
   await page.getByLabel("Candidate number").fill("QA-001");
   await page.getByRole("button", { name: "Start five-minute preparation" }).click();
@@ -613,7 +678,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(listeningAudio).toHaveCount(1);
   await expect(listeningAudio).toHaveAttribute("preload", "auto");
   expect(await listeningAudio.evaluate((element) => (element as HTMLAudioElement).controls)).toBe(false);
-  const playAudioButton = page.getByRole("button", { name: "Play listening audio" });
+  const playAudioButton = page.locator(".exam-audio-start");
   await expect(playAudioButton).toBeVisible();
   await playAudioButton.click();
   await expect.poll(() => playAudioButton.innerText()).toMatch(/Audio is playing|Audio completed/);
