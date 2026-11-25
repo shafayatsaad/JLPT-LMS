@@ -228,6 +228,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   const [busy, setBusy] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
+  const [exitAction, setExitAction] = useState<"dashboard" | "signOut">("dashboard");
   const [online, setOnline] = useState(true);
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [mediaError, setMediaError] = useState(false);
@@ -238,6 +239,7 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   const pendingAnswers = useRef(new Map<string, { question: ExamQuestion; selectedOptionId: string | null }>());
   const pendingStorageKey = `jlpt-exam-pending-answers:${initialPayload.attempt.id}`;
   const timedOutKey = useRef("");
+  const signOutAfterConfirmation = useRef<(() => void) | null>(null);
   const activeSection = payload.active_section;
   const candidateCover = payload.attempt.preparation_required && !payload.attempt.preparation_started_at;
   const preparationActive = payload.attempt.preparation_required && Boolean(payload.attempt.preparation_started_at) && !activeSection;
@@ -313,6 +315,34 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
       window.removeEventListener("offline", setOnlineStatus);
     };
   }, []);
+
+  useEffect(() => {
+    if (payload.attempt.status !== "in_progress") return;
+    const guardedUrl = window.location.href;
+    const currentState = window.history.state && typeof window.history.state === "object" ? window.history.state as Record<string, unknown> : {};
+    const guardState = { ...currentState, __jlptExamAttempt: payload.attempt.id };
+    if (currentState.__jlptExamAttempt !== payload.attempt.id) window.history.pushState(guardState, "", guardedUrl);
+
+    function guardPageClose(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    function guardBrowserBack(event: PopStateEvent) {
+      event.stopImmediatePropagation();
+      window.history.pushState(guardState, "", guardedUrl);
+      signOutAfterConfirmation.current = null;
+      setExitAction("dashboard");
+      setConfirmExit(true);
+    }
+
+    window.addEventListener("beforeunload", guardPageClose);
+    window.addEventListener("popstate", guardBrowserBack, true);
+    return () => {
+      window.removeEventListener("beforeunload", guardPageClose);
+      window.removeEventListener("popstate", guardBrowserBack, true);
+    };
+  }, [payload.attempt.id, payload.attempt.status]);
 
   async function reloadAttempt() {
     const supabase = createSupabaseBrowserClient();
@@ -468,7 +498,31 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
   function requestDashboardExit(event: React.MouseEvent<HTMLAnchorElement>) {
     if (payload.attempt.status !== "in_progress") return;
     event.preventDefault();
+    signOutAfterConfirmation.current = null;
+    setExitAction("dashboard");
     setConfirmExit(true);
+  }
+
+  function requestSignOutConfirmation(continueSignOut: () => void) {
+    signOutAfterConfirmation.current = continueSignOut;
+    setExitAction("signOut");
+    setConfirmExit(true);
+  }
+
+  function cancelExitConfirmation() {
+    signOutAfterConfirmation.current = null;
+    setConfirmExit(false);
+  }
+
+  function confirmExitDestination() {
+    const continueSignOut = signOutAfterConfirmation.current;
+    signOutAfterConfirmation.current = null;
+    setConfirmExit(false);
+    if (continueSignOut) {
+      continueSignOut();
+      return;
+    }
+    router.push("/dashboard");
   }
 
   async function beginPreparation(event: React.FormEvent<HTMLFormElement>) {
@@ -515,10 +569,10 @@ export function ActiveExamSession({ initialPayload }: { initialPayload: ExamAtte
         <Link className="exam-topbar__brand" href="/dashboard" onClick={requestDashboardExit}><span aria-hidden="true">JLPT</span><strong>{t("exam.workspace")}</strong></Link>
         <p>JLPT {payload.attempt.level} · {payload.attempt.form_code} · {t("exam.form")} {payload.attempt.version}</p>
         <LanguageSwitch compact />
-        <div className="exam-topbar__account-actions"><Link className="exam-topbar__exit" href="/dashboard" onClick={requestDashboardExit}>{t("exam.exitDashboard")}</Link><SignOutButton className="exam-topbar__signout" /></div>
+        <div className="exam-topbar__account-actions"><Link className="exam-topbar__exit" href="/dashboard" onClick={requestDashboardExit}>{t("exam.exitDashboard")}</Link><SignOutButton className="exam-topbar__signout" onRequestSignOut={requestSignOutConfirmation} /></div>
       </header>
       <main className="exam-main" id="exam-content" tabIndex={-1}>
-        {confirmExit ? <section className="exam-exit-confirm" role="group" aria-labelledby="exam-exit-title"><h2 id="exam-exit-title">{t("exam.exitConfirmTitle")}</h2><p>{t("exam.exitConfirmBody")}</p><div><button className="exam-control" type="button" onClick={() => router.push("/dashboard")}>{t("exam.confirmExit")}</button><button className="exam-control exam-control--quiet" type="button" onClick={() => setConfirmExit(false)}>{t("exam.stayInExam")}</button></div></section> : null}
+        {confirmExit ? <section className="exam-exit-confirm" role="group" aria-labelledby="exam-exit-title"><h2 id="exam-exit-title">{t(exitAction === "signOut" ? "exam.signOutConfirmTitle" : "exam.exitConfirmTitle")}</h2><p>{t(exitAction === "signOut" ? "exam.signOutConfirmBody" : "exam.exitConfirmBody")}</p><div><button className="exam-control" type="button" onClick={confirmExitDestination}>{t(exitAction === "signOut" ? "exam.confirmSignOut" : "exam.confirmExit")}</button><button className="exam-control exam-control--quiet" type="button" onClick={cancelExitConfirmation}>{t("exam.stayInExam")}</button></div></section> : null}
         <div className="exam-workspace">
           <div className="exam-workspace__head">
             <div><span className="exam-kicker">{candidateCover ? t("exam.candidateStep") : preparationActive ? t("exam.preparationStep") : activeSection ? t("exam.timedSection", { order: activeSection.section_order }) : t("exam.reviewSection")}</span><h1>{candidateCover ? t("exam.candidateTitle") : preparationActive ? t("exam.preparationTitle") : activeSection ? label(activeSection.section_code, t, payload.attempt.level) : t("exam.readySubmit")}</h1><p>{candidateCover ? t("exam.candidateLede") : preparationActive ? t("exam.preparationLede") : t("exam.answerProgress", { answered: answeredCount, total: payload.questions.length, flagged: flaggedCount })}</p></div>

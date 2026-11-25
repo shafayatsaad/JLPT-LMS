@@ -93,6 +93,29 @@ values
     '{"display_name":"Demo Reviewer","target_level":"N5","ui_language":"en","phone_number":"+15550000005"}'::jsonb,
     now(),
     now()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '30000000-0000-4000-8000-000000000004',
+    'authenticated',
+    'authenticated',
+    'free-student@n5.test',
+    null,
+    null,
+    crypt('N5free26', gen_salt('bf')),
+    now(),
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"display_name":"Demo Free Student","target_level":"N5","ui_language":"en"}'::jsonb,
+    now(),
+    now()
   )
 on conflict (id) do update set
   encrypted_password = excluded.encrypted_password,
@@ -143,6 +166,16 @@ values
     now(),
     now(),
     now()
+  ),
+  (
+    '30000000-0000-4000-8000-000000000004',
+    '30000000-0000-4000-8000-000000000004',
+    '{"sub":"30000000-0000-4000-8000-000000000004","email":"free-student@n5.test","email_verified":true}'::jsonb,
+    'email',
+    'free-student@n5.test',
+    now(),
+    now(),
+    now()
   )
 on conflict (provider_id, provider) do update set
   identity_data = excluded.identity_data,
@@ -152,7 +185,8 @@ insert into public.profiles (user_id, display_name, target_level, explanation_la
 values
   ('30000000-0000-4000-8000-000000000001', 'Demo Student', 'N5', 'en', 'en'),
   ('30000000-0000-4000-8000-000000000002', 'Demo Administrator', 'N5', 'en', 'en'),
-  ('30000000-0000-4000-8000-000000000003', 'Demo Reviewer', 'N5', 'en', 'en')
+  ('30000000-0000-4000-8000-000000000003', 'Demo Reviewer', 'N5', 'en', 'en'),
+  ('30000000-0000-4000-8000-000000000004', 'Demo Free Student', 'N5', 'en', 'en')
 on conflict (user_id) do update set
   display_name = excluded.display_name,
   target_level = excluded.target_level,
@@ -166,7 +200,8 @@ values
   ('30000000-0000-4000-8000-000000000002', 'student'),
   ('30000000-0000-4000-8000-000000000002', 'admin'),
   ('30000000-0000-4000-8000-000000000003', 'student'),
-  ('30000000-0000-4000-8000-000000000003', 'reviewer')
+  ('30000000-0000-4000-8000-000000000003', 'reviewer'),
+  ('30000000-0000-4000-8000-000000000004', 'student')
 on conflict (user_id, role) do nothing;
 
 -- Enable a complete fake checkout only in this local seed. These numbers are not payment details.

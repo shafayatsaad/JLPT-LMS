@@ -19,6 +19,14 @@ export default function LocalTestAccountsPage() {
           <Link className="btn btn--primary" href="/auth/login">Sign in as learner</Link>
         </PaperPanel>
       </ProductSection>
+      <ProductSection title="Free learner profile">
+        <PaperPanel className="auth-panel">
+          <p><strong>Email:</strong> <code className="local-demo-credential">free-student@n5.test</code></p>
+          <p><strong>Password:</strong> <code className="local-demo-credential">N5free26</code></p>
+          <p>This student role has no payment or premium entitlement, so you can test free access, premium locks and the upgrade journey.</p>
+          <Link className="btn btn--primary" href="/auth/login">Sign in as free learner</Link>
+        </PaperPanel>
+      </ProductSection>
       <ProductSection title="Administrator profile">
         <PaperPanel className="auth-panel">
           <p><strong>Email:</strong> <code className="local-demo-credential">admin@n5.test</code></p>
@@ -48,7 +56,7 @@ export default function LocalTestAccountsPage() {
       </ProductSection>
       <ProductSection title="Student demo workflows">
         <PaperPanel className="auth-panel">
-          <p>Sign in as the learner to try the seeded mock, progress, saved questions and support. Submit the fake checkout once, then use the administrator profile to review and approve that request.</p>
+          <p>Use the free learner to test premium locks and upgrades. The original learner has an active local demo plan for full mock, progress, saved questions and support. Submit the fake checkout once, then use the administrator profile to review and approve that request.</p>
           <nav className="demo-workflow-links" aria-label="Student demo workflows">
             <Link href="/dashboard">Dashboard and shortcuts</Link>
             <Link href="/exams">Start the six-question mock</Link>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/i18n/locale-provider";
 
-export function SignOutButton({ className = "btn btn--secondary", onSignedOut }: { className?: string; onSignedOut?: () => void }) {
+export function SignOutButton({ className = "btn btn--secondary", onSignedOut, onRequestSignOut }: { className?: string; onSignedOut?: () => void; onRequestSignOut?: (continueSignOut: () => void) => void }) {
   const router = useRouter();
   const { t } = useLocale();
   const [busy, setBusy] = useState(false);
@@ -30,8 +30,16 @@ export function SignOutButton({ className = "btn btn--secondary", onSignedOut }:
     router.refresh();
   }
 
+  function requestSignOut() {
+    if (onRequestSignOut) {
+      onRequestSignOut(() => void signOut());
+      return;
+    }
+    void signOut();
+  }
+
   return <>
-    <button className={className} type="button" onClick={() => void signOut()} disabled={busy}>{busy ? t("nav.signingOut") : t("nav.signOut")}</button>
+    <button className={className} type="button" onClick={requestSignOut} disabled={busy}>{busy ? t("nav.signingOut") : t("nav.signOut")}</button>
     {error ? <span className="inline-notice" role="alert">{error}</span> : null}
   </>;
 }

@@ -2,6 +2,14 @@ import "server-only";
 
 const localHosts = new Set(["localhost", "127.0.0.1", "::1", "host.docker.internal"]);
 
+export function getSupabaseAuthCookieName(publicUrl: string) {
+  const hostname = new URL(publicUrl).hostname.toLowerCase();
+  const projectRef = ["localhost", "127.0.0.1", "::1"].includes(hostname)
+    ? "localhost"
+    : hostname.split(".")[0];
+  return `sb-${projectRef}-auth-token`;
+}
+
 export function getSupabaseServerUrl(publicUrl: string) {
   const internalUrl = process.env.SUPABASE_INTERNAL_URL?.trim();
   if (!internalUrl) return publicUrl;

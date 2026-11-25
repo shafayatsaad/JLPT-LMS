@@ -191,8 +191,8 @@ function tableRowToQuestion(row: Record<string, unknown>, rowNumber: number) {
 
 async function parseWorkbook(file: File) {
   if (file.size > maxStructuredFileBytes) throw new Error("A CSV or Excel question file must be no larger than 10 MB.");
-  const { Workbook } = await import("exceljs");
-  const workbook = new Workbook();
+  const ExcelJS = (await import("exceljs")).default;
+  const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(await file.arrayBuffer());
   const sheet = workbook.worksheets[0];
   if (!sheet || sheet.rowCount < 2) throw new Error("The workbook must have a first sheet with a header and question rows.");

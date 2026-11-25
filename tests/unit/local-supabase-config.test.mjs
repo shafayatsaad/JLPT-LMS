@@ -1,6 +1,8 @@
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const { isLoopbackUrl, parseStatusEnv } = require("../../scripts/local-supabase-config.cjs");
+import assert from "node:assert/strict";
+import test from "node:test";
+import localConfig from "../../scripts/local-supabase-config.cjs";
+
+const { isLoopbackUrl, parseStatusEnv } = localConfig;
 
 test("parses local Supabase CLI env output while ignoring status chatter", () => {
   const values = parseStatusEnv([

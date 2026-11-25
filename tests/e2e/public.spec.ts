@@ -55,6 +55,29 @@ function localExamFormStatus(formId: string) {
   return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
 }
 
+function localInProgressDemoAttemptId() {
+  const sql = "select a.id from public.exam_attempts a join auth.users u on u.id = a.user_id where u.email = 'free-student@n5.test' and a.status = 'in_progress' order by a.created_at desc limit 1";
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function localPaymentRequestByTransaction(transactionId: string) {
+  if (!/^DEMO-\d+$/.test(transactionId)) throw new Error("Invalid local demo transaction ID.");
+  const sql = `select id::text || '|' || status::text from public.payment_submissions where transaction_reference = '${transactionId}' order by created_at desc limit 1`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function localPaymentStatus(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error("Invalid local payment ID.");
+  const sql = `select status::text from public.payment_submissions where id = '${paymentId}'`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
+function localPaymentEntitlementStatus(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error("Invalid local payment ID.");
+  const sql = `select status::text from public.user_entitlements where source_payment_submission_id = '${paymentId}' order by created_at desc limit 1`;
+  return execFileSync("docker", ["exec", "supabase_db_JLPT_LMS", "psql", "-U", "postgres", "-d", "postgres", "-tAc", sql], { encoding: "utf8" }).trim();
+}
+
 function expireLocalExamPreparation(attemptId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(attemptId)) throw new Error("Invalid local exam attempt ID.");
   const sql = `with changed as (update public.exam_attempts set preparation_deadline_at = now() - interval '1 second' where id = '${attemptId}' and preparation_required and preparation_started_at is not null returning id) select id from changed`;
@@ -310,6 +333,45 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await expect(page).toHaveURL("/");
 });
 
+test("local simulated payment is submitted, approved by staff, and activates its entitlement", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local learner and administrator.");
+  await page.goto("/auth/login");
+  await page.locator('input[autocomplete="username"]').fill("student@n5.test");
+  await page.locator('input[type="password"]').fill("N5learn26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/upgrade/bkash");
+  await expect(page.getByRole("button", { name: "Fill sample details" })).toBeVisible();
+  await page.getByRole("button", { name: "Fill sample details" }).click();
+  const transactionId = await page.getByLabel("Transaction ID (TrxID)").inputValue();
+  expect(transactionId).toMatch(/^DEMO-\d+$/);
+  await page.getByRole("button", { name: "Submit payment details" }).click();
+  await expect(page.getByRole("heading", { name: "Payment request submitted" })).toBeVisible();
+  const [paymentId, paymentStatus] = localPaymentRequestByTransaction(transactionId).split("|");
+  expect(paymentId).toMatch(/^[0-9a-f-]{36}$/i);
+  expect(paymentStatus).toBe("pending");
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL("/");
+  await page.goto("/admin/sign-in");
+  await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
+  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+  await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
+  await page.goto(`/admin/payments/${paymentId}`);
+  await expect(page.getByRole("heading", { name: "Demo Student" })).toBeVisible();
+  await expect(page.locator(".payment-detail")).toContainText(transactionId);
+  await page.getByLabel("Internal verification note").fill("Local QA verified this synthetic test transaction; no funds were sent.");
+  page.once("dialog", (dialog) => void dialog.accept());
+  await page.getByRole("button", { name: "Approve payment" }).click();
+  await expect(page.getByRole("status")).toContainText("Payment request updated: approve.");
+  expect(localPaymentStatus(paymentId)).toBe("verified");
+  expect(localPaymentEntitlementStatus(paymentId)).toBe("active");
+});
+
 test("local admin sign-in reaches the mandatory authenticator challenge", async ({ page }) => {
   test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase administrator.");
   await page.goto("/admin/sign-in");
@@ -471,7 +533,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await dataFileInput.setInputFiles({ name: "questions.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
   await expect(page.locator(".question-batch-import__preview")).toContainText("1 question drafts · 0 referenced media files");
 
-  const ExcelJS = await import("exceljs");
+  const ExcelJS = (await import("exceljs")).default;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Questions");
   worksheet.addRow(csvHeaders);
@@ -647,13 +709,31 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.getByRole("button", { name: /sign out/i }).click();
   await expect(page).toHaveURL("/");
   await page.goto("/auth/login");
-  await page.locator('input[autocomplete="username"]').fill("student@n5.test");
-  await page.locator('input[type="password"]').fill("N5learn26");
+  await page.locator('input[autocomplete="username"]').fill("free-student@n5.test");
+  await page.locator('input[type="password"]').fill("N5free26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  const existingDemoAttemptId = localInProgressDemoAttemptId();
+  if (existingDemoAttemptId) {
+    await page.goto(`/attempts/${existingDemoAttemptId}`);
+    const candidateCover = page.getByRole("heading", { level: 1, name: "Candidate information" });
+    if (await candidateCover.count()) {
+      await page.getByRole("button", { name: "Start five-minute preparation" }).click();
+      await expect(page.getByRole("heading", { level: 1, name: "Preparation period" })).toBeVisible();
+    }
+    const preparation = page.getByRole("heading", { level: 1, name: "Preparation period" });
+    if (await preparation.count()) {
+      expect(expireLocalExamPreparation(existingDemoAttemptId)).toBe(existingDemoAttemptId);
+      await page.reload();
+    }
+    await expect.poll(() => page.locator(".exam-paper__question").count()).toBeGreaterThan(0);
+    await page.getByRole("button", { name: "Submit the full attempt early" }).click();
+    await page.getByRole("button", { name: "Confirm submission" }).click();
+    await expect(page).toHaveURL(new RegExp(`/results/${existingDemoAttemptId}$`), { timeout: 15_000 });
+  }
   await page.goto(`/exams/${createdFormId}`);
   await page.getByRole("button", { name: "Start mock exam" }).click();
-  await expect(page.getByRole("alert")).toContainText("active Premium entitlement");
+  await expect(page.locator(".start-exam-action .form-message--error")).toContainText("active Premium entitlement");
   await expect(page.getByRole("link", { name: /Choose a plan and unlock this mock/ })).toHaveAttribute("href", `/pricing?next=${encodeURIComponent(`/exams/${createdFormId}`)}`);
   await page.goto(`/exams/${audioFormId}`);
   await expect(page.getByRole("heading", { level: 1, name: audioFormCode })).toBeVisible();
@@ -663,7 +743,20 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page.getByRole("heading", { level: 1, name: "Candidate information" })).toBeVisible();
   await expect(page.locator(".exam-paper__question")).toHaveCount(0);
   await expect(page.getByRole("complementary", { name: "Answer sheet" })).toHaveCount(0);
-  await expect(page.getByLabel("Candidate name")).toHaveValue("Demo Student");
+  await expect(page.getByLabel("Candidate name")).toHaveValue("Demo Free Student");
+  const pageCloseWasBlocked = await page.evaluate(() => {
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  expect(pageCloseWasBlocked).toBe(true);
+  await page.evaluate(() => window.history.back());
+  await expect(page.getByRole("heading", { name: "Leave this attempt?" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/attempts/${attemptId}$`));
+  await page.getByRole("button", { name: "Stay in exam" }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("heading", { name: "Sign out during this attempt?" })).toBeVisible();
+  await page.getByRole("button", { name: "Stay in exam" }).click();
   await page.screenshot({ path: "test-results/phase3-exam-candidate-cover-desktop.png", fullPage: true });
   await page.getByRole("link", { name: "Exit to dashboard" }).click();
   await expect(page.getByRole("heading", { name: "Leave this attempt?" })).toBeVisible();
@@ -770,7 +863,7 @@ test("test profile details are exposed only in explicit local demo mode", async 
   const response = await page.goto("/dev/test-accounts");
   if (process.env.LOCAL_DEMO_ACCOUNTS_ENABLED === "true") {
     await expect(page.getByRole("heading", { name: "Test learner and staff profiles" })).toBeVisible();
-    await expect(page.getByText("student@n5.test")).toBeVisible();
+    await expect(page.getByText("student@n5.test", { exact: true })).toBeVisible();
     await expect(page.getByText("N5learn26")).toBeVisible();
     await expect(page.getByText("admin@n5.test")).toBeVisible();
     await expect(page.getByText("N5admin26")).toBeVisible();

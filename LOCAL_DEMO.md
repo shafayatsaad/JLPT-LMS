@@ -18,6 +18,7 @@ For a production-mode launch simulation, use `npm run demo:local:production:resu
 | Profile | Email | Password | Roles |
 |---|---|---|---|
 | Learner | `student@n5.test` | `N5learn26` | Student · N5 target |
+| Free learner | `free-student@n5.test` | `N5free26` | Student · N5 target · no entitlement |
 | Administrator | `admin@n5.test` | `N5admin26` | Student · Admin · N5 target |
 | Reviewer | `reviewer@n5.test` | `N5review26` | Student · Reviewer · N5 target |
 
@@ -29,7 +30,7 @@ The student, admin and reviewer seed accounts have verified local test phones `+
 
 ## Included demo flows
 
-- The learner has a seeded completed N5 attempt for progress, answer review, mistake notebook and bookmarks, plus an active local demo plan.
+- The learner has a seeded completed N5 attempt for progress, answer review, mistake notebook and bookmarks, plus an active local demo plan. Use the separate Free learner to test premium access locks and free-form eligibility.
 - `/exams` includes a separate six-question local demo form that can be started and submitted as a saved attempt. Its listening item is transcript-only until reviewed audio is added.
 - `/pricing` and `/upgrade/bkash` show clearly labeled local plan prices and a fill-sample button. Submitting creates an ordinary local payment request; no money is sent.
 - The learner has a seeded verified fake purchase and two additional locally simulated checkouts that were submitted through the learner UI and approved through the admin review screen. They created active entitlements for testing; no money was sent and no payment provider was contacted.
