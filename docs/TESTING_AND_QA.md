@@ -11,18 +11,20 @@
 | `npm run supabase:test` | 124 assertions passed across 5 SQL test files |
 | `npm run supabase:audit` | 43/43 expected tables present in local Docker schema; table presence only |
 | `npm run supabase:config:validate` | Valid and complete; no remote projects configured |
-| `npm run supabase:content-audit` | 0 published forms for N1–N4; 34 N5 including retained QA forms; expected exit 1 because N1–N4 are below target |
+| `npm run supabase:content-audit` | 0 published forms for N1–N4; 36 N5 including 35 retained QA-coded forms; expected exit 1 because N1–N4 are below target |
 | `npm run lint` | 0 errors and 19 warnings |
 | `npm run demo:local:docker` | Optimized production image built and health check passed at `127.0.0.1:3002` |
-| `PLAYWRIGHT_PORT=3002 npm run test:e2e` | 31 passed against the production container |
+| `LOCAL_DEMO_ACCOUNTS_ENABLED=true PLAYWRIGHT_PORT=3002 npm run test:e2e` | 32 passed against the production container |
 
 The Docker production build compiled Next.js 16.4.6, completed TypeScript, generated all application routes and reported no build error. A Docker clean `npm ci` reported 0 dependency vulnerabilities; npm emitted peer/deprecation warnings.
 
 ## Browser coverage
 
-The 31-test Playwright suite covers public page accessibility in English/Bangla at desktop/mobile, homepage/hero, public level guides, free sample booklet and answer sheet, Google/email account form behavior, local student sign-in/sign-out, admin TOTP, staff navigation, content authoring/import/review/publication, premium access lock, free mock attempt candidate/preparation, answer persistence/retry, listening and results. During an active attempt it also verifies browser Back confirmation, the browser `beforeunload` event, and confirmed sign-out. It does not cover every action, form field, permission branch, failure mode or route.
+The 32-test Playwright suite covers public page accessibility in English/Bangla at desktop/mobile, homepage/hero, public level guides, free sample booklet and answer sheet, Google/email account form behavior, local student sign-in/sign-out, admin TOTP, staff navigation, content authoring/import/review/publication, premium access lock, free mock attempt candidate/preparation, answer persistence/retry, listening and results. During an active attempt it also verifies browser Back confirmation, the browser `beforeunload` event, and confirmed sign-out. The added payment journey submits a local simulated checkout, approves it through the staff UI, and checks the resulting verified payment and active entitlement in local Supabase. It does not cover every action, form field, permission branch, failure mode or route.
 
-The content workflow E2E creates QA records and frozen N5 forms in the local database. These records are intentionally retained; the suite does not reset the database. Thirty-one published N5 forms currently have `N5-PHASE*` QA codes. They must not be counted as reviewed production content. `/dev/test-accounts` now lists both the subscribed demo learner and a separate no-entitlement learner used for free-versus-premium checks.
+The content workflow E2E creates QA records and frozen N5 forms in the local database. These records are intentionally retained; the suite does not reset the database. A read-only local query found 36 published N5 forms, 35 with `N5-PHASE*` QA codes. They must not be counted as reviewed production content. `/dev/test-accounts` now lists both the subscribed demo learner and a separate no-entitlement learner used for free-versus-premium checks. Payment verification adds a simulated payment/entitlement to the subscribed demo learner; no real provider or money is involved.
+
+The full E2E output includes a PostgreSQL rejection stating that published/frozen forms are immutable. This is the expected result of the immutability guard assertion; the test passed and the frozen record was not changed.
 
 ## Commands
 
