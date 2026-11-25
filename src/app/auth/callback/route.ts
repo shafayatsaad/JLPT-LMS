@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
+import { getSupabaseServerUrl } from "@/lib/supabase/server-config";
 
 function safeNext(value: string | null) {
   return value?.startsWith("/") && !value.startsWith("//") && !value.includes("\\")
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
   const pendingHeaders: Record<string, string> = {};
-  const supabase = createServerClient(config.url, config.publishableKey, {
+  const supabase = createServerClient(getSupabaseServerUrl(config.url), config.publishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
