@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-const fs = require("node:fs");
-const path = require("node:path");
+const { getLocalSupabaseConfig } = require("./local-supabase-config.cjs");
 
 const expectedTables = [
   "profiles",
@@ -49,29 +48,6 @@ const expectedTables = [
   "demo_source_packets",
 ];
 
-function parseEnvFile(contents) {
-  const values = new Map();
-  for (const rawLine of contents.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-    const separator = line.indexOf("=");
-    if (separator < 1) continue;
-    const name = line.slice(0, separator).trim().replace(/^export\s+/, "");
-    let value = line.slice(separator + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    values.set(name, value);
-  }
-  return values;
-}
-
-function readLocalEnv() {
-  const filename = path.join(process.cwd(), ".env.local");
-  if (!fs.existsSync(filename)) return new Map();
-  return parseEnvFile(fs.readFileSync(filename, "utf8"));
-}
-
 async function inspectTable(baseUrl, publishableKey, table) {
   const url = new URL(`/rest/v1/${table}?select=*&limit=0`, baseUrl);
   let response;
@@ -100,47 +76,29 @@ async function inspectTable(baseUrl, publishableKey, table) {
 }
 
 async function main() {
-  const localEnv = readLocalEnv();
-  const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || localEnv.get("NEXT_PUBLIC_SUPABASE_URL");
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    || localEnv.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
-    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    || localEnv.get("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-
-  if (!projectUrl || !publishableKey) {
-    console.error("Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env.local or the process environment.");
-    process.exitCode = 1;
-    return;
-  }
-
-  let parsedUrl;
   try {
-    parsedUrl = new URL(projectUrl);
-    const localHttp = parsedUrl.protocol === "http:" && ["localhost", "127.0.0.1", "::1"].includes(parsedUrl.hostname);
-    if (parsedUrl.protocol !== "https:" && !localHttp) throw new Error("HTTPS is required outside localhost");
-  } catch {
-    console.error("NEXT_PUBLIC_SUPABASE_URL must be HTTPS, except for HTTP on localhost.");
+    const { url, key } = getLocalSupabaseConfig();
+    console.log("Supabase expected-table audit (local Docker stack only; read-only; fetches no rows)");
+    const results = [];
+    for (const table of expectedTables) {
+      results.push(await inspectTable(new URL(url), key, table));
+    }
+
+    const present = results.filter((result) => result.state.startsWith("present-"));
+    const missing = results.filter((result) => result.state === "missing");
+    const unknown = results.filter((result) => result.state === "unknown");
+    console.log(`Expected: ${expectedTables.length}; present: ${present.length}; missing: ${missing.length}; unknown: ${unknown.length}`);
+    if (present.length) console.log(`Present (readable or restricted): ${present.map((result) => result.table).join(", ")}`);
+    if (missing.length) console.log(`Missing from the exposed public schema: ${missing.map((result) => result.table).join(", ")}`);
+    if (unknown.length) {
+      console.log(`Undetermined: ${unknown.map((result) => `${result.table} (${result.status ?? result.detail}${result.code ? `, ${result.code}` : ""})`).join(", ")}`);
+    }
+    console.log("This checks table-name visibility only. It does not verify columns, migration history, functions, RLS correctness, or storage policies.");
+    if (unknown.length) process.exitCode = 2;
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "Supabase audit failed.");
     process.exitCode = 1;
-    return;
   }
-
-  console.log("Supabase expected-table audit (read-only; uses the publishable key, fetches no rows)");
-  const results = [];
-  for (const table of expectedTables) {
-    results.push(await inspectTable(parsedUrl, publishableKey, table));
-  }
-
-  const present = results.filter((result) => result.state.startsWith("present-"));
-  const missing = results.filter((result) => result.state === "missing");
-  const unknown = results.filter((result) => result.state === "unknown");
-  console.log(`Expected: ${expectedTables.length}; present: ${present.length}; missing: ${missing.length}; unknown: ${unknown.length}`);
-  if (present.length) console.log(`Present (readable or restricted): ${present.map((result) => result.table).join(", ")}`);
-  if (missing.length) console.log(`Missing from the exposed public schema: ${missing.map((result) => result.table).join(", ")}`);
-  if (unknown.length) {
-    console.log(`Undetermined: ${unknown.map((result) => `${result.table} (${result.status ?? result.detail}${result.code ? `, ${result.code}` : ""})`).join(", ")}`);
-  }
-  console.log("This checks table-name visibility only. It does not verify columns, migration history, functions, RLS correctness, or storage policies.");
-  if (unknown.length) process.exitCode = 2;
 }
 
 main().catch((error) => {
