@@ -1352,6 +1352,10 @@ html.origami-scroll-motion-ready [data-origami-reveal="shown"] {
 .exam-finish-panel > p { margin: 0 0 20px; color: #626d77; font-size: 14px; line-height: 1.6; }
 .exam-submit-confirm { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 18px; padding: 16px; border: 1px solid #d6dbe0; background: #fff; }
 .exam-submit-confirm p { flex-basis: 100%; margin: 0 0 4px; color: #48525c; font-size: 13px; line-height: 1.5; }
+.exam-exit-confirm { width: min(680px, calc(100% - 36px)); margin: 20px auto 0; padding: 18px; border: 1px solid #d6dbe0; background: #fff; }
+.exam-exit-confirm h2 { margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 500; }
+.exam-exit-confirm p { margin: 8px 0 14px; color: #48525c; font-size: 14px; line-height: 1.55; }
+.exam-exit-confirm > div { display: flex; flex-wrap: wrap; gap: 10px; }
 .exam-finish-link { display: block; margin: 18px 0 0 auto; padding: 8px 0; border: 0; background: transparent; color: #4b6072; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .exam-error { margin: 14px 0 0; padding: 12px 14px; border-left: 3px solid #aa4d54; background: #fff0ef; color: #71343b; font-size: 13px; line-height: 1.5; }
 
