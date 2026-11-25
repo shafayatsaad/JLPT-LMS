@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import JSZip from "jszip";
 
 function localTotpFromSecret(secret: string) {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -440,7 +441,8 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(page.locator(".question-draft-editor .question-content-editor__block textarea").first()).toHaveValue(savedPrompt);
 
   await page.goto("/admin/questions/new#import-questions");
-  const packageInput = page.locator(".question-batch-import input[type=file]");
+  const packageInput = page.locator(".question-batch-import input[webkitdirectory]");
+  const dataFileInput = page.locator(".question-batch-import input[type=file]:not([webkitdirectory])");
   await expect(packageInput).toHaveAttribute("webkitdirectory", "");
   const invalidImportDirectory = mkdtempSync(join(tmpdir(), "jlpt-phase2-invalid-import-"));
   writeFileSync(join(invalidImportDirectory, "manifest.json"), JSON.stringify({ questions: [{}] }));
@@ -461,6 +463,31 @@ test("local administrator opens staff workspace and learner view remains separat
     },
     answer_key: { correct_option_id: "A", explanation: { en: "春 is read はる." }, distractor_rationales: {} },
   };
+  const question = packageJson.question;
+  const csvHeaders = ["source_type", "source_reference", "rights_notes", "content_key", "revision", "level", "test_section_code", "score_category_code", "item_type_code", "difficulty_estimate", "prompt_json", "options_json", "tags_json", "correct_option_id", "explanation_json", "distractor_rationales_json", "assets_json"];
+  const csvValues = ["original", "", "Original local QA content", question.content_key, "1", question.level, question.test_section_code, question.score_category_code, question.item_type_code, "1", JSON.stringify(question.prompt), JSON.stringify(question.options), JSON.stringify(question.tags), "A", JSON.stringify({ en: "Demo explanation." }), "{}", "[]"];
+  const csvCell = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const csv = `${csvHeaders.join(",")}\r\n${csvValues.map(csvCell).join(",")}`;
+  await dataFileInput.setInputFiles({ name: "questions.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+  await expect(page.locator(".question-batch-import__preview")).toContainText("1 question drafts · 0 referenced media files");
+
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Questions");
+  worksheet.addRow(csvHeaders);
+  worksheet.addRow(csvValues);
+  const xlsx = await workbook.xlsx.writeBuffer();
+  await dataFileInput.setInputFiles({ name: "questions.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from(xlsx) });
+  await expect(page.locator(".question-batch-import__preview")).toContainText("1 question drafts · 0 referenced media files");
+
+  const archive = new JSZip();
+  archive.file("bundle/manifest.json", JSON.stringify([packageJson]));
+  archive.file("bundle/tree.png", imageBytes);
+  archive.file("bundle/prompt.wav", demoWaveFile());
+  const zip = await archive.generateAsync({ type: "nodebuffer" });
+  await dataFileInput.setInputFiles({ name: "question-package.zip", mimeType: "application/zip", buffer: zip });
+  await expect(page.locator(".question-batch-import__preview")).toContainText("1 question drafts · 2 referenced media files");
+
   const importDirectory = mkdtempSync(join(tmpdir(), "jlpt-phase2-import-"));
   writeFileSync(join(importDirectory, "manifest.json"), JSON.stringify([packageJson]));
   writeFileSync(join(importDirectory, "tree.png"), imageBytes);
