@@ -13,6 +13,8 @@ The command starts local Supabase, resets its local database, applies the migrat
 
 For a production-mode launch simulation, use `npm run demo:local:production:resume`. It builds and starts the optimized Next.js server against the local Docker Supabase stack on port `3001`, applies pending migrations without resetting test data, and keeps the demo payment and account screens enabled only because the configured Supabase URL is localhost. Its `.next-production-demo` build folder is separate from development output. `npm run demo:local:production` deliberately resets local data first.
 
+For trusted testers on the same private Wi-Fi/VPN, run `npm run demo:local:docker:lan`. It prints the computer's LAN URL, reconfigures the browser's Supabase URL for that network, and binds the app on port 3002. The tester's device must be on that same network; this is not an internet link. Share only with people you trust because the local staff test account is available in the demo workspace. On another computer use the learner credentials from `/dev/test-accounts`; payments are fake and send no money. To switch back to private local access, run `npm run demo:local:docker`.
+
 ## Profiles
 
 | Profile | Email | Password | Roles |
