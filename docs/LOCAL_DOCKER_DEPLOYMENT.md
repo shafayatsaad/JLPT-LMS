@@ -3,8 +3,8 @@
 ## Services
 
 - Supabase CLI manages the Docker-local Postgres, Auth, REST, Storage, Realtime, Studio and supporting services.
-- `compose.yaml` runs the optimized Next.js app in a separate Docker container on `127.0.0.1:3002`.
-- Browser requests use `http://localhost:54321`; server-side app requests use Docker's `host.docker.internal` gateway. The launcher verifies the Supabase API URL is loopback before writing any environment file.
+- `compose.yaml` runs the optimized Next.js app in a separate Docker container on `127.0.0.1:3002` by default.
+- Browser requests use the local Supabase API; server-side app requests use Docker's `host.docker.internal` gateway. The launcher reads the URL from Supabase CLI and rejects a non-local endpoint.
 - Generated local keys are written to ignored `.local-demo/compose.env`. They are never printed by the launcher and must not be copied into production.
 
 ## Start without resetting local data
@@ -23,6 +23,22 @@ npm run demo:local:docker:stop
 ```
 
 Supabase remains available. Use the Supabase CLI to stop its local containers separately if desired. Starting the Docker demo again reuses the same local volumes.
+
+## Let trusted testers on the same private network open the demo
+
+Start Docker Desktop, then from `D:\JLPT LMS` run:
+
+```powershell
+npm run demo:local:docker:lan
+```
+
+The script rebuilds the optimized app with the computer's private Wi-Fi/Ethernet address, binds port 3002 to the LAN, and prints the exact tester and account URLs. Send that `http://<private-LAN-IP>:3002` link to testers connected to the same trusted Wi-Fi or VPN. Give them the learner test account from `/dev/test-accounts`; share admin access only with testers who need staff workflows.
+
+The local Supabase API on port 54321 is also reachable from that private network so browser sign-in and database-backed UI work. If Windows Firewall asks, allow the app for **Private networks only**. If another device cannot connect, confirm both computers are on the same network and ask the network administrator to permit TCP ports 3002 and 54321 on the private profile. The printed IP can change when Wi-Fi reconnects; restart with the command above to refresh it.
+
+This is a same-network demo link, not an internet-hosted URL. Do not port-forward it or expose it through a public tunnel: the local staff test account and admin workflows are intentionally enabled. Payments remain simulated and send no money.
+
+To return to local-computer-only access, run `npm run demo:local:docker`; it rebuilds the app bound to `127.0.0.1`.
 
 Useful inspection commands:
 
