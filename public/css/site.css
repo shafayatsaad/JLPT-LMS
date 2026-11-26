@@ -1103,11 +1103,16 @@ html.origami-scroll-motion-ready [data-origami-reveal="shown"] {
   --product-ink: #372a30;
   --product-muted: #66545b;
   --product-cherry: #913a55;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  min-height: 100svh;
   background: var(--product-paper);
   color: var(--product-ink);
   font-family: var(--font-text);
 }
+.product-shell > main { flex: 1 0 auto; }
+.product-shell > footer { margin-top: auto; }
 .product-nav { position: relative; z-index: 5; border-bottom: 1px solid rgb(157 63 89 / 13%); background: rgb(255 250 247 / 94%); }
 .product-nav__inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(1180px, calc(100% - 48px)); min-height: 76px; margin-inline: auto; }
 .product-skip, .exam-skip { position: absolute; top: 7px; left: 8px; z-index: 10; padding: 8px 11px; transform: translateY(-160%); background: #fff; color: #372a30; font-size: 12px; }

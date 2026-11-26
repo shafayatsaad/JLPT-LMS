@@ -273,6 +273,7 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await page.locator('input[type="password"]').fill("N5learn26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator(".local-demo-banner")).toContainText("Payments are simulated; no money is sent.");
   await expect(page.getByRole("heading", { level: 1, name: "Welcome, Demo Student" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Continue", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Start a mock exam" })).toBeVisible();
@@ -333,6 +334,41 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await expect(page).toHaveURL("/");
 });
 
+test("learner exam library and practice load from Docker and keep the compact footer at the viewport edge", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase learner.");
+  await page.goto("/auth/login");
+  await page.locator('input[autocomplete="username"]').fill("student@n5.test");
+  await page.locator('input[type="password"]').fill("N5learn26");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.locator(".local-demo-banner")).toContainText("Payments are simulated; no money is sent.");
+
+  for (const [path, heading] of [["/exams", "Exam library"], ["/practice", "Practice a skill"]]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByText(/could not load|migration 015|unavailable/i)).toHaveCount(0);
+    if (path === "/exams") {
+      await expect(page.locator(".exam-library-grid")).toContainText("DEMO-N5-001");
+      await expect(page.locator(".exam-library-grid")).not.toContainText(/N[1-5]-PHASE\d+-/i);
+    }
+    const layout = await page.locator("footer.footer--compact").evaluate((footer) => ({
+      bottom: footer.getBoundingClientRect().bottom,
+      pageHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight,
+    }));
+    if (layout.pageHeight <= layout.viewportHeight + 1) {
+      expect(layout.bottom).toBeGreaterThanOrEqual(layout.viewportHeight - 1);
+    }
+    await page.screenshot({ path: `test-results/local-demo-${path.slice(1)}-desktop.png`, fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload();
+    const mobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: window.innerWidth }));
+    expect(mobileWidth.document).toBeLessThanOrEqual(mobileWidth.viewport);
+    await page.screenshot({ path: `test-results/local-demo-${path.slice(1)}-mobile.png`, fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+  }
+});
+
 test("local simulated payment is submitted, approved by staff, and activates its entitlement", async ({ page }) => {
   test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local learner and administrator.");
   await page.goto("/auth/login");
@@ -355,11 +391,11 @@ test("local simulated payment is submitted, approved by staff, and activates its
   await expect(page).toHaveURL("/");
   await page.goto("/admin/sign-in");
   await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
-  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.locator('input[type="password"]').fill("admin123");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/admin\/mfa\?next=/, { timeout: 15_000 });
   await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Verify and continue", exact: true }).click();
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
   await page.goto(`/admin/payments/${paymentId}`);
   await expect(page.getByRole("heading", { name: "Demo Student" })).toBeVisible();
@@ -376,10 +412,29 @@ test("local admin sign-in reaches the mandatory authenticator challenge", async 
   test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase administrator.");
   await page.goto("/admin/sign-in");
   await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
-  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.locator('input[type="password"]').fill("admin123");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { name: "Verify your sign-in" })).toBeVisible();
+  await expect(page).toHaveURL(/\/admin\/mfa\?next=/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Verify staff access" })).toBeVisible();
+});
+
+test("shared remote demo administrator opens the staff workspace with the simple test login", async ({ page }) => {
+  test.skip(process.env.LOCAL_DEMO_PUBLIC_TUNNEL_ENABLED !== "true", "Requires the explicit remote demo sandbox.");
+  await page.goto("/dev/test-accounts");
+  await expect(page.getByText("public-admin@n5.test", { exact: true })).toBeVisible();
+  await page.goto("/admin/sign-in");
+  await page.locator('input[autocomplete="username"]').fill("public-admin@n5.test");
+  await page.locator('input[type="password"]').fill("admin123");
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Verify staff access" })).toHaveCount(0);
+  await expect(page.getByText(/data service rejected|staff access is required/i)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Items requiring attention" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recent activity" })).toBeVisible();
+  await page.screenshot({ path: "test-results/remote-admin-summary-desktop.png", fullPage: true });
+  await page.goto("/admin/users");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
 test("local administrator opens staff workspace and learner view remains separate", async ({ page }) => {
@@ -387,12 +442,12 @@ test("local administrator opens staff workspace and learner view remains separat
   test.skip(process.env.LOCAL_DEMO_ACCOUNTS_ENABLED !== "true", "Requires the seeded local Supabase administrator and Docker.");
   await page.goto("/admin/sign-in");
   await page.locator('input[autocomplete="username"]').fill("admin@n5.test");
-  await page.locator('input[type="password"]').fill("N5admin26");
+  await page.locator('input[type="password"]').fill("admin123");
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/admin\/mfa\?next=/, { timeout: 15_000 });
   await expect(page.locator('input[autocomplete="one-time-code"]')).toBeVisible();
   await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Verify and continue", exact: true }).click();
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
   const sections = page.getByRole("navigation", { name: "Staff areas" });
@@ -424,6 +479,7 @@ test("local administrator opens staff workspace and learner view remains separat
   ]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+    await expect(page.getByText(/Supabase returned an error|Confirm migration \d+|Confirm the database migration/i)).toHaveCount(0);
     if (path === "/admin/exam-preview") {
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
       await expect(page.getByRole("heading", { level: 2, name: "N5 practice booklet · sample" })).toBeVisible();
@@ -436,6 +492,17 @@ test("local administrator opens staff workspace and learner view remains separat
     }
     await prepareFullPageScreenshot(page);
     await page.screenshot({ path: `test-results/${fileName}`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/admin/settings/security");
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+  const adminShortPageLayout = await page.locator("footer.footer--compact").evaluate((footer) => ({
+    bottom: footer.getBoundingClientRect().bottom,
+    pageHeight: document.documentElement.scrollHeight,
+    viewportHeight: window.innerHeight,
+  }));
+  if (adminShortPageLayout.pageHeight <= adminShortPageLayout.viewportHeight + 1) {
+    expect(adminShortPageLayout.bottom).toBeGreaterThanOrEqual(adminShortPageLayout.viewportHeight - 1);
   }
   await page.goto("/admin/exam-forms");
   const blueprintSelect = page.getByLabel("Approved blueprint");
@@ -586,7 +653,11 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.locator('input[type="password"]').fill("N5review26");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/(?:admin(?:\/mfa)?(?:\?.*)?|auth\/mfa\?next=.*)$/, { timeout: 15_000 });
-  if (page.url().includes("/auth/mfa")) {
+  if (page.url().includes("/admin/mfa")) {
+    await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp("reviewer@n5.test"));
+    await page.getByRole("button", { name: "Verify and continue", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin(?:\?.*)?$/, { timeout: 15_000 });
+  } else if (page.url().includes("/auth/mfa")) {
     await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp("reviewer@n5.test"));
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     await expect(page).toHaveURL(/\/admin(?:\?.*)?$/, { timeout: 15_000 });
@@ -632,11 +703,11 @@ test("local administrator opens staff workspace and learner view remains separat
     const authorPage = await authorContext.newPage();
     await authorPage.goto("/admin/sign-in");
     await authorPage.locator('input[autocomplete="username"]').fill("admin@n5.test");
-    await authorPage.locator('input[type="password"]').fill("N5admin26");
+    await authorPage.locator('input[type="password"]').fill("admin123");
     await authorPage.getByRole("button", { name: /sign in/i }).click();
-    await expect(authorPage).toHaveURL(/\/auth\/mfa\?next=/, { timeout: 15_000 });
+    await expect(authorPage).toHaveURL(/\/admin\/mfa\?next=/, { timeout: 15_000 });
     await authorPage.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
-    await authorPage.getByRole("button", { name: "Continue", exact: true }).click();
+    await authorPage.getByRole("button", { name: "Verify and continue", exact: true }).click();
     await expect(authorPage).toHaveURL(/\/admin$/, { timeout: 15_000 });
     await authorPage.goto("/admin/exam-forms");
     await authorPage.getByLabel("Approved blueprint").selectOption({ label: "N5 · version 1" });
@@ -865,8 +936,14 @@ test("test profile details are exposed only in explicit local demo mode", async 
     await expect(page.getByRole("heading", { name: "Test learner and staff profiles" })).toBeVisible();
     await expect(page.getByText("student@n5.test", { exact: true })).toBeVisible();
     await expect(page.getByText("N5learn26")).toBeVisible();
-    await expect(page.getByText("admin@n5.test")).toBeVisible();
-    await expect(page.getByText("N5admin26")).toBeVisible();
+    if (process.env.LOCAL_DEMO_PUBLIC_TUNNEL_ENABLED === "true") {
+      await expect(page.getByText("public-admin@n5.test", { exact: true })).toBeVisible();
+      await expect(page.getByText("admin@n5.test", { exact: true })).toHaveCount(0);
+    } else {
+      await expect(page.getByText("admin@n5.test", { exact: true })).toBeVisible();
+      await expect(page.getByText("public-admin@n5.test", { exact: true })).toBeVisible();
+    }
+    await expect(page.getByText("admin123")).toBeVisible();
     await expect(page.getByText("reviewer@n5.test")).toBeVisible();
     await expect(page.getByText("N5review26")).toBeVisible();
     await expect(page.getByRole("link", { name: "Open staff sign in" })).toHaveAttribute("href", "/admin/sign-in");

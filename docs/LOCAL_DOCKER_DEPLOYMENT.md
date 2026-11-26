@@ -36,7 +36,25 @@ The script rebuilds the optimized app with the computer's private Wi-Fi/Ethernet
 
 The local Supabase API on port 54321 is also reachable from that private network so browser sign-in and database-backed UI work. If Windows Firewall asks, allow the app for **Private networks only**. If another device cannot connect, confirm both computers are on the same network and ask the network administrator to permit TCP ports 3002 and 54321 on the private profile. The printed IP can change when Wi-Fi reconnects; restart with the command above to refresh it.
 
-This is a same-network demo link, not an internet-hosted URL. Do not port-forward it or expose it through a public tunnel: the local staff test account and admin workflows are intentionally enabled. Payments remain simulated and send no money.
+This LAN URL only works on the same network. Keep the app bound to its private address; do not router-port-forward the LAN service. For remote testers, use the dedicated temporary tunnel instructions below. Payments remain simulated and send no money.
+
+## Let testers on different networks use the local Docker demo
+
+Start Docker Desktop and run:
+
+```powershell
+npm run demo:local:docker:remote
+```
+
+The first run pulls the `cloudflare/cloudflared` Docker image. The launcher starts a temporary HTTPS Quick Tunnel, then rebuilds the app so sign-in, question media, and database requests use the same tunneled origin. It prints a tester URL and the test accounts page. Share the email/password accounts shown there. The shared admin account uses `public-admin@n5.test` and `admin123`; only that local demo account skips staff MFA in remote-demo mode. The launcher applies this exception to the local database's role helper only, then restores the normal AAL2 helper when remote mode stops. Passwords for regular/local staff accounts and hosted accounts are unchanged.
+
+This is a public temporary link: anyone who receives or discovers it can reach the test login and account page. Keep real learner data, production keys, and real payment details out of this local database. The remote link changes each time the launcher starts and stops working when the tunnel process stops or the host computer goes offline. The app is still backed by the local Docker database; no hosted Supabase data is contacted. The local Supabase API is reached through the app's same-origin proxy and is not separately published.
+
+The temporary hostname cannot be registered as a stable Google OAuth callback. Use the demo email/password accounts for this test mode. Google sign-in across remote testers requires a stable owned hostname and matching Supabase/Google OAuth callback settings, or a hosted staging environment.
+
+For the provider and hosting boundaries that need to be selected before launch, see [Portable deployment and launch configuration](PORTABLE_DEPLOYMENT.md).
+
+To close the public tunnel and return to localhost-only access, run `npm run demo:local:docker` or `npm run demo:local:docker:stop`.
 
 To return to local-computer-only access, run `npm run demo:local:docker`; it rebuilds the app bound to `127.0.0.1`.
 

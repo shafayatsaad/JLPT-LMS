@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 
 const allowedTypes = new Set([
   "audio/mpeg", "audio/mp4", "audio/aac", "audio/ogg", "audio/wav", "audio/webm",
@@ -46,7 +47,7 @@ export function QuestionAssetUploader({ questionId, onPendingChange }: { questio
 
     setBusy(true);
     const extension = file.name.includes(".") ? file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) : "";
-    const storagePath = `${userResult.user.id}/${questionId}/${crypto.randomUUID()}${extension ? `.${extension}` : ""}`;
+    const storagePath = `${userResult.user.id}/${questionId}/${createClientUuid()}${extension ? `.${extension}` : ""}`;
     const { error: uploadError } = await supabase.storage.from("jlpt-question-assets").upload(storagePath, file, {
       contentType: file.type,
       cacheControl: "3600",

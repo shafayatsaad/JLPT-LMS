@@ -15,13 +15,16 @@ For a production-mode launch simulation, use `npm run demo:local:production:resu
 
 For trusted testers on the same private Wi-Fi/VPN, run `npm run demo:local:docker:lan`. It prints the computer's LAN URL, reconfigures the browser's Supabase URL for that network, and binds the app on port 3002. The tester's device must be on that same network; this is not an internet link. Share only with people you trust because the local staff test account is available in the demo workspace. On another computer use the learner credentials from `/dev/test-accounts`; payments are fake and send no money. To switch back to private local access, run `npm run demo:local:docker`.
 
+For testers on different networks, use `npm run demo:local:docker:remote`. It creates a temporary public HTTPS URL with a Cloudflare Quick Tunnel, routes both the app and browser database requests through that URL, and prints the link. Docker downloads the Cloudflare tunnel image on first use, so no separate Cloudflare account, domain, or tester email is required. The URL changes each time and works only while this computer, Docker Desktop, and internet connection stay on. Anyone with the link can reach the demo login and the test credentials page. Use only fake test data; the shared remote admin login uses the fake address `public-admin@n5.test` and password `admin123`. Staff MFA is bypassed for that account only in this isolated Docker demo: the launcher installs a local-only database role exception and restores the normal AAL2 rule when remote mode stops. Standard admin and hosted staff accounts still require MFA. Real Google OAuth uses a fixed callback hostname and is not available with the temporary URL. Use the provided email/password learner and admin accounts instead. Payments remain simulated and send no money. Run `npm run demo:local:docker` to stop the tunnel and return to local-only access.
+
 ## Profiles
 
 | Profile | Email | Password | Roles |
 |---|---|---|---|
 | Learner | `student@n5.test` | `N5learn26` | Student · N5 target |
 | Free learner | `free-student@n5.test` | `N5free26` | Student · N5 target · no entitlement |
-| Administrator | `admin@n5.test` | `N5admin26` | Student · Admin · N5 target |
+| Administrator | `admin@n5.test` | `admin123` | Student · Admin · N5 target · MFA required |
+| Shared remote administrator | `public-admin@n5.test` | `admin123` | Student · Admin · N5 target · remote demo only |
 | Reviewer | `reviewer@n5.test` | `N5review26` | Student · Reviewer · N5 target |
 
 The current Docker database already has a verified authenticator factor on the seeded admin profile; use the authenticator previously enrolled for `admin@n5.test`. The reviewer must enroll a separate authenticator at `/admin/mfa` before opening staff pages. If you intentionally reset the local database, set up new factors for staff accounts before using staff pages.

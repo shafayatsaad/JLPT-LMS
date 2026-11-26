@@ -6,6 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { paymentRequestSchema } from "@/features/payments/payment-schema";
+import { createClientUuid } from "@/lib/client-uuid";
 import type { MessageKey } from "@/lib/i18n";
 
 export type PaymentPlanOption = {
@@ -47,13 +48,22 @@ type SubmissionReceipt = {
 const knownErrors = new Set([
   "payment.signInRequired", "payment.checkoutClosed", "payment.pendingExists", "payment.duplicateTransaction",
   "payment.planUnavailable", "payment.confirmAccuracy", "payment.referenceRequired", "payment.senderInvalid",
-  "payment.transactionInvalid", "payment.validationError", "payment.submitError", "payment.unavailable",
+  "payment.transactionInvalid", "payment.dateFuture", "payment.validationError", "payment.submitError", "payment.unavailable",
   "payment.receiptTooLarge", "payment.receiptTypeInvalid", "payment.receiptFileInvalid", "payment.receiptUploadFailed", "payment.receiptUnavailable",
 ]);
 
+function currentTimeInTimeZone(timeZone: string) {
+  try {
+    return new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+  } catch {
+    return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+  }
+}
+
 function localDateTimeToIso(date: string, time: string, timeZone: string) {
   const [year, month, day] = date.split("-").map(Number);
-  const [hour, minute] = (time || "12:00").split(":").map(Number);
+  const safeTime = time || (date === todayInTimeZone(timeZone) ? currentTimeInTimeZone(timeZone) : "12:00");
+  const [hour, minute] = safeTime.split(":").map(Number);
   const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute);
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
@@ -69,7 +79,7 @@ function localDateTimeToIso(date: string, time: string, timeZone: string) {
     const zonedAsUtc = Date.UTC(values.year, values.month - 1, values.day, values.hour, values.minute);
     return new Date(wallClockAsUtc - (zonedAsUtc - wallClockAsUtc)).toISOString();
   } catch {
-    return new Date(`${date}T${time || "12:00"}:00`).toISOString();
+    return new Date(`${date}T${safeTime}:00`).toISOString();
   }
 }
 
@@ -134,7 +144,7 @@ export function BkashPaymentCheckout({ options, setupError, timeZone, demoMode =
       paymentAt,
       note: note.trim() || null,
       termsConfirmed,
-      idempotencyKey: idempotencyKey.current ?? crypto.randomUUID(),
+      idempotencyKey: idempotencyKey.current ?? createClientUuid(),
     };
     const parsed = paymentRequestSchema.safeParse(payload);
     if (!parsed.success) {

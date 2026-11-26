@@ -66,7 +66,7 @@ export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolea
   function closeMobileMenu() { setMenuOpen(false); }
   return <>
     <nav className="nav__links" aria-label={signedIn ? t("nav.ariaAccount") : t("nav.ariaSignIn")}>
-      {links.map((link) => <div className="nav__item" key={link.href}><Link className="nav__link" href={link.href} aria-current={isCurrent(link.href) ? "page" : undefined} onClick={closeMobileMenu}>{link.label}</Link></div>)}
+      {links.map((link) => <div className="nav__item" key={link.href}><Link className="nav__link" href={link.href} prefetch={link.href === "/dashboard?view=learner" ? false : undefined} aria-current={isCurrent(link.href) ? "page" : undefined} onClick={closeMobileMenu}>{link.label}</Link></div>)}
       {signedIn ? <div className="nav__item nav__item--notification"><Link className="nav__link nav__notification-link" href="/notifications" aria-label={t("nav.notifications")} aria-current={isCurrent("/notifications") ? "page" : undefined} onClick={closeMobileMenu}><Bell size={18} aria-hidden="true" /><span className="sr-only">{t("nav.notifications")}</span></Link></div> : null}
       {signedIn ? <div className="nav__item nav__item--signout"><SignOutButton className="nav__link nav__signout" onSignedOut={closeMobileMenu} /></div> : null}
     </nav>

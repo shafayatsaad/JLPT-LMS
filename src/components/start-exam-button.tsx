@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 
 export function StartExamButton({ examFormId, activeAttemptId }: { examFormId: string; activeAttemptId?: string | null }) {
   const router = useRouter();
@@ -28,7 +29,7 @@ export function StartExamButton({ examFormId, activeAttemptId }: { examFormId: s
     setPremiumRequired(false);
     const { data, error: startError } = await supabase.rpc("start_exam_attempt", {
       p_exam_form_id: examFormId,
-      p_idempotency_key: crypto.randomUUID(),
+      p_idempotency_key: createClientUuid(),
     });
     setBusy(false);
     if (startError || !data) {

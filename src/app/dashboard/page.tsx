@@ -5,6 +5,7 @@ import { ProductPage, ProductSection, PaperPanel } from "@/components/product-pa
 import { requireSignedInUser } from "@/lib/auth";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import type { MessageKey } from "@/lib/i18n";
+import { isLocalDemoEnvironment, isLocalQaExamFormCode } from "@/lib/local-demo";
 
 export const metadata = { title: "Learner dashboard · JLPT practice" };
 export const dynamic = "force-dynamic";
@@ -43,6 +44,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       p_limit: 1,
     }),
   ]);
+  const learnerForms = isLocalDemoEnvironment() ? forms?.filter((form) => !isLocalQaExamFormCode(form.form_code)) : forms;
   const leaderboardLevel = levels.includes(profile?.target_level as (typeof levels)[number]) ? profile!.target_level! : "N5";
   const { data: leaderboardData, error: leaderboardError } = await supabase.rpc("get_student_leaderboard", {
     p_level: leaderboardLevel,
@@ -60,7 +62,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const now = Date.now();
   const hasPremiumAccess = (entitlements ?? []).some((item) => item.status === "active" && Date.parse(item.starts_at) <= now && Date.parse(item.ends_at) > now);
   const availableByLevel = levels.flatMap((level) => {
-    const levelForms = (forms ?? []).filter((form) => form.level === level);
+    const levelForms = (learnerForms ?? []).filter((form) => form.level === level);
     if (!levelForms.length) return [];
     const eligible = levelForms.filter((form) => form.access_tier === "free" || hasPremiumAccess).length;
     return [{ level, total: levelForms.length, eligible }];

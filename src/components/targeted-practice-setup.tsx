@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { LocalizedText } from "@/components/i18n/localized-text";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 import type { JlptLevel } from "@/lib/jlpt-format";
 
 export type PracticeTagOption = {
@@ -66,7 +67,7 @@ export function TargetedPracticeSetup({
       return;
     }
     try {
-      requestKey.current ??= crypto.randomUUID();
+      requestKey.current ??= createClientUuid();
       const { data, error: startError } = await supabase.rpc("start_targeted_practice", {
         p_level: level,
         p_tag_slug: tagSlug,

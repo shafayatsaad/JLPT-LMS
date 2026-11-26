@@ -16,6 +16,7 @@ function safeErrorKey(message: string) {
   if (normalized.includes("transaction id has already been submitted") || normalized.includes("already verified")) return "payment.duplicateTransaction";
   if (normalized.includes("plan is not available")) return "payment.planUnavailable";
   if (normalized.includes("confirm that the payment details")) return "payment.confirmAccuracy";
+  if (normalized.includes("payment date and time cannot be in the future")) return "payment.dateFuture";
   if (normalized.includes("reference")) return "payment.referenceRequired";
   if (normalized.includes("sender")) return "payment.senderInvalid";
   if (normalized.includes("transaction id")) return "payment.transactionInvalid";

@@ -15,7 +15,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: Promi
   const { paymentId } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(paymentId)) notFound();
 
-  const { supabase, user } = await requireSignedInUser(`/admin/payments/${paymentId}`);
+  const { supabase, user } = await requireSignedInUser(`/admin/payments/${paymentId}`, { context: "staff" });
   if (!supabase || !user) {
     return <ProductPage eyebrow="Staff workspace" title="Payment review" description="Connect Supabase and sign in with a payment reviewer account to load this request."><ProductSection title="Supabase setup required"><PaperPanel><p>Payment review requires an authenticated staff account with the payment reviewer or admin role.</p></PaperPanel></ProductSection></ProductPage>;
   }

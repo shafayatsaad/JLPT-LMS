@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 import { normalizeItemTypeCode } from "@/lib/jlpt-format";
 
 type ImportAsset = { file: string; purpose: "question_audio" | "question_image" | "stimulus_audio" | "stimulus_image"; media_type?: string };
@@ -74,7 +75,7 @@ function normalizeImport(input: unknown): ImportQuestion[] {
       return { file, purpose: purpose as ImportAsset["purpose"], media_type: typeof asset?.media_type === "string" ? asset.media_type : undefined };
     });
     return {
-      content_key: uuidPattern.test(contentKey) ? contentKey : crypto.randomUUID(),
+      content_key: uuidPattern.test(contentKey) ? contentKey : createClientUuid(),
       revision: Number(question.revision ?? 1),
       level: level as ImportQuestion["level"],
       test_section_code: String(question.test_section_code ?? ""),
@@ -315,14 +316,14 @@ export function QuestionBatchImport() {
       const { data, error: draftError } = await supabase.rpc("create_question_drafts_batch", { p_questions: questionPayload });
       if (draftError || !Array.isArray(data)) throw draftError ?? new Error("Draft creation returned an invalid result.");
       questionIds = data.map(String);
-      const batchId = crypto.randomUUID();
+      const batchId = createClientUuid();
       const attachments: { question_id: string; storage_path: string; media_type: string; purpose: string; duration_seconds: null }[] = [];
 
       for (const [questionIndex, question] of questions.entries()) for (const asset of question.assets) {
         const file = fileForReference(files, asset.file);
         const type = mediaType(file);
         const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-100) || "media";
-        const storagePath = `${userResult.user.id}/imports/${batchId}/${crypto.randomUUID()}-${safeName}`;
+        const storagePath = `${userResult.user.id}/imports/${batchId}/${createClientUuid()}-${safeName}`;
         const { error: uploadError } = await supabase.storage.from("jlpt-question-assets").upload(storagePath, file, { contentType: type, cacheControl: "3600", upsert: false });
         if (uploadError) throw new Error(`Upload failed for “${file.name}”: ${uploadError.message}`);
         uploadedPaths.push(storagePath);

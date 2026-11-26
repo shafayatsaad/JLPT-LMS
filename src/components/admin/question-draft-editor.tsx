@@ -3,6 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 import { normalizeItemTypeCode } from "@/lib/jlpt-format";
 import { QuestionAssetUploader } from "@/components/admin/question-asset-uploader";
 
@@ -50,7 +51,7 @@ function toBlockDrafts(value: unknown, seed: string): ContentBlockDraft[] {
     const row = recordOf(block);
     const kind: BlockKind = row.type === "text" ? "text" : row.type === "ruby" ? "ruby" : row.type === "line_break" ? "line_break" : "advanced";
     return {
-      key: `${seed}-${index}-${crypto.randomUUID()}`,
+      key: `${seed}-${index}-${createClientUuid()}`,
       kind,
       original: block,
       text: kind === "text" ? String(row.text ?? row.value ?? "") : "",
@@ -62,7 +63,7 @@ function toBlockDrafts(value: unknown, seed: string): ContentBlockDraft[] {
 }
 
 function newBlock(kind: BlockKind): ContentBlockDraft {
-  const key = `new-${crypto.randomUUID()}`;
+  const key = `new-${createClientUuid()}`;
   return { key, kind, original: null, text: "", base: "", reading: "", json: "{\n  \"type\": \"text\",\n  \"text\": \"\"\n}" };
 }
 

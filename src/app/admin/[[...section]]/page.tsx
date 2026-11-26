@@ -66,7 +66,7 @@ export default async function AdminPage({ params, searchParams }: {
   const auditActor = typeof query.actor === "string" && /^[0-9a-f-]{36}$/i.test(query.actor) ? query.actor : "";
   const auditFrom = isoDateOrEmpty(query.from);
   const auditTo = isoDateOrEmpty(query.to);
-  const { supabase, user } = await requireSignedInUser(route);
+  const { supabase, user } = await requireSignedInUser(route, { context: "staff" });
 
   if (!supabase || !user) {
     return <ProductPage eyebrow="Staff workspace" title="Content and operations" description="Connect Supabase and sign in with a staff account to load this workspace."><ProductSection title="Supabase setup required"><PaperPanel><p>Staff access is assigned through the protected <code>user_roles</code> table after the migrations are applied.</p><Link className="btn btn--primary" href="/auth/login">Sign in</Link></PaperPanel></ProductSection></ProductPage>;
@@ -342,7 +342,7 @@ export default async function AdminPage({ params, searchParams }: {
       {route === "/admin/questions/new" ? <ProductSection title="Create a question draft"><PaperPanel className="data-panel"><QuestionAuthoringForm /></PaperPanel></ProductSection> : null}
       {!(["/admin/payments", "/admin/plans", "/admin/settings/payments"].includes(route)) ? <ProductSection title={route === "/admin" ? "Workspace summary" : sectionTitle}>
         <PaperPanel className="data-panel">
-          <p className="section-note">{dataError ? "Supabase returned an error. Confirm the database migration and the role permissions." : sectionDescription}</p>
+          <p className="section-note">{dataError ? "The data service rejected this request. Check the local schema and staff permissions." : sectionDescription}</p>
           {dataError ? <p className="inline-notice">{dataError}</p> : route === "/admin" ? dashboardSummary ? <AdminDashboardSummary summary={dashboardSummary} canSeeAudit={isAdmin} /> : <p className="empty-state">The summary is unavailable. Confirm migration 030 and the current staff role.</p> : route === "/admin/audit" ? <><form className="admin-export-form" method="get">
             <div className="admin-export-form__fields">
               <label>Action contains<input name="q" maxLength={120} defaultValue={auditSearch} /></label>

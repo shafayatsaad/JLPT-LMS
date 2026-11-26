@@ -9,6 +9,8 @@ services:
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?Run npm run demo:local:docker to prepare local Supabase values}
         NEXT_PUBLIC_AUTH_ENABLE_PHONE: ${NEXT_PUBLIC_AUTH_ENABLE_PHONE:-true}
         NEXT_PUBLIC_DEMO_LAN_ENABLED: ${NEXT_PUBLIC_DEMO_LAN_ENABLED:-false}
+        LOCAL_DEMO_SUPABASE_PROXY: ${LOCAL_DEMO_SUPABASE_PROXY:-false}
+        SUPABASE_PROXY_TARGET: ${SUPABASE_PROXY_TARGET:-http://host.docker.internal:54321}
     env_file:
       - .local-demo/compose.env
     environment:
@@ -33,3 +35,19 @@ services:
       retries: 8
       start_period: 60s
     restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["remote"]
+    command: ["tunnel", "--no-autoupdate", "--url", "http://app:3000"]
+    depends_on:
+      app:
+        condition: service_healthy
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Quick Tunnels issue a new random hostname on process restart. The remote
+    # launcher creates a fresh container and prints the matching hostname.
+    restart: "no"

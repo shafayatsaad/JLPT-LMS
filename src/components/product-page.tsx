@@ -31,7 +31,7 @@ export function ProductPage({
   descriptionKey?: MessageKey;
 }) {
   return (
-    <>
+    <div className="product-shell origami-theme">
       <SiteHeader />
       {isLocalDemoEnvironment() ? (
         <aside className="local-demo-banner" aria-label="Local demo mode">
@@ -56,7 +56,7 @@ export function ProductPage({
         {children}
       </main>
       <SiteFooter compact />
-    </>
+    </div>
   );
 }
 

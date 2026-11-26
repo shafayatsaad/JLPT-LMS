@@ -8,6 +8,7 @@ export const metadata = { title: "Local test accounts · JLPT practice", robots:
 
 export default function LocalTestAccountsPage() {
   if (!isLocalDemoEnvironment()) notFound();
+  const publicTunnelMode = process.env.LOCAL_DEMO_PUBLIC_TUNNEL_ENABLED === "true";
 
   return (
     <ProductPage eyebrow="Local development only" title="Test learner and staff profiles" description="These seeded accounts exist only in your local Supabase database. The demo command never writes users to your hosted Supabase project." className="product-page--auth">
@@ -29,9 +30,11 @@ export default function LocalTestAccountsPage() {
       </ProductSection>
       <ProductSection title="Administrator profile">
         <PaperPanel className="auth-panel">
-          <p><strong>Email:</strong> <code className="local-demo-credential">admin@n5.test</code></p>
-          <p><strong>Password:</strong> <code className="local-demo-credential">N5admin26</code></p>
-          <p>On first use, enroll an authenticator app at <Link href="/admin/mfa">the staff MFA page</Link>. Staff pages remain protected by MFA.</p>
+          <p><strong>Email:</strong> <code className="local-demo-credential">{publicTunnelMode ? "public-admin@n5.test" : "admin@n5.test"}</code></p>
+          <p><strong>Password:</strong> <code className="local-demo-credential">admin123</code></p>
+          {publicTunnelMode
+            ? <p>This shared account is for the public test sandbox only. It uses a fake <code>.test</code> email and skips staff MFA only while this temporary remote demo is enabled.</p>
+            : <p>The shared remote-demo administrator uses a separate account. This local administrator keeps staff authenticator MFA enabled. Use <Link href="/admin/mfa">the staff MFA page</Link> to enroll when the local database has no staff factor.</p>}
           <Link className="btn btn--primary" href="/admin/sign-in">Open staff sign in</Link>
           <nav className="demo-workflow-links" aria-label="Administrator demo workflows">
             <Link href="/admin">Admin overview</Link>
@@ -46,6 +49,14 @@ export default function LocalTestAccountsPage() {
           </nav>
         </PaperPanel>
       </ProductSection>
+      {!publicTunnelMode ? <ProductSection title="Shared remote administrator profile">
+        <PaperPanel className="auth-panel">
+          <p><strong>Email:</strong> <code className="local-demo-credential">public-admin@n5.test</code></p>
+          <p><strong>Password:</strong> <code className="local-demo-credential">admin123</code></p>
+          <p>This fake-email account is intended for the temporary public demo. The remote launcher skips staff MFA for this account only; the standard local administrator keeps MFA enabled.</p>
+          <Link className="btn btn--primary" href="/admin/sign-in">Open shared demo admin</Link>
+        </PaperPanel>
+      </ProductSection> : null}
       <ProductSection title="Independent reviewer profile">
         <PaperPanel className="auth-panel">
           <p><strong>Email:</strong> <code className="local-demo-credential">reviewer@n5.test</code></p>

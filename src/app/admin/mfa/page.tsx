@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AdminMfaChallenge } from "@/components/admin/admin-mfa-challenge";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
+import { canSkipMfaForSharedRemoteDemoAdmin } from "@/lib/local-demo";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -35,19 +36,27 @@ export default async function AdminMfaPage({ searchParams }: { searchParams: Pro
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/auth/login?next=${encodeURIComponent(`/admin/mfa?next=${nextPath}`)}`);
-
-  const { data: isStaff, error: roleError } = await supabase.rpc("is_current_user_staff");
-  let hasStaffAccess = !roleError && isStaff === true;
-  if (roleError) {
-    const { data: roleRows, error: fallbackError } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-    hasStaffAccess = !fallbackError && Boolean(roleRows?.some((row) => staffRoles.includes(row.role)));
-  }
-  if (!hasStaffAccess) {
-    redirect("/dashboard?notice=staff-access-required");
-  }
+  if (canSkipMfaForSharedRemoteDemoAdmin(user.email)) redirect(nextPath);
 
   const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assurance?.currentLevel === "aal2") redirect(nextPath);
+
+  // The local and hosted Auth hooks set the API role to `anon` until a verified
+  // TOTP factor reaches AAL2. In that state the staff-role RPC cannot run yet;
+  // let the user complete their own factor challenge, then the destination
+  // route checks the actual staff role before showing any staff data.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims as Record<string, unknown> | undefined;
+  const awaitingTotp = claims?.role === "anon" || claims?.jlpt_step_up_required === true;
+  if (!awaitingTotp) {
+    const { data: isStaff, error: roleError } = await supabase.rpc("is_current_user_staff");
+    let hasStaffAccess = !roleError && isStaff === true;
+    if (roleError) {
+      const { data: roleRows, error: fallbackError } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      hasStaffAccess = !fallbackError && Boolean(roleRows?.some((row) => staffRoles.includes(row.role)));
+    }
+    if (!hasStaffAccess) redirect("/dashboard?notice=staff-access-required");
+  }
 
   return (
     <ProductPage eyebrow="Staff workspace · protected" title="Verify staff access" description="Use an authenticator app to complete the second sign-in step before opening staff tools." className="product-page--auth">

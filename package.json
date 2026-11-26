@@ -24,6 +24,7 @@
     "demo:local:production:resume": "powershell -ExecutionPolicy Bypass -File scripts/start-local-demo.ps1 -Production -Resume",
     "demo:local:docker": "powershell -ExecutionPolicy Bypass -File scripts/start-local-docker-app.ps1",
     "demo:local:docker:lan": "powershell -ExecutionPolicy Bypass -File scripts/start-local-docker-app.ps1 -Lan",
+    "demo:local:docker:remote": "powershell -ExecutionPolicy Bypass -File scripts/start-local-docker-remote.ps1",
     "demo:local:docker:stop": "powershell -ExecutionPolicy Bypass -File scripts/start-local-docker-app.ps1 -Stop",
     "supabase:test": "supabase test db",
     "supabase:audit": "node scripts/audit-supabase-schema.cjs",

@@ -37,7 +37,7 @@ export default async function AdminEntitlementsPage({ searchParams }: { searchPa
   const status = statuses.includes(rawStatus as typeof statuses[number]) ? rawStatus : "";
   const search = typeof query.q === "string" ? query.q.slice(0, 120).trim() : "";
 
-  const { supabase, user } = await requireSignedInUser("/admin/entitlements");
+  const { supabase, user } = await requireSignedInUser("/admin/entitlements", { context: "staff" });
   if (!supabase || !user) {
     return <ProductPage eyebrow="Staff workspace" title="Student access" description="Connect Supabase and sign in with an administrator account to review access records."><ProductSection title="Supabase setup required"><PaperPanel><p>This view is restricted to administrators.</p></PaperPanel></ProductSection></ProductPage>;
   }

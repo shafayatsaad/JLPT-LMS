@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jlptFormats, normalizeItemTypeCode, officialItemTypes, type JlptLevel } from "@/lib/jlpt-format";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 import { QuestionAssetUploader } from "@/components/admin/question-asset-uploader";
 
 const levels: JlptLevel[] = ["N1", "N2", "N3", "N4", "N5"];
@@ -98,9 +99,10 @@ export function QuestionAuthoringForm() {
     }
 
     setBusy(true);
+    try {
     if (!questionId) {
       const { data, error: saveError } = await supabase.rpc("create_question_draft", {
-        p_content_key: familyId.trim() || crypto.randomUUID(),
+        p_content_key: familyId.trim() || createClientUuid(),
         p_revision: Number(revision),
         p_level: level,
         p_test_section_code: sectionCode,
@@ -124,7 +126,6 @@ export function QuestionAuthoringForm() {
         p_rights_notes: rightsNotes.trim() || null,
       });
       if (saveError || !data) {
-        setBusy(false);
         setError(saveError?.message ?? "The draft could not be saved.");
         return;
       }
@@ -133,7 +134,6 @@ export function QuestionAuthoringForm() {
         p_question_id: String(data),
         p_tag_slugs: tags,
       });
-      setBusy(false);
       if (tagError) {
         setError(`Draft saved, but its skill tags were not saved: ${tagError.message}`);
         return;
@@ -148,12 +148,10 @@ export function QuestionAuthoringForm() {
       p_tag_slugs: tags,
     });
     if (tagError) {
-      setBusy(false);
       setError(tagError.message);
       return;
     }
     const { error: submitError } = await supabase.rpc("submit_question_for_review", { p_question_id: questionId });
-    setBusy(false);
     if (submitError) {
       setError(submitError.message);
       return;
@@ -161,6 +159,11 @@ export function QuestionAuthoringForm() {
     setSubmitted(true);
     setMessage("Question submitted. A different reviewer must approve it before it can enter an exam form.");
     router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The question draft could not be saved.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   function startAnotherDraft() {

@@ -4,6 +4,7 @@ import { LocalizedText } from "@/components/i18n/localized-text";
 import { ExamLibraryCards } from "@/components/learner-records";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { requireSignedInUser } from "@/lib/auth";
+import { isLocalDemoEnvironment, isLocalQaExamFormCode } from "@/lib/local-demo";
 
 export const metadata = { title: "Exam library · JLPT practice" };
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default async function ExamLibraryPage({ searchParams }: { searchParams: 
     formsQuery,
     supabase.from("profiles").select("preferred_timezone").eq("user_id", user.id).maybeSingle(),
   ]);
+  const libraryForms = isLocalDemoEnvironment() ? forms?.filter((form) => !isLocalQaExamFormCode(form.form_code)) : forms;
   const timeZone = profile?.preferred_timezone || "UTC";
 
   return (
@@ -36,7 +38,7 @@ export default async function ExamLibraryPage({ searchParams }: { searchParams: 
       <ProductSection title="Published mock exams" titleKey="exams.section" className="product-section--tint">
         <PaperPanel className="data-panel">
           <form className="admin-export-form exam-library-filter" method="get"><label><LocalizedText messageKey="exams.levelFilter" /><select name="level" defaultValue={level}><option value=""><LocalizedText messageKey="exams.allLevels" /></option>{["N1", "N2", "N3", "N4", "N5"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label><button className="btn btn--secondary" type="submit"><LocalizedText messageKey="exams.applyLevelFilter" /></button></form>
-          {error ? <p className="inline-notice"><LocalizedText messageKey="exams.unavailable" /></p> : forms?.length ? <><ExamLibraryCards forms={forms} timeZone={timeZone} /><p className="data-footnote"><LocalizedText messageKey="exams.accessDetails" /></p></> : <div className="empty-state"><p><LocalizedText messageKey="exams.empty" />{level ? ` · ${level}` : ""}</p><p><LocalizedText messageKey="exams.previewDescription" /></p><Link className="text-link" href="/exams/n5/preview"><LocalizedText messageKey="exams.openPreview" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>}
+          {error ? <p className="inline-notice"><LocalizedText messageKey="exams.unavailable" /></p> : libraryForms?.length ? <><ExamLibraryCards forms={libraryForms} timeZone={timeZone} /><p className="data-footnote"><LocalizedText messageKey="exams.accessDetails" /></p></> : <div className="empty-state"><p><LocalizedText messageKey="exams.empty" />{level ? ` · ${level}` : ""}</p><p><LocalizedText messageKey="exams.previewDescription" /></p><Link className="text-link" href="/exams/n5/preview"><LocalizedText messageKey="exams.openPreview" /> <ArrowUpRight size={15} aria-hidden="true" /></Link></div>}
         </PaperPanel>
       </ProductSection>
     </ProductPage>

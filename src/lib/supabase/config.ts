@@ -15,7 +15,15 @@ export function getSupabasePublicConfig(): SupabasePublicConfig | null {
 
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") return null;
+    const privateIPv4 = parsed.hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+    const octets = privateIPv4 ? privateIPv4.slice(1).map(Number) : [];
+    const isPrivateLanAddress = octets.length === 4
+      && octets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255)
+      && (octets[0] === 10
+        || (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31)
+        || (octets[0] === 192 && octets[1] === 168));
+    const isAllowedLanDemo = process.env.NEXT_PUBLIC_DEMO_LAN_ENABLED === "true" && isPrivateLanAddress;
+    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && !isAllowedLanDemo) return null;
   } catch {
     return null;
   }

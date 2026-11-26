@@ -109,7 +109,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
   const { userId } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) notFound();
 
-  const { supabase, user } = await requireSignedInUser(`/admin/users/${userId}`);
+  const { supabase, user } = await requireSignedInUser(`/admin/users/${userId}`, { context: "staff" });
   if (!supabase || !user) {
     return <ProductPage eyebrow="Staff workspace" title="Account details" description="Connect Supabase and sign in with an administrator account to view private account information."><ProductSection title="Supabase setup required"><PaperPanel><p>Account details are available only to authenticated administrators.</p></PaperPanel></ProductSection></ProductPage>;
   }

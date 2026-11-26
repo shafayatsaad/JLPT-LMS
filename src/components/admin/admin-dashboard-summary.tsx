@@ -39,7 +39,7 @@ export function AdminDashboardSummary({ summary, canSeeAudit }: { summary: Admin
     <div className="admin-dashboard-summary">
       <div className="admin-dashboard-summary__welcome">
         <p>Work assigned to your current staff roles appears below. Each link opens the queue where the action is handled.</p>
-        <Link className="text-link" href="/dashboard?view=learner">Open learner experience <ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link className="text-link" href="/dashboard?view=learner" prefetch={false}>Open learner experience <ArrowUpRight size={15} aria-hidden="true" /></Link>
       </div>
 
       <section className="admin-dashboard-panel admin-dashboard-panel--tasks">

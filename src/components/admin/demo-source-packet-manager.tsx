@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClientUuid } from "@/lib/client-uuid";
 
 export type DemoSourcePacketRow = {
   id: string;
@@ -70,10 +71,10 @@ export function DemoSourcePacketManager({ packets, canUpload = true, canArchive 
     if (authError || !user) return setError("Sign in again before uploading source material.");
 
     setBusy(true);
-    const packetKey = crypto.randomUUID();
+    const packetKey = createClientUuid();
     const uploads: { path: string; file: File; type: string }[] = [
-      { path: `${user.id}/${packetKey}/${crypto.randomUUID()}-${pdf.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120)}`, file: pdf, type: "application/pdf" },
-      ...(audio ? [{ path: `${user.id}/${packetKey}/${crypto.randomUUID()}-${audio.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120)}`, file: audio, type: audioTypes[audio.name.split(".").pop()?.toLowerCase() ?? ""] }] : []),
+      { path: `${user.id}/${packetKey}/${createClientUuid()}-${pdf.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120)}`, file: pdf, type: "application/pdf" },
+      ...(audio ? [{ path: `${user.id}/${packetKey}/${createClientUuid()}-${audio.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120)}`, file: audio, type: audioTypes[audio.name.split(".").pop()?.toLowerCase() ?? ""] }] : []),
     ];
     const uploaded: string[] = [];
     try {
