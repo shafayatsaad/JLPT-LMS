@@ -72,9 +72,17 @@ export function QuestionAssetUploader({ questionId, onPendingChange }: { questio
       setError(registerError?.message ?? "The uploaded file could not be attached to the question.");
       return;
     }
-    setAssetId(String(data));
+    const savedAssetId = String(data);
+    const { error: metadataError } = await supabase.rpc("update_question_asset_file_details", {
+      p_asset_id: savedAssetId,
+      p_file_name: file.name,
+      p_file_size_bytes: file.size,
+    });
+    setAssetId(savedAssetId);
     onPendingChange(true);
-    setMessage("Private asset uploaded and attached as a draft. Submit it for a separate review before publishing a form.");
+    setMessage(metadataError
+      ? `Private asset uploaded and attached; file details could not be saved: ${metadataError.message}`
+      : "Private asset uploaded and attached as a draft. Submit it for a separate review before publishing a form.");
     setBusy(false);
   }
 
