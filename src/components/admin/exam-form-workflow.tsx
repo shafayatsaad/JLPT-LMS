@@ -187,6 +187,7 @@ export function ExamFormReviewQueue({ rows, currentUserId }: { rows: ExamFormRow
         <div className="review-queue__meta"><span>{row.form_code} · {row.level} v{row.version}</span><span>{row.item_count} questions</span><span>{row.access_tier}</span><span>{row.status}{row.is_frozen ? " · frozen" : ""}</span></div>
         <p className="workflow-form-card__id">Form ID <code>{row.id}</code>{row.published_at ? ` · Published ${new Date(row.published_at).toLocaleString("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })}` : ""}</p>
         <Link className="text-link" href={`/admin/exam-forms/${row.id}`}>Inspect form manifest</Link>
+        <Link className="text-link" href={`/admin/exam-preview?form=${row.id}`}>Preview student exam</Link>
         {row.status === "draft" || row.status === "validated" ? <label className="review-queue__notes">Review note <span className="field-optional">Optional</span><textarea maxLength={2000} value={notes[row.id] ?? ""} onChange={(event) => setNotes((current) => ({ ...current, [row.id]: event.target.value }))} /></label> : null}
         <div className="review-queue__actions">
           {row.status === "draft" ? <button className="btn btn--secondary" type="button" disabled={isAuthor || busyId === row.id} onClick={() => void decide(row, "validate")}>{busyId === row.id ? "Validating…" : "Validate form"}</button> : null}
