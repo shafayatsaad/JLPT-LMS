@@ -75,6 +75,7 @@ export default async function AdminExamFormDetailPage({ params }: { params: Prom
               <div><span>Blueprint</span><strong><code>{form.blueprint_id}</code></strong></div>
               <div><span>Created</span><strong>{dateTime(form.created_at)}</strong></div>
             </div>
+            <p><Link className="btn btn--secondary" href={`/admin/exam-preview?form=${form.id}`}>Preview student experience</Link></p>
             <h2>Selected questions · {items.length}</h2>
             {!items.length ? <p>No question revisions are attached.</p> : <div className="table-scroll"><table><thead><tr><th>Position</th><th>Section</th><th>Score category</th><th>Item type</th><th>Review state</th><th>Question revision</th></tr></thead><tbody>{items.map((item) => {
               const question = questions.get(item.question_id);
