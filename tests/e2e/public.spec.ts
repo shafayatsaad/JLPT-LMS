@@ -284,8 +284,8 @@ test("local learner can sign in, reach the dashboard, and sign out", async ({ pa
   await page.screenshot({ path: "test-results/phase2-student-dashboard-desktop.png", fullPage: true });
   const learnerNav = page.getByRole("navigation", { name: "Account navigation" });
   for (const label of ["Dashboard", "Mock exams", "Practice", "Results", "Profile"]) await expect(learnerNav.getByRole("link", { name: label })).toBeVisible();
-  await expect(learnerNav.getByRole("link", { name: "Leaderboard" })).toBeVisible();
-  await learnerNav.getByRole("link", { name: "Leaderboard" }).click();
+  await expect(learnerNav.getByRole("link", { name: "Leaderboard" })).toHaveCount(0);
+  await page.getByRole("link", { name: /leaderboard/i }).last().click();
   await expect(page.getByRole("heading", { level: 1, name: "Leaderboard" })).toBeVisible();
   await expect(page.locator(".leaderboard-notes")).toBeVisible();
   await expect(page.getByLabel("JLPT level")).toHaveValue("N5");
@@ -427,7 +427,7 @@ test("shared remote demo administrator opens the staff workspace with the simple
   await page.locator('input[type="password"]').fill("admin123");
   await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Verify staff access" })).toHaveCount(0);
   await expect(page.getByText(/data service rejected|staff access is required/i)).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Items requiring attention" })).toBeVisible();
@@ -449,10 +449,10 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
   await page.getByRole("button", { name: "Verify and continue", exact: true }).click();
   await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 });
-  await expect(page.getByRole("heading", { level: 1, name: "Operational overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   const sections = page.getByRole("navigation", { name: "Staff areas" });
-  await expect(sections.getByRole("link")).toHaveText(["Overview", "Content", "Exams", "Students", "Payments", "Reports & Settings"]);
-  await expect(page.getByRole("navigation", { name: "Content tools" })).toHaveCount(0);
+  await expect(sections.getByRole("link")).toHaveText(["Dashboard", "Question Bank", "Exam Manager", "Students", "Payments", "Settings"]);
+  await expect(page.getByRole("navigation", { name: "Question Bank tools" })).toHaveCount(0);
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-dashboard-desktop.png", fullPage: true });
   for (const [path, fileName] of [
@@ -482,7 +482,13 @@ test("local administrator opens staff workspace and learner view remains separat
     await expect(page.getByText(/Supabase returned an error|Confirm migration \d+|Confirm the database migration/i)).toHaveCount(0);
     if (path === "/admin/exam-preview") {
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-      await expect(page.getByRole("heading", { level: 2, name: "N5 practice booklet · sample" })).toBeVisible();
+      const formSelect = page.getByLabel("Saved exam form");
+      await expect(formSelect).toBeVisible();
+      await formSelect.selectOption({ index: 1 });
+      await page.getByRole("button", { name: "Preview selected form" }).click();
+      await expect(page.getByRole("button", { name: "Candidate page" })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Answer sheet/ })).toBeVisible();
+      await expect(page.getByText("Preview mode · no timer · no answers saved")).toBeVisible();
     }
     if (path === "/admin/exam-forms") {
       const blueprintSelect = page.getByLabel("Approved blueprint");
@@ -528,6 +534,14 @@ test("local administrator opens staff workspace and learner view remains separat
   const formDetailsHref = await createdForm.getByRole("link", { name: "Inspect form manifest" }).getAttribute("href");
   const createdFormId = formDetailsHref?.split("/").at(-1) ?? "";
   expect(createdFormId).toMatch(/^[0-9a-f-]{36}$/i);
+  await page.goto(`/admin/exam-preview?form=${createdFormId}`);
+  await expect(page.locator(".selected-exam-preview")).toContainText(testFormCode);
+  await expect(page.getByRole("button", { name: "Candidate page" })).toBeVisible();
+  await page.getByRole("button", { name: /Answer sheet/ }).click();
+  const previewBubble = page.locator('.selected-exam-preview input[type="radio"]');
+  await expect.poll(() => previewBubble.count()).toBeGreaterThanOrEqual(6);
+  await previewBubble.first().check();
+  await expect(page.getByRole("button", { name: /Answer sheet · 1\// })).toBeVisible();
   await page.goto("/admin/questions");
   const firstQuestionRevision = page.getByRole("link", { name: /Revision \d+/ }).first();
   if (await firstQuestionRevision.count()) {
@@ -553,11 +567,15 @@ test("local administrator opens staff workspace and learner view remains separat
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
   await expect(page.locator(".form-message--error")).toContainText("unique ID");
   await choiceIds.nth(1).fill("B");
-  const savedPrompt = "【PHASE 2 QA】編集後の問題文を保存して確認します。";
+  const savedPrompt = `【PHASE 2 QA】編集後の問題文を保存して確認します。${Date.now()}`;
   await editableText.fill(savedPrompt);
   await page.getByLabel("Skill tags").fill("vocabulary, phase2-demo");
   await page.getByRole("button", { name: "Save draft", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Draft saved");
+  await page.goto(`/admin/questions?q=${encodeURIComponent(savedPrompt)}`);
+  await expect(page.getByRole("link", { name: /Revision 1/ }).first()).toBeVisible();
+  await expect(page.getByText(/of 1 matching revisions/)).toBeVisible();
+  await page.goto(`/admin/questions/${questionId}`);
   await page.reload();
   const persistedText = page.locator(".question-draft-editor .question-content-editor__block textarea").first();
   await expect(persistedText).toHaveValue(savedPrompt);
@@ -631,10 +649,15 @@ test("local administrator opens staff workspace and learner view remains separat
   rmSync(importDirectory, { recursive: true, force: true });
 
   await page.goto("/admin/assets");
+  const importedQuestionId = localQuestionId(importContentKey);
+  const importedLibraryAssets = page.locator(".asset-library__item").filter({ hasText: importedQuestionId.slice(0, 8) });
+  await expect(importedLibraryAssets).toHaveCount(2);
+  await expect(importedLibraryAssets.filter({ hasText: "question image" })).toHaveCount(1);
+  await expect(importedLibraryAssets.filter({ hasText: "question audio" })).toHaveCount(1);
   const importedAssets = page.locator(".asset-review-queue__item").filter({ hasText: importPrompt });
   await expect(importedAssets).toHaveCount(2);
-  await expect(importedAssets.locator(".asset-review-queue__preview img")).toBeVisible();
-  await expect(importedAssets.locator(".asset-review-queue__preview audio")).toBeVisible();
+  await expect(importedAssets.locator(".asset-review-queue__preview img")).toHaveCount(1);
+  await expect(importedAssets.locator(".asset-review-queue__preview audio")).toHaveCount(1);
   await prepareFullPageScreenshot(page);
   await page.screenshot({ path: "test-results/phase2-admin-media-review-with-samples-desktop.png", fullPage: true });
   await importedAssets.getByRole("button", { name: "Approve asset" }).first().click();
@@ -692,6 +715,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await reviewerAssets.first().locator("textarea").fill("Independent QA confirmed the private image/audio preview and attachment.");
   await reviewerAssets.first().getByRole("button", { name: "Approve asset" }).click();
   await expect(reviewerAssets).toHaveCount(1);
+  expect(localAssetStatuses(importContentKey).split(",").filter((status) => status === "approved")).toHaveLength(1);
   await reviewerAssets.first().getByRole("button", { name: "Approve asset" }).click();
   await expect(reviewerAssets).toHaveCount(0);
   expect(localAssetStatuses(importContentKey)).toBe("approved,approved");
@@ -709,6 +733,15 @@ test("local administrator opens staff workspace and learner view remains separat
     await authorPage.locator('input[autocomplete="one-time-code"]').fill(currentLocalTotp());
     await authorPage.getByRole("button", { name: "Verify and continue", exact: true }).click();
     await expect(authorPage).toHaveURL(/\/admin$/, { timeout: 15_000 });
+    await authorPage.goto("/admin/assets");
+    const reusableImage = authorPage.locator(".asset-library__item").filter({ hasText: importedQuestionId.slice(0, 8) }).filter({ hasText: "question image" });
+    await expect(reusableImage).toContainText("approved");
+    await reusableImage.getByLabel("Link to a draft question").selectOption(questionId);
+    await reusableImage.getByRole("button", { name: "Link file" }).click();
+    await expect(reusableImage).toContainText(questionId.slice(0, 8));
+    authorPage.once("dialog", (dialog) => void dialog.accept());
+    await reusableImage.getByRole("button", { name: "Unlink" }).click();
+    await expect(reusableImage.locator(".asset-library__links").first()).not.toContainText(questionId.slice(0, 8));
     await authorPage.goto("/admin/exam-forms");
     await authorPage.getByLabel("Approved blueprint").selectOption({ label: "N5 · version 1" });
     const requiredQuestionSlots = [
@@ -748,7 +781,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(reviewerForm).toContainText("draft");
   await reviewerForm.locator("textarea").fill("Independent QA validated the approved blueprint, exact question quota, and frozen manifest.");
   await reviewerForm.getByRole("button", { name: "Validate form" }).click();
-  await expect(reviewerForm).toContainText("validated");
+  await expect(reviewerForm.locator(".review-queue__meta")).toContainText("validated");
   expect(localExamFormStatus(createdFormId)).toBe("validated|false");
   await reviewerForm.getByRole("button", { name: "Publish frozen form" }).click();
   await expect(reviewerForm).toContainText("published · frozen");
@@ -762,7 +795,7 @@ test("local administrator opens staff workspace and learner view remains separat
   await expect(reviewerAudioForm).toContainText("draft");
   await reviewerAudioForm.locator("textarea").fill("QA form with an independently reviewed audio asset attached to the listening item.");
   await reviewerAudioForm.getByRole("button", { name: "Validate form" }).click();
-  await expect(reviewerAudioForm).toContainText("validated");
+  await expect(reviewerAudioForm.locator(".review-queue__meta")).toContainText("validated");
   await reviewerAudioForm.getByRole("button", { name: "Publish frozen form" }).click();
   await expect(reviewerAudioForm).toContainText("published · frozen");
 
