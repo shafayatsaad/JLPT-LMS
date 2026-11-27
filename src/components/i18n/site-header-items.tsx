@@ -25,7 +25,6 @@ export function SiteHeaderItems({ signedIn, hasStaffAccess }: { signedIn: boolea
           { href: "/exams", label: t("nav.mockExams") },
           { href: "/practice", label: t("nav.practice") },
           { href: "/progress", label: t("nav.results") },
-          { href: "/leaderboard", label: t("nav.leaderboard") },
           { href: "/account", label: t("nav.profile") },
         ]
     : [
