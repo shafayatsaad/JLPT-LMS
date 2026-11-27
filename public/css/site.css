@@ -1768,6 +1768,39 @@ button.exam-question-rail__item { cursor: pointer; }
 .question-bank-counts > div:last-child { border-inline-end: 0; }
 .question-bank-counts span { color: #705c63; font-size: 11px; line-height: 1.35; text-transform: capitalize; }
 .question-bank-counts strong { color: #593744; font: 600 19px/1 var(--font-display); }
+.question-bank-bulk-actions, .question-bank-pagination, .question-bank-pagination > div { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.question-bank-bulk-actions { margin: 14px 0; padding: 11px 13px; border: 1px solid #ead9d8; background: #fff8f6; }
+.question-bank-select-all { display: flex; align-items: center; gap: 9px; color: #60434d; font-size: 13px; font-weight: 600; }
+.question-bank-select-all input, .question-bank-bulk-actions input[type="checkbox"] { width: 18px; height: 18px; accent-color: #9d3f59; }
+.question-bank-pagination { margin-top: 17px; padding-top: 13px; border-top: 1px solid #ead9d8; color: #705c63; font-size: 13px; }
+.question-bank-pagination > div { justify-content: flex-end; }
+.question-bank-pagination [aria-disabled="true"] { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.question-bank-filters__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.asset-library { display: grid; gap: 16px; margin-top: 16px; }
+.asset-library__item { display: grid; gap: 13px; min-width: 0; padding: clamp(14px, 2vw, 20px); border: 1px solid #e4d2d0; background: #fffdfa; box-shadow: 2px 3px 0 #f1e6e3; }
+.asset-library__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.asset-library__header h3 { margin: 7px 0 0; color: #513541; font: 600 19px/1.3 var(--font-display); overflow-wrap: anywhere; }
+.asset-library__header > code { max-width: 100%; overflow-wrap: anywhere; color: #725c63; font-size: 11px; }
+.asset-library__metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin: 0; }
+.asset-library__metadata > div { min-width: 0; padding: 9px 10px; border-inline-start: 2px solid #dba6af; background: #fff6f4; }
+.asset-library__metadata dt { color: #826970; font-size: 11px; }
+.asset-library__metadata dd { margin: 3px 0 0; color: #543c45; font-size: 13px; overflow-wrap: anywhere; }
+.asset-library__preview { display: grid; justify-items: start; gap: 9px; padding: 12px; border: 1px solid #eadbd8; background: #faf6f3; }
+.asset-library__preview img { display: block; max-width: min(100%, 720px); max-height: 420px; object-fit: contain; }
+.asset-library__preview audio { width: min(100%, 620px); }
+.asset-library__links { display: grid; gap: 7px; }
+.asset-library__links > strong { color: #5b414b; font-size: 13px; }
+.asset-library__links > p { margin: 0; color: #806c72; font-size: 13px; }
+.asset-library__links ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.asset-library__links li { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 12px; padding-block: 7px; border-top: 1px solid #f0e2df; color: #77646a; font-size: 12px; }
+.asset-library__links li .text-link { margin: 0; padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+.asset-library__actions, .asset-library__edit { display: flex; align-items: end; flex-wrap: wrap; gap: 9px; }
+.asset-library__link-form { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid #eadbd8; background: #fff8f6; }
+.asset-library__link-form label { display: grid; min-width: 170px; gap: 5px; color: #59454d; font-size: 12px; font-weight: 600; }
+.asset-library__link-form select { min-height: 40px; max-width: 100%; padding: 7px 9px; border: 1px solid #ddc7c7; background: #fffdfa; color: #49313b; font: inherit; }
+.asset-library__edit { padding: 12px; border-inline-start: 3px solid #d46c82; background: #fff6f4; }
+.asset-library__edit label { display: grid; flex: 1 1 260px; gap: 6px; color: #59454d; font-size: 13px; font-weight: 600; }
+.asset-library__edit input { min-height: 44px; padding: 9px 11px; border: 1px solid #ddc7c7; background: #fffdfa; color: #49313b; font: inherit; }
 .workflow-stack .workflow-form__row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .workflow-stack .workflow-form__row > label { display: grid; align-content: start; gap: 7px; color: #49333c; font-size: 13px; font-weight: 600; }
 .workflow-stack .workflow-form__row input, .workflow-stack .workflow-form__row select { width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid #cdaab2; border-radius: 2px 10px 2px 10px; background: #fffdfb; color: #372a30; font: 400 14px/1.45 var(--font-text); }
