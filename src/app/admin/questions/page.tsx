@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { AdminNavigation } from "@/components/admin/admin-navigation";
+import { QuestionBankTable, type QuestionBankTableRow } from "@/components/admin/question-bank-table";
 import { requireStaff } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -8,22 +9,12 @@ export const metadata = { title: "Question bank · Administration" };
 
 const statuses = ["draft", "needs_review", "approved", "eligible_for_exam", "rejected", "retired"] as const;
 const levels = ["N1", "N2", "N3", "N4", "N5"] as const;
+const sortModes = ["created_desc", "created_asc", "updated_desc", "updated_asc", "level_asc", "status_asc"] as const;
+const pageSize = 50;
 
-type QuestionRow = {
-  id: string;
-  content_key: string;
-  revision: number;
-  level: string;
-  test_section_code: string;
-  score_category_code: string;
-  item_type_code: string;
-  difficulty_estimate: number | null;
-  status: string;
-  authored_by: string;
-  created_at: string;
-  source_type: string;
-  prompt: unknown;
-};
+function queryValue(value: string | string[] | undefined) {
+  return (Array.isArray(value) ? value[0] : value ?? "").trim();
+}
 
 function textContent(value: unknown): string {
   if (typeof value === "string" || typeof value === "number") return String(value);
@@ -38,79 +29,89 @@ function textContent(value: unknown): string {
   return Object.values(record).map(textContent).filter(Boolean).join(" ");
 }
 
-function queryValue(value: string | string[] | undefined) {
-  return (Array.isArray(value) ? value[0] : value ?? "").trim();
+function boundedPage(value: string) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isSafeInteger(parsed) ? Math.max(1, Math.min(parsed, 100_000)) : 1;
 }
 
-export default async function AdminQuestionBankPage({ searchParams }: { searchParams: Promise<{ status?: string | string[]; level?: string | string[]; type?: string | string[]; skill?: string | string[]; q?: string | string[] }> }) {
+function makePageHref(page: number, params: Record<string, string>) {
+  const query = new URLSearchParams({ ...params, page: String(page) });
+  return `/admin/questions?${query.toString()}`;
+}
+
+export default async function AdminQuestionBankPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
   const rawStatus = queryValue(params.status);
   const status = statuses.includes(rawStatus as typeof statuses[number]) ? rawStatus : "";
   const rawLevel = queryValue(params.level);
   const level = levels.includes(rawLevel as typeof levels[number]) ? rawLevel : "";
+  const section = queryValue(params.section).slice(0, 80);
   const itemType = queryValue(params.type).slice(0, 80);
   const skill = queryValue(params.skill).toLowerCase().slice(0, 80);
-  const search = queryValue(params.q).toLowerCase().slice(0, 120);
-  const { supabase } = await requireStaff(["content_editor", "reviewer", "admin"], "/admin/questions");
-  if (!supabase) {
-    return <ProductPage eyebrow="Staff workspace" title="Question bank unavailable" description="Connect Supabase and sign in with a content editor, reviewer or administrator account."><ProductSection title="Setup required"><PaperPanel><p>Question inventory requires the platform schema and staff role assignment.</p></PaperPanel></ProductSection></ProductPage>;
+  const search = queryValue(params.q).slice(0, 120);
+  const rawDifficulty = queryValue(params.difficulty);
+  const difficulty = /^[1-5]$/.test(rawDifficulty) ? Number(rawDifficulty) : null;
+  const rawSort = queryValue(params.sort);
+  const sort = sortModes.includes(rawSort as typeof sortModes[number]) ? rawSort : "created_desc";
+  const page = boundedPage(queryValue(params.page));
+  const { supabase, user, role } = await requireStaff(["content_editor", "reviewer", "admin"], "/admin/questions");
+  if (!supabase || !user) {
+    return <ProductPage eyebrow="Staff workspace" title="Question bank unavailable" description="Connect the configured database and sign in with a content editor, reviewer or administrator account."><ProductSection title="Setup required"><PaperPanel><p>Question inventory requires the platform schema and staff role assignment.</p></PaperPanel></ProductSection></ProductPage>;
   }
 
-  const countResults = await Promise.all(statuses.map((item) => supabase.from("questions").select("id", { count: "exact", head: true }).eq("status", item)));
+  const canSubmitForReview = role === "content_editor" || role === "admin";
+  const [countResults, searchResult] = await Promise.all([
+    Promise.all(statuses.map((item) => supabase.from("questions").select("id", { count: "exact", head: true }).eq("status", item))),
+    supabase.rpc("search_question_bank", {
+      p_search: search || null,
+      p_level: level || null,
+      p_section: section || null,
+      p_item_type: itemType || null,
+      p_skill: skill || null,
+      p_status: status || null,
+      p_difficulty: difficulty,
+      p_sort: sort,
+      p_page: page,
+      p_page_size: pageSize,
+    }),
+  ]);
   const counts = Object.fromEntries(statuses.map((item, index) => [item, countResults[index].count ?? null]));
-  let query = supabase.from("questions")
-    .select("id,content_key,revision,level,test_section_code,score_category_code,item_type_code,difficulty_estimate,status,authored_by,created_at,source_type,prompt")
-    .order("created_at", { ascending: false })
-    .limit(500);
-  if (status) query = query.eq("status", status);
-  if (level) query = query.eq("level", level);
-  if (itemType) query = query.eq("item_type_code", itemType);
-  const { data, error } = await query;
-  const questionRows = (data ?? []) as QuestionRow[];
-  const questionIds = questionRows.map((row) => row.id);
-  const tagLinks = questionIds.length
-    ? await supabase.from("question_tags").select("question_id,tag_id").in("question_id", questionIds)
-    : { data: [], error: null };
-  const tagIds = [...new Set((tagLinks.data ?? []).map((row) => row.tag_id))];
-  const tagRows = tagIds.length
-    ? await supabase.from("tags").select("id,slug").eq("tag_type", "skill").in("id", tagIds)
-    : { data: [], error: null };
-  const slugById = new Map((tagRows.data ?? []).map((row) => [row.id, row.slug]));
-  const tagsByQuestion = new Map<string, string[]>();
-  for (const link of tagLinks.data ?? []) {
-    const slug = slugById.get(link.tag_id);
-    if (slug) tagsByQuestion.set(link.question_id, [...(tagsByQuestion.get(link.question_id) ?? []), slug]);
-  }
-  const filteredRows = questionRows.filter((row) => {
-    const matchesSkill = !skill || (tagsByQuestion.get(row.id) ?? []).some((slug) => slug.includes(skill));
-    const matchesSearch = !search || row.id.toLowerCase().includes(search) || row.content_key.toLowerCase().includes(search) || textContent(row.prompt).toLowerCase().includes(search);
-    return matchesSkill && matchesSearch;
-  });
-  const dataError = error?.message ?? tagLinks.error?.message ?? tagRows.error?.message ?? "";
+  const payload = Array.isArray(searchResult.data) ? searchResult.data[0] : null;
+  const rows = ((payload?.items ?? []) as Array<QuestionBankTableRow & { prompt?: unknown }>).map((row) => ({
+    ...row,
+    prompt_preview: typeof row.prompt_preview === "string" ? row.prompt_preview : textContent(row.prompt),
+  }));
+  const totalCount = Number(payload?.total_count ?? 0);
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
   const countError = countResults.some((result) => result.error);
+  const filters = { q: search, level, section, skill, type: itemType, status, difficulty: difficulty ? String(difficulty) : "", sort };
 
   return (
-    <ProductPage eyebrow="Staff workspace · editor/reviewer" title="Question bank" description="Find and maintain reviewed question revisions. Drafts stay separate from approved content used by exam forms." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/questions" />}>
+    <ProductPage eyebrow="Staff workspace · editor/reviewer" title="Question bank" description="Search every question revision, then filter, sort, open or safely submit your drafts for independent review." className="product-page--admin" navigation={<AdminNavigation activePath="/admin/questions" />}>
       <ProductSection title="Question inventory" className="product-section--tint">
         <PaperPanel className="data-panel">
-          <div className="question-bank-actions"><div><p>Keep each question revision traceable from draft through independent review.</p></div><div className="account-strip__actions"><Link className="btn btn--primary" href="/admin/questions/new#manual-question">Add question</Link><Link className="btn btn--secondary" href="/admin/questions/new#import-questions">Import package</Link><Link className="text-link" href="/admin/reviews">Review queue</Link></div></div>
-          <div className="question-bank-counts" aria-label="Question counts by status">{statuses.map((item) => <div key={item}><span>{item.replaceAll("_", " ")}</span><strong>{counts[item] === null ? "—" : counts[item]}</strong></div>)}</div>
+          <div className="question-bank-actions"><div><p>Keep each question revision traceable from draft through independent review. Each result page loads directly from the database.</p></div><div className="account-strip__actions"><Link className="btn btn--primary" href="/admin/questions/new#manual-question">Add question</Link><Link className="btn btn--secondary" href="/admin/questions/new#import-questions">Upload content</Link></div></div>
+          <div className="question-bank-counts" aria-label="Question counts by status">{statuses.map((item) => <div key={item}><span>{item === "retired" ? "archived" : item.replaceAll("_", " ")}</span><strong>{counts[item] === null ? "—" : counts[item]}</strong></div>)}</div>
           {countError ? <p className="section-note">One or more status counts could not be loaded for this role.</p> : null}
           <form className="admin-export-form question-bank-filters" method="get">
             <div className="admin-export-form__fields">
-              <label>Search by question ID or prompt<input name="q" defaultValue={search} maxLength={120} placeholder="ID, content family, or Japanese text" /></label>
+              <label>Search by ID or question text<input name="q" defaultValue={search} maxLength={120} placeholder="Question ID, family or Japanese text" /></label>
               <label>JLPT level<select name="level" defaultValue={level}><option value="">All levels</option>{levels.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+              <label>Section code<input name="section" defaultValue={section} maxLength={80} placeholder="e.g. vocabulary" /></label>
               <label>Skill tag<input name="skill" defaultValue={skill} maxLength={80} placeholder="e.g. vocabulary" /></label>
               <label>Question type<input name="type" defaultValue={itemType} maxLength={80} placeholder="Type code" /></label>
-              <label>Status<select name="status" defaultValue={status}><option value="">All statuses</option>{statuses.map((item) => <option value={item} key={item}>{item.replaceAll("_", " ")}</option>)}</select></label>
+              <label>Difficulty<select name="difficulty" defaultValue={difficulty ?? ""}><option value="">Any difficulty</option>{[1, 2, 3, 4, 5].map((value) => <option value={value} key={value}>{value}</option>)}</select></label>
+              <label>Status<select name="status" defaultValue={status}><option value="">All statuses</option>{statuses.map((item) => <option value={item} key={item}>{item === "retired" ? "archived" : item.replaceAll("_", " ")}</option>)}</select></label>
+              <label>Sort by<select name="sort" defaultValue={sort}><option value="created_desc">Recently created</option><option value="created_asc">Oldest created</option><option value="updated_desc">Recently updated</option><option value="updated_asc">Oldest updated</option><option value="level_asc">JLPT level</option><option value="status_asc">Status</option></select></label>
+              <input type="hidden" name="page" value="1" />
             </div>
-            <div className="question-bank-filters__actions"><button className="btn btn--secondary" type="submit">Search questions</button><Link className="text-link" href="/admin/questions">Clear filters</Link></div>
+            <div className="question-bank-filters__actions"><button className="btn btn--secondary" type="submit">Apply filters</button><Link className="text-link" href="/admin/questions">Clear filters</Link></div>
           </form>
-          {dataError ? <p className="inline-notice">Question records or skill tags could not be loaded. Confirm the question workflow migrations and your staff role.</p> : !filteredRows.length ? <div className="empty-state"><p>No question revisions match these filters.</p><Link className="text-link" href="/admin/questions/new#manual-question">Create an original draft</Link></div> : <div className="table-scroll"><table><thead><tr><th>Question</th><th>Level</th><th>Section · type</th><th>Skill tags</th><th>Difficulty</th><th>Status</th></tr></thead><tbody>{filteredRows.map((row) => <tr key={row.id}>
-            <td><Link className="text-link" href={`/admin/questions/${row.id}`}>Revision {row.revision}</Link><small>{textContent(row.prompt).slice(0, 110) || "Prompt has no text preview"}</small><small><code>{row.id.slice(0, 8)}</code> · family {row.content_key.slice(0, 8)}</small></td>
-            <td>{row.level}</td><td>{row.test_section_code}<small>{row.item_type_code}</small></td><td>{(tagsByQuestion.get(row.id) ?? []).join(", ") || "—"}</td><td>{row.difficulty_estimate ?? "—"}</td><td><span className="status-chip">{row.status.replaceAll("_", " ")}</span></td>
-          </tr>)}</tbody></table></div>}
-          {!dataError && questionRows.length === 500 ? <p className="section-note">Search and skill filters apply to the 500 newest revisions matching the database filters.</p> : null}
+          {searchResult.error ? <p className="inline-notice">The question bank search is unavailable. Apply the latest local migration and confirm your content editor or reviewer role. Details: {searchResult.error.message}</p> : <>
+            <p className="section-note" aria-live="polite">Showing {totalCount === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of {totalCount} matching revisions.</p>
+            <QuestionBankTable rows={rows} userId={user.id} canSubmitForReview={canSubmitForReview} />
+            {pageCount > 1 ? <nav className="question-bank-pagination" aria-label="Question result pages"><span>Page {page} of {pageCount}</span><div>{page > 1 ? <Link className="btn btn--secondary" href={makePageHref(page - 1, filters)}>Previous</Link> : <span className="btn btn--secondary" aria-disabled="true">Previous</span>}{page < pageCount ? <Link className="btn btn--secondary" href={makePageHref(page + 1, filters)}>Next</Link> : <span className="btn btn--secondary" aria-disabled="true">Next</span>}</div></nav> : null}
+          </>}
         </PaperPanel>
       </ProductSection>
     </ProductPage>
