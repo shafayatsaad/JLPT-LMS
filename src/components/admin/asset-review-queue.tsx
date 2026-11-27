@@ -36,6 +36,7 @@ export function AssetReviewQueue({ rows }: { rows: AssetReviewItem[] }) {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
+  const [reviewedIds, setReviewedIds] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,15 +68,19 @@ export function AssetReviewQueue({ rows }: { rows: AssetReviewItem[] }) {
     });
     setBusyId("");
     if (reviewError) setError(reviewError.message);
-    else router.refresh();
+    else {
+      setReviewedIds((current) => current.includes(row.id) ? current : [...current, row.id]);
+      router.refresh();
+    }
   }
 
-  if (!rows.length) return <div className="empty-state"><p>No media assets are waiting for review.</p></div>;
+  const visibleRows = rows.filter((row) => !reviewedIds.includes(row.id));
+  if (!visibleRows.length) return <div className="empty-state"><p>No media assets are waiting for review.</p></div>;
 
   return (
     <div className="asset-review-queue">
       {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
-      {rows.map((row) => (
+      {visibleRows.map((row) => (
         <article className="asset-review-queue__item" key={`${row.id}:${row.question_id}`}>
           <div className="review-queue__meta"><span>{row.media_type}</span><span>{row.status}</span><span>{row.purpose.replaceAll("_", " ")}</span><code>{row.id.slice(0, 8)}</code></div>
           <div className="asset-review-queue__question"><strong>Attached question</strong><p lang="ja">{renderPrompt(row.question_prompt)}</p><code>{row.question_id}</code></div>
