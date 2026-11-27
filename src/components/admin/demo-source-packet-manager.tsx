@@ -15,6 +15,7 @@ export type DemoSourcePacketRow = {
   pdf_bytes: number;
   audio_file_name: string | null;
   audio_bytes: number | null;
+  uploaded_by: string;
   rights_status: string;
   rights_notes: string;
   created_at: string;
@@ -26,7 +27,7 @@ const maxPdfBytes = 100 * 1024 * 1024;
 const maxAudioBytes = 50 * 1024 * 1024;
 const audioTypes: Record<string, string> = { mp3: "audio/mpeg", m4a: "audio/mp4", mp4: "audio/mp4", aac: "audio/aac", ogg: "audio/ogg", wav: "audio/wav", webm: "audio/webm" };
 
-export function DemoSourcePacketManager({ packets, canUpload = true, canArchive = false }: { packets: DemoSourcePacketRow[]; canUpload?: boolean; canArchive?: boolean }) {
+export function DemoSourcePacketManager({ packets, canUpload = true, canArchive = false, userId }: { packets: DemoSourcePacketRow[]; canUpload?: boolean; canArchive?: boolean; userId: string }) {
   const router = useRouter();
   const folderRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -132,9 +133,9 @@ export function DemoSourcePacketManager({ packets, canUpload = true, canArchive 
     <div className="demo-source-list">
       {packets.length ? packets.map((packet) => <article className="paper-panel demo-source-card" key={packet.id}>
         <header><div><span className="status-chip status-chip--muted">{packet.level} · {packet.rights_status.replaceAll("_", " ")}</span><h3>{packet.title}</h3><p>{packet.release_label} · {packet.source_kind.replaceAll("_", " ")}</p></div>{canArchive ? <button className="btn btn--secondary" type="button" disabled={busy} onClick={() => void archive(packet.id)}>Archive</button> : null}</header>
-        <div className="demo-source-card__files"><span>{packet.pdf_file_name} · {(Number(packet.pdf_bytes) / 1024 / 1024).toFixed(1)} MB</span>{packet.audio_file_name ? <span>{packet.audio_file_name} · {(Number(packet.audio_bytes) / 1024 / 1024).toFixed(1)} MB</span> : null}</div>
-        {packet.pdf_url ? <details><summary>Open paper reference</summary><iframe title={`${packet.title} PDF reference`} src={packet.pdf_url} loading="lazy" /></details> : <p className="section-note">PDF preview URL could not be created.</p>}
-        {packet.audio_url ? <audio controls preload="none" src={packet.audio_url}>Audio playback is not supported in this browser.</audio> : null}
+        <div className="demo-source-card__files"><span>{packet.pdf_file_name} · {(Number(packet.pdf_bytes) / (1024 * 1024)).toFixed(1)} MB</span>{packet.audio_file_name ? <span>{packet.audio_file_name} · {(Number(packet.audio_bytes) / (1024 * 1024)).toFixed(1)} MB</span> : null}<span>Uploaded {new Date(packet.created_at).toLocaleString("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} by {packet.uploaded_by === userId ? "you" : packet.uploaded_by.slice(0, 8)}</span></div>
+        {packet.pdf_url ? <><details><summary>Preview paper reference</summary><iframe title={`${packet.title} PDF reference`} src={packet.pdf_url} loading="lazy" /></details><a className="text-link" href={packet.pdf_url} download={packet.pdf_file_name}>Download original PDF</a></> : <p className="section-note">PDF preview URL could not be created.</p>}
+        {packet.audio_url ? <><audio controls preload="none" src={packet.audio_url}>Audio playback is not supported in this browser.</audio><a className="text-link" href={packet.audio_url} download={packet.audio_file_name ?? undefined}>Download original audio</a></> : null}
         <p className="section-note">Rights note: {packet.rights_notes}</p>
       </article>) : <div className="empty-state"><p>No private source packets have been uploaded yet.</p></div>}
     </div>
