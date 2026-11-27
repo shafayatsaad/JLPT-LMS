@@ -4,10 +4,17 @@ export type AdminNavigationItem = {
   roles: readonly string[];
 };
 
+export type AdminNavigationTab = {
+  href: string;
+  title: string;
+};
+
 export type AdminNavigationGroup = {
   id: string;
   title: string;
+  landingHref: string;
   items: readonly AdminNavigationItem[];
+  tabs: readonly AdminNavigationTab[];
 };
 
 const allStaff = ["content_editor", "reviewer", "payment_reviewer", "support_agent", "admin"] as const;
@@ -19,67 +26,110 @@ const paymentStaff = ["payment_reviewer", "admin"] as const;
 const supportStaff = ["support_agent", "admin"] as const;
 const admins = ["admin"] as const;
 
+/**
+ * Items define route authorization and metadata. Tabs are a smaller contextual
+ * subset, so simplifying navigation never removes a route-level permission.
+ */
 export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
   {
-    id: "overview",
-    title: "Overview",
+    id: "dashboard",
+    title: "Dashboard",
+    landingHref: "/admin",
+    items: [{ href: "/admin", title: "Dashboard", roles: allStaff }],
+    tabs: [],
+  },
+  {
+    id: "question-bank",
+    title: "Question Bank",
+    landingHref: "/admin/questions",
     items: [
-      { href: "/admin", title: "Operational overview", roles: allStaff },
+      { href: "/admin/questions", title: "All questions", roles: contentStaff },
+      { href: "/admin/questions/new", title: "Upload content", roles: editors },
+      { href: "/admin/assets", title: "Files & media", roles: contentStaff },
+      { href: "/admin/reviews", title: "Review", roles: reviewers },
+      { href: "/admin/sources", title: "Source files", roles: contentStaff },
+      // Kept as a compatibility route until old bookmarks have been migrated.
+      { href: "/admin/content", title: "Question Bank", roles: contentStaff },
+    ],
+    tabs: [
+      { href: "/admin/questions", title: "All questions" },
+      { href: "/admin/questions/new", title: "Upload content" },
+      { href: "/admin/assets", title: "Files & media" },
+      { href: "/admin/reviews", title: "Review" },
     ],
   },
   {
-    id: "content",
-    title: "Content",
+    id: "exam-manager",
+    title: "Exam Manager",
+    landingHref: "/admin/exam-forms",
     items: [
-      { href: "/admin/content", title: "Content overview", roles: contentStaff },
-      { href: "/admin/questions", title: "Question Bank", roles: contentStaff },
-      { href: "/admin/questions/new", title: "Import and author", roles: editors },
-      { href: "/admin/sources", title: "Source Library", roles: contentStaff },
-      { href: "/admin/assets", title: "Media Library", roles: contentStaff },
-      { href: "/admin/reviews", title: "Review Queue", roles: reviewers },
+      { href: "/admin/exam-forms", title: "Exam Manager", roles: editorsAndReviewers },
+      { href: "/admin/blueprints", title: "Blueprints", roles: editorsAndReviewers },
+      { href: "/admin/exam-preview", title: "Selected exam preview", roles: editorsAndReviewers },
+      { href: "/admin/attempts", title: "Exam attempts", roles: reviewers },
     ],
-  },
-  {
-    id: "exams",
-    title: "Exams",
-    items: [
-      { href: "/admin/exam-forms", title: "Exam Builder", roles: editorsAndReviewers },
-      { href: "/admin/blueprints", title: "Exam Blueprints", roles: editorsAndReviewers },
-      { href: "/admin/exam-preview", title: "Exam Preview", roles: editorsAndReviewers },
+    tabs: [
+      { href: "/admin/exam-forms", title: "Exams" },
+      { href: "/admin/exam-preview", title: "Preview" },
+      { href: "/admin/blueprints", title: "Blueprints" },
+      { href: "/admin/attempts", title: "Attempts" },
     ],
   },
   {
     id: "students",
     title: "Students",
+    landingHref: "/admin/users",
     items: [
-      { href: "/admin/users", title: "Students and Staff", roles: admins },
-      { href: "/admin/support", title: "Support Requests", roles: supportStaff },
+      { href: "/admin/users", title: "Students and staff", roles: admins },
+      { href: "/admin/support", title: "Support requests", roles: supportStaff },
+      { href: "/admin/privacy", title: "Privacy requests", roles: admins },
+    ],
+    tabs: [
+      { href: "/admin/users", title: "Students" },
+      { href: "/admin/support", title: "Support" },
+      { href: "/admin/privacy", title: "Privacy" },
     ],
   },
   {
     id: "payments",
     title: "Payments",
+    landingHref: "/admin/payments",
     items: [
-      { href: "/admin/payments", title: "Pending Verification", roles: paymentStaff },
-      { href: "/admin/plans", title: "Plans & Pricing", roles: admins },
-      { href: "/admin/entitlements", title: "Plans and Access", roles: admins },
-      { href: "/admin/settings/payments", title: "Payment Settings", roles: admins },
+      { href: "/admin/payments", title: "Pending verification", roles: paymentStaff },
+      { href: "/admin/plans", title: "Plans and pricing", roles: admins },
+      { href: "/admin/entitlements", title: "Plans and access", roles: admins },
+      { href: "/admin/settings/payments", title: "Payment settings", roles: admins },
+    ],
+    tabs: [
+      { href: "/admin/payments", title: "Reviews" },
+      { href: "/admin/plans", title: "Plans" },
+      { href: "/admin/entitlements", title: "Access" },
+      { href: "/admin/settings/payments", title: "Payment setup" },
     ],
   },
   {
-    id: "reports-settings",
-    title: "Reports & Settings",
+    id: "settings",
+    title: "Settings",
+    landingHref: "/admin/settings",
     items: [
-      { href: "/admin/reports", title: "Reports & Exports", roles: paymentStaff },
-      { href: "/admin/attempts", title: "Exam Attempts", roles: reviewers },
-      { href: "/admin/audit", title: "Audit Log", roles: admins },
-      { href: "/admin/settings", title: "Platform Settings", roles: admins },
-      { href: "/admin/staff", title: "Staff and Roles", roles: admins },
+      { href: "/admin/settings", title: "Platform settings", roles: admins },
+      { href: "/admin/reports", title: "Reports and exports", roles: paymentStaff },
+      { href: "/admin/audit", title: "Audit log", roles: admins },
+      { href: "/admin/staff", title: "Staff and roles", roles: admins },
       { href: "/admin/announcements", title: "Announcements", roles: admins },
-      { href: "/admin/privacy", title: "Privacy Requests", roles: admins },
       { href: "/admin/settings/integrations", title: "Integrations", roles: admins },
       { href: "/admin/settings/security", title: "Security", roles: admins },
       { href: "/admin/settings/notifications", title: "Notifications", roles: admins },
+      { href: "/admin/settings/general", title: "General settings", roles: admins },
+      { href: "/admin/settings/maintenance", title: "Maintenance", roles: admins },
+      { href: "/admin/settings/email", title: "Email settings", roles: admins },
+    ],
+    tabs: [
+      { href: "/admin/settings", title: "Configuration" },
+      { href: "/admin/staff", title: "Staff" },
+      { href: "/admin/reports", title: "Reports" },
+      { href: "/admin/audit", title: "Activity" },
+      { href: "/admin/settings/integrations", title: "Integrations" },
     ],
   },
 ];
@@ -87,9 +137,14 @@ export const ADMIN_NAVIGATION_GROUPS: readonly AdminNavigationGroup[] = [
 export const ADMIN_NAVIGATION_ITEMS = ADMIN_NAVIGATION_GROUPS.flatMap((group) => group.items);
 
 export function getVisibleAdminNavigationGroups(roles: readonly string[]) {
-  const isAdmin = roles.includes("admin");
-  return ADMIN_NAVIGATION_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => isAdmin || item.roles.some((role) => roles.includes(role))),
-  })).filter((group) => group.items.length > 0);
+  return ADMIN_NAVIGATION_GROUPS.map((group) => {
+    const items = group.items.filter((item) => item.roles.some((role) => roles.includes(role)));
+    const availableHrefs = new Set(items.map((item) => item.href));
+    return {
+      ...group,
+      items,
+      landingHref: availableHrefs.has(group.landingHref) ? group.landingHref : items[0]?.href ?? group.landingHref,
+      tabs: group.tabs.filter((tab) => availableHrefs.has(tab.href)),
+    };
+  }).filter((group) => group.items.length > 0);
 }
