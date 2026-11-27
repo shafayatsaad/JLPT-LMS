@@ -59,28 +59,26 @@ export async function AdminNavigation({
         </nav>
         <nav className="admin-workspace-navigation__areas" aria-label="Staff areas">
           {groups.map((group) => {
-            const landing = group.items[0];
             const areaIsActive = group.id === active?.group.id;
             return (
               <Link
                 className={areaIsActive ? "is-current" : ""}
-                href={landing.href}
+                href={group.landingHref}
                 key={group.id}
-                aria-current={areaIsActive ? path === landing.href ? "page" : "location" : undefined}
+                aria-current={areaIsActive ? path === group.landingHref ? "page" : "location" : undefined}
               >
                 {group.title}
               </Link>
             );
           })}
         </nav>
-        {active && active.group.items.length > 1 ? (
+        {active?.group.tabs.length ? (
           <nav className="admin-workspace-navigation__subnav" aria-label={`${active.group.title} tools`}>
-            {active.group.items.slice(1).map((item) => {
-              const itemIsCurrent = item.href === active.item.href;
-              const exactCurrent = path === item.href;
+            {active.group.tabs.map((tab) => {
+              const tabIsCurrent = path === tab.href || path.startsWith(`${tab.href}/`);
               return (
-                <Link className={itemIsCurrent ? "is-current" : ""} href={item.href} key={item.href} aria-current={exactCurrent ? "page" : itemIsCurrent ? "location" : undefined}>
-                  {item.title}
+                <Link className={tabIsCurrent ? "is-current" : ""} href={tab.href} key={tab.href} aria-current={path === tab.href ? "page" : tabIsCurrent ? "location" : undefined}>
+                  {tab.title}
                 </Link>
               );
             })}
