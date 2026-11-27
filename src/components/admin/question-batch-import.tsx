@@ -317,7 +317,7 @@ export function QuestionBatchImport() {
       if (draftError || !Array.isArray(data)) throw draftError ?? new Error("Draft creation returned an invalid result.");
       questionIds = data.map(String);
       const batchId = createClientUuid();
-      const attachments: { question_id: string; storage_path: string; media_type: string; purpose: string; duration_seconds: null }[] = [];
+      const attachments: { question_id: string; storage_path: string; media_type: string; purpose: string; duration_seconds: null; file_name: string; file_size_bytes: number }[] = [];
 
       for (const [questionIndex, question] of questions.entries()) for (const asset of question.assets) {
         const file = fileForReference(files, asset.file);
@@ -327,7 +327,7 @@ export function QuestionBatchImport() {
         const { error: uploadError } = await supabase.storage.from("jlpt-question-assets").upload(storagePath, file, { contentType: type, cacheControl: "3600", upsert: false });
         if (uploadError) throw new Error(`Upload failed for “${file.name}”: ${uploadError.message}`);
         uploadedPaths.push(storagePath);
-        attachments.push({ question_id: questionIds[questionIndex], storage_path: storagePath, media_type: type, purpose: asset.purpose, duration_seconds: null });
+        attachments.push({ question_id: questionIds[questionIndex], storage_path: storagePath, media_type: type, purpose: asset.purpose, duration_seconds: null, file_name: file.name, file_size_bytes: file.size });
       }
 
       let registeredAssetIds: string[] = [];
@@ -336,7 +336,16 @@ export function QuestionBatchImport() {
         if (attachError || !Array.isArray(assetData)) throw new Error(attachError?.message ?? "Media uploaded, but the assets could not be attached to the question drafts.");
         assetsRegistered = true;
         registeredAssetIds = [...new Set(assetData.map(String))];
-        for (const assetId of registeredAssetIds) {
+        if (assetData.length !== attachments.length) throw new Error("The database returned an incomplete asset attachment list.");
+        for (const [index, assetIdValue] of assetData.entries()) {
+          const assetId = String(assetIdValue);
+          const attachment = attachments[index];
+          const { error: metadataError } = await supabase.rpc("update_question_asset_file_details", {
+            p_asset_id: assetId,
+            p_file_name: attachment.file_name,
+            p_file_size_bytes: attachment.file_size_bytes,
+          });
+          if (metadataError) throw new Error(`The asset was attached but its file details could not be saved: ${metadataError.message}`);
           const { error: reviewError } = await supabase.rpc("submit_content_asset_for_review", { p_asset_id: assetId });
           if (reviewError) throw new Error(`Question media is attached, but asset review submission failed: ${reviewError.message}`);
         }
