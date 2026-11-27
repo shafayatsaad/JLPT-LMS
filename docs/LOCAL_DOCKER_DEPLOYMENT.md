@@ -24,6 +24,15 @@ npm run demo:local:docker:stop
 
 Supabase remains available. Use the Supabase CLI to stop its local containers separately if desired. Starting the Docker demo again reuses the same local volumes.
 
+When a newer checkout adds database migrations, start Docker/Supabase and apply only the outstanding migrations before starting the app:
+
+```powershell
+npx supabase migration up --local
+npm run demo:local:docker
+```
+
+This updates the existing local schema without reseeding or resetting the database. Do not use `supabase db reset` when preserving test accounts, attempts, payments, QA forms or uploaded files.
+
 ## Let trusted testers on the same private network open the demo
 
 Start Docker Desktop, then from `D:\JLPT LMS` run:
@@ -69,7 +78,7 @@ npm run supabase:config:validate
 
 ## Database and content data
 
-- Migrations are in `supabase/migrations`; current Docker-local migration history is synced through `202611250054`.
+- Migrations are in `supabase/migrations`; current Docker-local migration history is synced through `202611270058`.
 - `npm run supabase:audit` and `npm run supabase:content-audit` use local Supabase CLI connection values and reject non-loopback URLs.
 - The normal Docker app launcher does not reset or reseed. The existing `npm run demo:local` script resets only the local Supabase database and loads demo seed data; it is a separate explicit operation and must not be used when you want to keep current test data.
 - Supabase owns database/storage volumes. The app container itself stores no learner records.
