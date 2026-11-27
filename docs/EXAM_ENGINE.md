@@ -23,7 +23,7 @@ Premium forms require an active entitlement. The exam page shows the premium-req
 3. Deadlines finalize on an attempt RPC or an open-page deadline refresh. No scheduled worker closes and grades attempts while all clients are disconnected.
 4. Back navigation and sign-out are guarded, and refresh/tab-close use the browser warning. Browser behavior varies, and a browser or process can still close without confirmation.
 5. Fullscreen is browser-controlled and requires a user gesture. The product must use a visible optional “Enter full screen” action and graceful fallback; it must not claim fullscreen can be forced.
-6. Current selected-form preview is not wired to the actual learner renderer; `/admin/exam-preview` remains a fixed N5 sample.
+6. The staff preview at `/admin/exam-preview?form=<id>` reads the selected saved form and presents a read-only paper rendering with its approved media. It does not start or persist an exam attempt; the public N5 demo preview remains separate.
 7. No launch-quality, rights-cleared full mock inventory exists for N1–N4. N5 local counts include synthetic QA content.
 
 ## Before launching paid exams
