@@ -6,9 +6,13 @@ test("admin navigation uses the six requested areas without duplicate destinatio
   const groups = getVisibleAdminNavigationGroups(["admin"]);
   const items = groups.flatMap((group) => group.items);
 
-  assert.deepEqual(groups.map((group) => group.title), ["Overview", "Content", "Exams", "Students", "Payments", "Reports & Settings"]);
-  assert.equal(items.length, 26);
+  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Question Bank", "Exam Manager", "Students", "Payments", "Settings"]);
+  assert.equal(groups.map((group) => group.landingHref).length, 6);
+  assert.equal(items.length, 29);
   assert.equal(new Set(items.map((item) => item.href)).size, items.length);
+  assert.deepEqual(groups.find((group) => group.id === "question-bank").tabs.map((tab) => tab.title), [
+    "All questions", "Upload content", "Files & media", "Review",
+  ]);
 });
 
 test("content editor navigation keeps the authoring and exam workflows", () => {
@@ -17,11 +21,11 @@ test("content editor navigation keeps the authoring and exam workflows", () => {
 
   assert.deepEqual(hrefs, [
     "/admin",
-    "/admin/content",
     "/admin/questions",
     "/admin/questions/new",
-    "/admin/sources",
     "/admin/assets",
+    "/admin/sources",
+    "/admin/content",
     "/admin/exam-forms",
     "/admin/blueprints",
     "/admin/exam-preview",
@@ -34,11 +38,11 @@ test("reviewer navigation contains content review and exam attempts but no user,
 
   assert.deepEqual(hrefs, [
     "/admin",
-    "/admin/content",
     "/admin/questions",
-    "/admin/sources",
     "/admin/assets",
     "/admin/reviews",
+    "/admin/sources",
+    "/admin/content",
     "/admin/exam-forms",
     "/admin/blueprints",
     "/admin/exam-preview",
@@ -51,12 +55,15 @@ test("reviewer navigation contains content review and exam attempts but no user,
 
 test("payment reviewer only sees their queues and reports", () => {
   const groups = getVisibleAdminNavigationGroups(["payment_reviewer"]);
+  assert.deepEqual(groups.map((group) => group.title), ["Dashboard", "Payments", "Settings"]);
   assert.deepEqual(groups.flatMap((group) => group.items.map((item) => item.href)), ["/admin", "/admin/payments", "/admin/reports"]);
+  assert.deepEqual(groups.find((group) => group.id === "settings").tabs.map((tab) => tab.title), ["Reports"]);
 });
 
 test("support agent can open support without gaining other staff destinations", () => {
   const groups = getVisibleAdminNavigationGroups(["support_agent"]);
   assert.deepEqual(groups.flatMap((group) => group.items.map((item) => item.href)), ["/admin", "/admin/support"]);
+  assert.equal(groups.find((group) => group.id === "students").landingHref, "/admin/support");
 });
 
 test("learner roles receive no staff navigation", () => {
