@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { PaperPanel, ProductPage, ProductSection } from "@/components/product-page";
 import { ReviewQueue, type ReviewQueueItem } from "@/components/admin/review-queue";
 import { QuestionAuthoringForm } from "@/components/admin/question-authoring-form";
 import { AssetReviewQueue, type AssetReviewItem } from "@/components/admin/asset-review-queue";
+import { AssetLibrary, type AssetLibraryDraftQuestion, type AssetLibraryRow } from "@/components/admin/asset-library";
 import { BlueprintAuthoringForm, BlueprintReviewQueue, type BlueprintReviewItem } from "@/components/admin/blueprint-workflow";
 import { ExamFormAssembly, ExamFormReviewQueue } from "@/components/admin/exam-form-workflow";
 import { UserRoleManager, type AdminUserRow } from "@/components/admin/user-role-manager";
@@ -16,11 +18,9 @@ import { ManualPaymentSettingsForm, PaymentPlanManager, PaymentReviewQueue, type
 import { requireSignedInUser, requireStaffMfa } from "@/lib/auth";
 import { getPaymentSheetReadiness } from "@/lib/google-sheets";
 import { isLocalDemoEnvironment } from "@/lib/local-demo";
-import { ExamBookletRenderer } from "@/components/exam-booklet-renderer";
-import { SignOutButton } from "@/components/sign-out-button";
-import previewStyles from "@/components/exam-preview-admin.module.css";
 import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { ADMIN_NAVIGATION_ITEMS } from "@/lib/admin-navigation";
+import { SelectedExamPreview, type SelectedPreviewQuestion, type SelectedPreviewSection } from "@/components/admin/selected-exam-preview";
 
 export const dynamic = "force-dynamic";
 
@@ -55,11 +55,13 @@ function isoDateOrEmpty(value: string | string[] | undefined) {
 
 export default async function AdminPage({ params, searchParams }: {
   params: Promise<{ section?: string[] }>;
-  searchParams: Promise<{ q?: string | string[]; entity?: string | string[]; actor?: string | string[]; from?: string | string[]; to?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { section = [] } = await params;
   const query = await searchParams;
   const route = `/admin/${section.join("/")}`.replace(/\/$/, "");
+  if (route === "/admin/content") redirect("/admin/questions");
+  if (route === "/admin/sources") redirect("/admin/assets?view=sources");
   const item = routeItems.find((entry) => entry.href === route) ?? routeItems[0];
   const auditSearch = typeof query.q === "string" ? query.q.trim().slice(0, 120) : "";
   const auditEntity = typeof query.entity === "string" ? query.entity.trim().slice(0, 80) : "";
@@ -86,20 +88,85 @@ export default async function AdminPage({ params, searchParams }: {
   }
   await requireStaffMfa(supabase, route);
 
-  if (route === "/admin/sources") {
-    const result = await supabase.from("demo_source_packets")
-      .select("id,title,level,release_label,source_kind,pdf_path,pdf_file_name,pdf_bytes,audio_path,audio_file_name,audio_bytes,rights_status,rights_notes,created_at")
+  if (route === "/admin/assets") {
+    const pageValue = Array.isArray(query.page) ? query.page[0] : query.page ?? "1";
+    const page = Math.max(1, Math.min(Number.parseInt(pageValue, 10) || 1, 100_000));
+    const requestedStatus = Array.isArray(query.asset_status) ? query.asset_status[0] : query.asset_status ?? "";
+    const assetStatus = ["draft", "needs_review", "approved", "eligible_for_exam", "rejected", "retired"].includes(requestedStatus) ? requestedStatus : "";
+    const requestedType = Array.isArray(query.asset_type) ? query.asset_type[0] : query.asset_type ?? "";
+    const assetType = ["image", "audio"].includes(requestedType) ? requestedType : "";
+    let assetQuery = supabase.from("content_assets")
+      .select("id,storage_path,media_type,duration_seconds,status,uploaded_by,created_at,file_name,file_size_bytes,processing_status", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range((page - 1) * 50, page * 50 - 1);
+    if (assetStatus) assetQuery = assetQuery.eq("status", assetStatus);
+    if (assetType === "image") assetQuery = assetQuery.like("media_type", "image/%");
+    if (assetType === "audio") assetQuery = assetQuery.like("media_type", "audio/%");
+    const assetResult = await assetQuery;
+    const rawAssets = assetResult.data ?? [];
+    const assetIds = rawAssets.map((row) => row.id);
+    const questionLinks = assetIds.length
+      ? await supabase.from("question_assets").select("asset_id,question_id,purpose").in("asset_id", assetIds)
+      : { data: [], error: null };
+    const questionIds = [...new Set((questionLinks.data ?? []).map((row) => row.question_id))];
+    const [questionResult, formItemsResult] = questionIds.length ? await Promise.all([
+      supabase.from("questions").select("id,level,test_section_code,status,authored_by").in("id", questionIds),
+      supabase.from("exam_form_items").select("question_id,exam_form_id").in("question_id", questionIds),
+    ]) : [{ data: [], error: null }, { data: [], error: null }];
+    const formIds = [...new Set((formItemsResult.data ?? []).map((row) => row.exam_form_id))];
+    const formsResult = formIds.length ? await supabase.from("exam_forms").select("id,form_code,status").in("id", formIds) : { data: [], error: null };
+    const questionsById = new Map((questionResult.data ?? []).map((row) => [row.id, row]));
+    const formsById = new Map((formsResult.data ?? []).map((row) => [row.id, row]));
+    const questionFormMap = new Map<string, Set<string>>();
+    for (const link of formItemsResult.data ?? []) questionFormMap.set(link.question_id, new Set([...(questionFormMap.get(link.question_id) ?? []), link.exam_form_id]));
+    const assetRows: AssetLibraryRow[] = await Promise.all(rawAssets.map(async (row) => {
+      const [{ data: preview }] = await Promise.all([supabase.storage.from("jlpt-question-assets").createSignedUrl(row.storage_path, 1800)]);
+      const linkedQuestions = (questionLinks.data ?? []).filter((link) => link.asset_id === row.id);
+      const linkedFormIds = new Set(linkedQuestions.flatMap((link) => [...(questionFormMap.get(link.question_id) ?? [])]));
+      return {
+        ...row,
+        file_size_bytes: row.file_size_bytes === null ? null : Number(row.file_size_bytes),
+        duration_seconds: row.duration_seconds === null ? null : Number(row.duration_seconds),
+        preview_url: preview?.signedUrl ?? null,
+        questions: linkedQuestions.flatMap((link) => {
+          const question = questionsById.get(link.question_id);
+          return question ? [{ id: question.id, level: question.level, section: question.test_section_code, status: question.status, authored_by: question.authored_by, purpose: link.purpose }] : [];
+        }),
+        exams: [...linkedFormIds].flatMap((id) => { const form = formsById.get(id); return form ? [{ form_code: form.form_code, status: form.status }] : []; }),
+      };
+    }));
+    const sourceResult = await supabase.from("demo_source_packets")
+      .select("id,title,level,release_label,source_kind,pdf_path,pdf_file_name,pdf_bytes,audio_path,audio_file_name,audio_bytes,rights_status,rights_notes,uploaded_by,created_at")
       .is("archived_at", null)
-      .order("created_at", { ascending: false });
-    const packets: DemoSourcePacketRow[] = await Promise.all((result.data ?? []).map(async (row) => {
+      .order("created_at", { ascending: false })
+      .limit(100);
+    const sourcePackets: DemoSourcePacketRow[] = await Promise.all((sourceResult.data ?? []).map(async (row) => {
       const [{ data: pdfData }, audioResult] = await Promise.all([
         supabase.storage.from("jlpt-demo-source-materials").createSignedUrl(row.pdf_path, 3600),
         row.audio_path ? supabase.storage.from("jlpt-demo-source-materials").createSignedUrl(row.audio_path, 3600) : Promise.resolve({ data: null }),
       ]);
-      return { ...row, pdf_url: pdfData?.signedUrl ?? null, audio_url: audioResult.data?.signedUrl ?? null };
+      return { ...row, pdf_bytes: Number(row.pdf_bytes), audio_bytes: row.audio_bytes === null ? null : Number(row.audio_bytes), pdf_url: pdfData?.signedUrl ?? null, audio_url: audioResult.data?.signedUrl ?? null };
     }));
-    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Source Library" description="Keep owner-provided PDF and audio references private and separate from publishable question content." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
-      <ProductSection title="Upload and inspect private demo material"><PaperPanel className="data-panel">{result.error ? <p className="inline-notice">The source library migration is not available yet: {result.error.message}</p> : null}<DemoSourcePacketManager packets={packets} canUpload={roles.includes("content_editor") || isAdmin} canArchive={isAdmin} /></PaperPanel></ProductSection>
+    let draftQuestionQuery = supabase.from("questions").select("id,level,test_section_code").eq("status", "draft").order("created_at", { ascending: false }).limit(200);
+    if (!isAdmin) draftQuestionQuery = draftQuestionQuery.eq("authored_by", user.id);
+    const draftQuestionResult = roles.includes("content_editor") || isAdmin ? await draftQuestionQuery : { data: [], error: null };
+    const draftQuestions = (draftQuestionResult.data ?? []).map((question) => ({ id: question.id, level: question.level, section: question.test_section_code })) as AssetLibraryDraftQuestion[];
+    const reviewResult = roles.includes("reviewer") || isAdmin ? await supabase.rpc("get_content_asset_review_queue") : { data: [], error: null };
+    const errorMessage = assetResult.error?.message ?? questionLinks.error?.message ?? questionResult.error?.message ?? formItemsResult.error?.message ?? formsResult.error?.message ?? sourceResult.error?.message ?? draftQuestionResult.error?.message ?? reviewResult.error?.message ?? "";
+    const assetPageQuery = new URLSearchParams({ asset_status: assetStatus, asset_type: assetType });
+    const assetPageCount = Math.max(1, Math.ceil((assetResult.count ?? 0) / 50));
+    return <ProductPage eyebrow={`Staff workspace · ${roles.join(" / ")}`} title="Files & media" description="Browse private question images/audio and supplied source papers together. Preview links are short-lived and files remain private." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
+      <ProductSection title="Question media" className="product-section--tint"><PaperPanel className="data-panel">
+        {errorMessage ? <p className="inline-notice">Some files or links could not be loaded. Check the latest media library migration and your staff role. {errorMessage}</p> : null}
+        <form className="admin-export-form question-bank-filters" method="get"><div className="admin-export-form__fields"><label>Review status<select name="asset_status" defaultValue={assetStatus}><option value="">All statuses</option>{["draft", "needs_review", "approved", "eligible_for_exam", "rejected", "retired"].map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select></label><label>File type<select name="asset_type" defaultValue={assetType}><option value="">All media</option><option value="image">Images</option><option value="audio">Audio</option></select></label><input type="hidden" name="page" value="1" /></div><div className="question-bank-filters__actions"><button className="btn btn--secondary" type="submit">Filter files</button><Link className="text-link" href="/admin/assets">Clear filters</Link><span className="section-note">{assetResult.count ?? "—"} registered media files</span></div></form>
+        <AssetLibrary rows={assetRows} userId={user.id} isAdmin={isAdmin} canManage={roles.includes("content_editor") || isAdmin} draftQuestions={draftQuestions} />
+        {assetPageCount > 1 ? <nav className="question-bank-pagination" aria-label="Media pages"><span>Page {page} of {assetPageCount}</span><div>{page > 1 ? <Link className="btn btn--secondary" href={`/admin/assets?${assetPageQuery}&page=${page - 1}`}>Previous</Link> : null}{page < assetPageCount ? <Link className="btn btn--secondary" href={`/admin/assets?${assetPageQuery}&page=${page + 1}`}>Next</Link> : null}</div></nav> : null}
+      </PaperPanel></ProductSection>
+      <ProductSection title="Original papers and source audio"><PaperPanel className="data-panel">
+        {sourceResult.error ? <p className="inline-notice">Source files could not be loaded: {sourceResult.error.message}</p> : <DemoSourcePacketManager packets={sourcePackets} canUpload={roles.includes("content_editor") || isAdmin} canArchive={isAdmin} userId={user.id} />}
+        <p className="section-note">Source originals remain private references. PDFs are not converted into question content automatically and must be reviewed by a person.</p>
+      </PaperPanel></ProductSection>
+      {roles.includes("reviewer") || isAdmin ? <ProductSection title="Assets awaiting review"><PaperPanel className="data-panel"><AssetReviewQueue rows={(reviewResult.data ?? []) as unknown as AssetReviewItem[]} /></PaperPanel></ProductSection> : null}
     </ProductPage>;
   }
 
@@ -137,14 +204,74 @@ export default async function AdminPage({ params, searchParams }: {
   }
 
   if (route === "/admin/exam-preview") {
-    return (
-      <main className={previewStyles.page}>
-        <AdminNavigation activePath={route} roles={roles} />
-        <Link className={previewStyles.back} href="/admin">← Return to staff workspace</Link>
-        <header className={previewStyles.heading}><div><p>Staff preview · N5-DEMO-01</p><h1>Exam Preview</h1></div><span>Review the same monochrome question booklet and separate answer sheet shown in the learner sample.</span><SignOutButton className={previewStyles.signOut} /></header>
-        <div className={previewStyles.frame}><ExamBookletRenderer adminPreview /></div>
-      </main>
-    );
+    const requestedFormId = Array.isArray(query.form) ? query.form[0] : query.form ?? "";
+    const formListResult = await supabase.from("exam_forms").select("id,form_code,level,version,status,manifest,blueprint_id,is_frozen").order("created_at", { ascending: false }).limit(100);
+    const availableForms = formListResult.data ?? [];
+    const selectedForm = availableForms.find((form) => form.id === requestedFormId) ?? null;
+    let previewQuestions: SelectedPreviewQuestion[] = [];
+    let previewSections: SelectedPreviewSection[] = [];
+    let previewError = formListResult.error?.message ?? "";
+    if (selectedForm) {
+      const itemResult = await supabase.from("exam_form_items").select("id,question_id,position").eq("exam_form_id", selectedForm.id).order("position");
+      const itemRows = itemResult.data ?? [];
+      const selectedQuestionIds = itemRows.map((item) => item.question_id);
+      const questionResult = selectedQuestionIds.length ? await supabase.from("questions")
+        .select("id,level,test_section_code,score_category_code,item_type_code,stimulus_group_id,prompt,options")
+        .in("id", selectedQuestionIds) : { data: [], error: null };
+      const questionRows = questionResult.data ?? [];
+      const groupIds = [...new Set(questionRows.flatMap((question) => question.stimulus_group_id ? [question.stimulus_group_id] : []))];
+      const groupResult = groupIds.length ? await supabase.from("passage_groups").select("id,content").in("id", groupIds) : { data: [], error: null };
+      const questionAssetRows = selectedQuestionIds.length ? await supabase.from("question_assets").select("question_id,asset_id,purpose").in("question_id", selectedQuestionIds) : { data: [], error: null };
+      const assetIdsForPreview = [...new Set((questionAssetRows.data ?? []).map((asset) => asset.asset_id))];
+      const assetResult = assetIdsForPreview.length ? await supabase.from("content_assets").select("id,storage_path,media_type,file_name,status").in("id", assetIdsForPreview) : { data: [], error: null };
+      const slotResult = await supabase.from("blueprint_slots").select("slot_order,test_section_code,section_duration_seconds").eq("blueprint_id", selectedForm.blueprint_id).order("slot_order");
+      previewError ||= itemResult.error?.message ?? questionResult.error?.message ?? groupResult.error?.message ?? questionAssetRows.error?.message ?? assetResult.error?.message ?? slotResult.error?.message ?? "";
+      const questionsById = new Map(questionRows.map((question) => [question.id, question]));
+      const groupsById = new Map((groupResult.data ?? []).map((group) => [group.id, group.content]));
+      const assetsById = new Map((assetResult.data ?? []).map((asset) => [asset.id, asset]));
+      const mediaUrls = await Promise.all((assetResult.data ?? []).map(async (asset) => {
+        const { data: signed } = await supabase.storage.from("jlpt-question-assets").createSignedUrl(asset.storage_path, 1800);
+        return [asset.id, signed?.signedUrl ?? null] as const;
+      }));
+      const mediaUrlById = new Map(mediaUrls);
+      previewQuestions = itemRows.flatMap((item) => {
+        const question = questionsById.get(item.question_id);
+        if (!question) return [];
+        return [{
+          id: question.id,
+          position: item.position,
+          section_code: question.test_section_code,
+          item_type_code: question.item_type_code,
+          score_category_code: question.score_category_code,
+          stimulus: question.stimulus_group_id ? groupsById.get(question.stimulus_group_id) ?? null : null,
+          prompt: question.prompt,
+          options: Array.isArray(question.options) ? question.options as SelectedPreviewQuestion["options"] : [],
+          assets: (questionAssetRows.data ?? []).filter((asset) => asset.question_id === question.id).flatMap((asset) => {
+            const linkedAsset = assetsById.get(asset.asset_id);
+            return linkedAsset ? [{ media_type: linkedAsset.media_type, purpose: asset.purpose, file_name: linkedAsset.file_name, url: mediaUrlById.get(linkedAsset.id) ?? null, status: linkedAsset.status }] : [];
+          }),
+        } as SelectedPreviewQuestion];
+      });
+      const durationBySection = new Map<string, { order: number; duration: number }>();
+      for (const slot of slotResult.data ?? []) {
+        const current = durationBySection.get(slot.test_section_code);
+        durationBySection.set(slot.test_section_code, { order: Math.min(current?.order ?? slot.slot_order, slot.slot_order), duration: Math.max(current?.duration ?? 0, slot.section_duration_seconds) });
+      }
+      previewSections = [...durationBySection].sort((a, b) => a[1].order - b[1].order).map(([code, details]) => ({
+        code,
+        duration_seconds: details.duration,
+        question_count: previewQuestions.filter((question) => question.section_code === code).length,
+      }));
+    }
+    const manifest = selectedForm?.manifest && typeof selectedForm.manifest === "object" ? selectedForm.manifest as Record<string, unknown> : {};
+    const rawDirections = manifest.candidate_instructions ?? manifest.instructions;
+    const directions = Array.isArray(rawDirections) ? rawDirections.filter((value): value is string => typeof value === "string") : typeof rawDirections === "string" ? rawDirections.split(/\r?\n/).filter(Boolean) : [];
+    return <ProductPage eyebrow="Staff workspace · exam manager" title="Student exam preview" description="Select any saved form to inspect its actual candidate page, paper sections, approved media and separate answer sheet." className="product-page--admin" navigation={<AdminNavigation activePath={route} roles={roles} />}>
+      <ProductSection title="Choose an exam form"><PaperPanel className="data-panel">
+        <form className="admin-export-form question-bank-filters" method="get" action="/admin/exam-preview"><div className="admin-export-form__fields"><label>Saved exam form<select name="form" defaultValue={selectedForm?.id ?? ""}><option value="">Choose a form</option>{availableForms.map((form) => <option value={form.id} key={form.id}>{form.form_code} · {form.level} v{form.version} · {form.status}{form.is_frozen ? " · frozen" : ""}</option>)}</select></label></div><button className="btn btn--primary" type="submit" disabled={!availableForms.length}>Preview selected form</button></form>
+        {formListResult.error ? <p className="inline-notice">Exam forms could not be loaded: {formListResult.error.message}</p> : !availableForms.length ? <div className="empty-state"><p>No saved exam forms are available to preview yet.</p><Link className="text-link" href="/admin/exam-forms">Create or assemble a form</Link></div> : !selectedForm ? <p className="section-note">Choose a form to see the exact question revisions connected to it.</p> : previewError ? <p className="inline-notice">The selected form preview is incomplete: {previewError}</p> : <SelectedExamPreview formCode={selectedForm.form_code} level={selectedForm.level} version={selectedForm.version} status={selectedForm.status} title={`${selectedForm.level} Mock Examination`} directions={directions} sections={previewSections} questions={previewQuestions} />}
+      </PaperPanel></ProductSection>
+    </ProductPage>;
   }
 
   if (route === "/admin/settings/integrations") {
